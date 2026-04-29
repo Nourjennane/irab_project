@@ -33,6 +33,10 @@ COSTS = {
     "openai:gpt-4o-mini":    {"in": 0.15, "out":  0.60},
     "anthropic:claude-3-5-sonnet-latest": {"in": 3.00, "out": 15.00},
     "anthropic:claude-3-5-haiku-latest":  {"in": 0.80, "out":  4.00},
+    "anthropic:claude-haiku-4-5":         {"in": 1.00, "out":  5.00},
+    "anthropic:claude-sonnet-4-5":        {"in": 3.00, "out": 15.00},
+    "anthropic:claude-sonnet-4-6":        {"in": 3.00, "out": 15.00},
+    "anthropic:claude-opus-4-7":          {"in": 15.0, "out": 75.00},
 }
 
 
@@ -153,6 +157,10 @@ def main():
     p.add_argument("--out", type=Path, default=Path("data/distilled_irab.jsonl"))
     p.add_argument("--seed_file", type=Path, default=None,
                    help="optional file with one MSA sentence per line; falls back to bundled seeds")
+    p.add_argument("--source", choices=["bundled", "padt"], default="bundled",
+                   help="bundled = baked-in 10 sentences (only useful for tiny smoke runs). "
+                        "padt = pull MSA news sentences from data/ud_padt (preferred for real runs).")
+    p.add_argument("--padt_dir", type=Path, default=Path("data/ud_padt"))
     p.add_argument("--dry_run_n", type=int, default=10,
                    help="number of warm-up samples used to estimate cost before continuing")
     p.add_argument("--seed", type=int, default=42)
@@ -176,9 +184,18 @@ def main():
 
     if args.seed_file and args.seed_file.exists():
         seeds = [line.strip() for line in args.seed_file.read_text(encoding="utf-8").splitlines() if line.strip()]
+        print(f"using {len(seeds)} sentences from {args.seed_file}")
+    elif args.source == "padt":
+        from .ud_arabic import load_padt_examples
+        ex = load_padt_examples(args.padt_dir, download_if_missing=False)
+        # Filter to length-balanced 5-25 word sentences (the plan's spec).
+        seeds = [e.bare_text for e in ex if 5 <= len(e.word_offsets) <= 25]
+        print(f"using {len(seeds)} sentences from PADT (length 5-25 words)")
     else:
         seeds = DEFAULT_SEEDS
-        print(f"⚠ using {len(seeds)} bundled seed sentences (pass --seed_file for more)")
+        print(f"⚠ using {len(seeds)} bundled seed sentences (pass --source padt for the real corpus)")
+    if not seeds:
+        sys.exit("no source sentences available; aborting")
     rng.shuffle(seeds)
     if len(seeds) < args.n:
         # Cycle through seeds to reach N (the teacher will paraphrase variations).

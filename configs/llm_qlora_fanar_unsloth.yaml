@@ -1,0 +1,36 @@
+# Unsloth + Liger + packing variant of the Fanar 9B QLoRA recipe.
+# ~3-4× faster wall time than the vanilla qlora_sft.py. Same data, same quality.
+#
+# Bocconi MIG slice (4g.40gb ≈ 22 GB) target: stud partition.
+
+model_id: QCRI/Fanar-1-9B-Instruct
+max_seq_length: 512                  # most i'rāb pairs are well under 512 tokens
+load_in_4bit: true
+use_liger_kernels: true
+use_packing: true                    # 2× speed for short i'rāb pairs
+
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+learning_rate: 2.0e-4
+weight_decay: 0.0
+warmup_ratio: 0.03
+lr_scheduler_type: cosine
+n_epochs: 3
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8
+curriculum: [8, 16, null]
+
+dataset_cache: data/cache/combined.pkl
+drop_templated: true                 # train ONLY on Yarob + distilled (real data)
+val_split: 0.02
+seed: 42
