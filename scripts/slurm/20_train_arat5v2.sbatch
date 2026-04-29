@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=irab-arat5v2
-#SBATCH --partition=gpunew
+#SBATCH --partition=stud
+#SBATCH --qos=stud
 #SBATCH --gres=gpu:1
 #SBATCH --time=1-00:00:00
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
 #SBATCH --output=logs/arat5v2_%j.out
 
 # Stack B — full FT of AraT5v2-base-1024 (296M). ~6-10h on A100 40GB.

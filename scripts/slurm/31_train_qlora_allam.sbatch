@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=irab-qlora-allam
-#SBATCH --partition=gpunew
-#SBATCH --gres=gpu:1
+#SBATCH --partition=stud
+#SBATCH --qos=stud
+#SBATCH --gres=gpu:4g.40gb:1
 #SBATCH --time=1-00:00:00
-#SBATCH --cpus-per-task=12
-#SBATCH --mem=96G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=48G
 #SBATCH --output=logs/qlora_allam_%j.out
 
 # Stack A alternative — QLoRA SFT on ALLaM-7B-Instruct.

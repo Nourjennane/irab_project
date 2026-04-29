@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=irab-qlora-fanar
-#SBATCH --partition=long_gpunew
-#SBATCH --gres=gpu:1
-#SBATCH --time=2-00:00:00
-#SBATCH --cpus-per-task=12
-#SBATCH --mem=96G
+#SBATCH --partition=stud
+#SBATCH --qos=stud
+#SBATCH --gres=gpu:4g.40gb:1
+#SBATCH --time=1-00:00:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=48G
 #SBATCH --output=logs/qlora_fanar_%j.out
 
 # Stack A — QLoRA SFT on Fanar-1-9B-Instruct.

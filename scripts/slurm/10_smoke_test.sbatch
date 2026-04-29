@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=irab-smoke
-#SBATCH --partition=debug_gpunew
-#SBATCH --qos=debug
+#SBATCH --partition=stud
+#SBATCH --qos=stud
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:15:00
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
+#SBATCH --time=00:30:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=24G
 #SBATCH --output=logs/smoke_%j.out
 
 # 15-minute smoke test on a debug A100. Verifies:
