@@ -34,15 +34,28 @@ pip install \
 pip install flash-attn==2.7.* --no-build-isolation || \
     echo "⚠ flash-attn install failed; QLoRA script will fall back to vanilla SDPA"
 
-# Build the unified dataset cache (QAC + Tashkeela + I3rab + synthetic + Yarob + PADT).
-# Force rebuild so the new schema with irab_targets is materialized.
-python -m irab_tashkeel.training.cli \
-    --config configs/model_small.yaml \
-    --force-rebuild \
-    --dataset-cache data/cache/combined.pkl 2>&1 | tee logs/build_dataset.log &
-BUILD_PID=$!
-# Let it run only long enough to build + cache + train SP tokenizer; then kill.
-# Watch for "Cached dataset" + "Saved tokenizer" to know when both are done.
-sleep 600
-kill -INT $BUILD_PID 2>/dev/null || true
+# Build the unified dataset cache (QAC + Tashkeela + I3rab + synthetic + Yarob + PADT
+# + distilled). Pure data work — no model training.
+python - <<'PYEOF'
+from pathlib import Path
+from irab_tashkeel.data.build_dataset import build_combined_dataset, save_examples, report
+ex = build_combined_dataset(
+    tashkeela_n=50000,
+    qac_max_verses=None,
+    i3rab_path=None,
+    synthetic_per_type=2000,
+    seed=42,
+    data_dir=Path("data"),
+)
+report(ex)
+save_examples(ex, Path("data/cache/combined.pkl"))
+print(f"✓ cached {len(ex)} examples")
+PYEOF
+
+# Train the i'rāb SentencePiece tokenizer from the cache.
+python -m irab_tashkeel.models.irab_tokenizer \
+    --dataset-cache data/cache/combined.pkl \
+    --out data/irab_spm.model \
+    --vocab-size 5000
+
 echo "✓ env + dataset prep done"
