@@ -3,3 +3,12 @@ data/tashkeela/Tashkeela-arabic-diacritized-text-utf8-0.3.tar.bz2
 data/tashkeela/Tashkeela-arabic-diacritized-text-utf8-0.3/
 runs/
 data/cache/
+data/hf_cache/
+data/ud_padt/
+data/ud_nyuad/
+data/yarob_src/
+data/distilled_irab.jsonl
+__pycache__/
+*.egg-info/
+logs/
+.venv/

@@ -1,0 +1,22 @@
+# Full FT of AraT5v2-base-1024 (Stack B — lower-risk fallback).
+# Target hardware: A100 40GB+. Bocconi: `medium_gpu` or `gpu`, ~6-10h.
+
+model_id: UBC-NLP/AraT5v2-base-1024
+
+learning_rate: 1.0e-4
+weight_decay: 0.01
+warmup_ratio: 0.03
+n_epochs: 5
+per_device_train_batch_size: 16
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 1
+max_input_length: 256
+max_target_length: 768
+label_smoothing_factor: 0.1
+
+# Length-based curriculum: short sentences first, then full distribution
+curriculum: [8, 16, null, null, null]
+
+dataset_cache: data/cache/combined.pkl
+val_split: 0.02
+seed: 42

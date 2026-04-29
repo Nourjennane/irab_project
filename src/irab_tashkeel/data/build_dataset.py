@@ -11,11 +11,13 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from .distilled_loader import load_distilled_examples
 from .i3rab import load_i3rab_examples
 from .qac import download_qac, load_qac_examples
 from .schema import MTLExample
 from .synthetic import generate_synthetic_examples
 from .tashkeela import load_tashkeela_examples, load_tashkeela_sentences
+from .ud_arabic import load_padt_examples
 from .yarob import load_yarob_examples
 
 
@@ -29,6 +31,8 @@ def build_combined_dataset(
     use_huggingface: bool = True,
     data_dir: Path = Path("data"),
     include_yarob: bool = True,
+    include_padt: bool = True,
+    include_distilled: bool = True,
 ) -> List[MTLExample]:
     """Load + combine all data sources.
 
@@ -69,6 +73,27 @@ def build_combined_dataset(
         except Exception as e:
             print(f"⚠ Yarob not loaded: {e}")
 
+    # --- UD_Arabic-PADT (free MSA news, ~6.7k sentences) ---
+    if include_padt:
+        try:
+            padt_examples = load_padt_examples(data_dir / "ud_padt")
+            all_examples.extend(padt_examples)
+            if padt_examples:
+                print(f"  ud_padt: {len(padt_examples)} examples")
+        except Exception as e:
+            print(f"⚠ UD-PADT not loaded: {e}")
+
+    # --- LLM-distilled MSA pairs (only if you've run irab_tashkeel.data.distill) ---
+    distilled_path = data_dir / "distilled_irab.jsonl"
+    if include_distilled and distilled_path.exists():
+        try:
+            distilled = load_distilled_examples(distilled_path)
+            all_examples.extend(distilled)
+            if distilled:
+                print(f"  distilled: {len(distilled)} examples")
+        except Exception as e:
+            print(f"⚠ distilled not loaded: {e}")
+
     # --- Synthetic errors ---
     # Collect gold diacritized sentences (QAC is our cleanest source)
     gold_pool = []
@@ -91,6 +116,19 @@ def build_combined_dataset(
     rng.shuffle(all_examples)
 
     return all_examples
+
+
+def filter_by_word_count(
+    examples: List[MTLExample], max_words: Optional[int]
+) -> List[MTLExample]:
+    """Length-based curriculum helper: keep only examples with ≤ max_words.
+
+    Use to stage epochs (e.g., epoch 1 cap 8, epoch 2 cap 16, epoch 3 None).
+    Pass `max_words=None` to disable filtering.
+    """
+    if max_words is None:
+        return examples
+    return [e for e in examples if len(e.word_offsets) <= max_words]
 
 
 def report(examples: List[MTLExample]) -> Dict:

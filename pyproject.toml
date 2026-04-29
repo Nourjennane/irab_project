@@ -30,6 +30,14 @@ dependencies = [
 camel = ["camel-tools"]
 dev = ["pytest>=7.0", "pytest-cov", "ruff", "ipython", "jupyter"]
 app = ["streamlit>=1.38"]
+llm = [
+    "transformers>=4.46",
+    "accelerate>=1.0",
+    "peft>=0.13",
+    "bitsandbytes>=0.45",
+    "trl>=0.12",
+]
+distill = ["openai>=1.55", "anthropic>=0.40"]
 
 [project.scripts]
 irab-train = "irab_tashkeel.training.cli:main"
