@@ -161,6 +161,8 @@ def main():
                    help="bundled = baked-in 10 sentences (only useful for tiny smoke runs). "
                         "padt = pull MSA news sentences from data/ud_padt (preferred for real runs).")
     p.add_argument("--padt_dir", type=Path, default=Path("data/ud_padt"))
+    p.add_argument("--no_resume", action="store_true",
+                   help="overwrite the output file (default: append + skip already-done sentences)")
     p.add_argument("--dry_run_n", type=int, default=10,
                    help="number of warm-up samples used to estimate cost before continuing")
     p.add_argument("--seed", type=int, default=42)
@@ -204,6 +206,27 @@ def main():
     else:
         seeds = seeds[: args.n]
 
+    # ---- Resume: drop seeds whose sentence is already in the output file ----
+    resume_mode = (not args.no_resume) and args.out.exists()
+    already_done: set = set()
+    if resume_mode:
+        with open(args.out, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    row = json.loads(line)
+                    s = (row.get("sentence") or "").strip()
+                    if s:
+                        already_done.add(s)
+                except json.JSONDecodeError:
+                    continue
+        before = len(seeds)
+        seeds = [s for s in seeds if s.strip() not in already_done]
+        print(f"resume: {len(already_done)} sentences already in {args.out}; "
+              f"{len(seeds)}/{before} seeds remain to do")
+        if not seeds:
+            print(f"✓ nothing to do — file already has {len(already_done)} samples")
+            return
+
     call = call_openai if args.provider == "openai" else call_anthropic
 
     # ---- Dry run for cost estimate ----
@@ -237,10 +260,10 @@ def main():
         sys.exit(f"estimated cost ${est_cost:.2f} > budget ${args.budget_usd:.2f}; aborting")
 
     # ---- Full run ----
-    print(f"\n=== Generating {args.n} samples → {args.out} ===")
+    print(f"\n=== Generating {len(seeds)} samples → {args.out}  (mode={'append' if resume_mode else 'overwrite'}) ===")
     n_done = len(dry_seen)
     spent = sum(estimate_cost(1, s.in_tokens, s.out_tokens, cost_key) for s in dry_seen)
-    with open(args.out, "w", encoding="utf-8") as fout:
+    with open(args.out, "a" if resume_mode else "w", encoding="utf-8") as fout:
         for s in dry_seen:
             fout.write(json.dumps({"sentence": s.sentence, "items": s.items, "teacher": s.teacher}, ensure_ascii=False) + "\n")
         for i, sentence in enumerate(seeds[args.dry_run_n:], start=args.dry_run_n):
