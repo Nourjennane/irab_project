@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=irab-qlora-allam
-#SBATCH --partition=gpu
+#SBATCH --partition=gpunew
 #SBATCH --gres=gpu:1
 #SBATCH --time=1-00:00:00
 #SBATCH --cpus-per-task=12

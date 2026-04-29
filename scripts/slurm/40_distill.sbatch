@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=irab-distill
-#SBATCH --partition=cpu_large_N_mix
-#SBATCH --time=04:00:00
+#SBATCH --partition=medium_cpu
+#SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=8G
 #SBATCH --output=logs/distill_%j.out

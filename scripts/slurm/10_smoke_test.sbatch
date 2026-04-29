@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=irab-smoke
-#SBATCH --partition=debug_gpu
+#SBATCH --partition=debug_gpunew
+#SBATCH --qos=debug
 #SBATCH --gres=gpu:1
 #SBATCH --time=00:15:00
 #SBATCH --cpus-per-task=8
