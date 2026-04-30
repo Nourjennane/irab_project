@@ -18,11 +18,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 
-SYSTEM = """أنت مدقق نحوي عربي خبير. عند إعطائك جملة عربية فصيحة (MSA)، أعرب كل كلمة في الجملة إعرابًا تامًا على غرار الإعراب التقليدي.
+SYSTEM = """أنت مدقق نحوي عربي خبير. عند إعطائك جملة عربية فصيحة (MSA)، أعرب كل كلمة في الجملة إعرابًا تامًا على غرار الإعراب التقليدي، وشكّل كل كلمة بالتشكيل الكامل.
 
 قواعد الإخراج (يجب الالتزام بها بدقة):
 - أخرج JSON فقط (مصفوفة من الكائنات).
-- كل كائن يحوي: word (الكلمة بدون تشكيل)، irab (الإعراب الكامل)، pos، case، role، marker.
+- كل كائن يحوي: word (الكلمة بدون تشكيل)، diacritized (الكلمة بالتشكيل الكامل بناءً على إعرابها)، irab (الإعراب الكامل)، pos، case، role، marker.
 - "case" من المجموعة: rafʿ، naṣb، jarr، jazm، mabni.
 - "marker" مثل: الضمة الظاهرة، الفتحة الظاهرة، الكسرة الظاهرة، السكون، الواو، الياء، تنوين الفتح.
 - "role" من نحو: فاعل، مفعول به، مضاف إليه، اسم مجرور، حال، نعت، مبتدأ، خبر، اسم إن، خبر إن، مفعول مطلق، تمييز.
@@ -35,6 +35,7 @@ USER_TEMPLATE = "الجملة:\n{sentence}\n\nاكتب الإعراب الكام
 class WordIrab:
     word: str
     irab: str
+    diacritized: Optional[str] = None
     pos: Optional[str] = None
     case: Optional[str] = None
     role: Optional[str] = None
@@ -42,16 +43,20 @@ class WordIrab:
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "WordIrab":
+        diac = d.get("diacritized")
         return cls(
             word=str(d.get("word", "")),
             irab=str(d.get("irab", "")),
+            diacritized=str(diac) if diac else None,
             pos=d.get("pos"), case=d.get("case"),
             role=d.get("role"), marker=d.get("marker"),
         )
 
     def to_dict(self) -> Dict[str, Any]:
-        return {"word": self.word, "irab": self.irab, "pos": self.pos,
-                "case": self.case, "role": self.role, "marker": self.marker}
+        return {"word": self.word, "irab": self.irab,
+                "diacritized": self.diacritized,
+                "pos": self.pos, "case": self.case,
+                "role": self.role, "marker": self.marker}
 
 
 # ---------------------------------------------------------------------------

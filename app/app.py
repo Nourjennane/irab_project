@@ -98,6 +98,25 @@ A hybrid neural + rule-based system that:
 """)
     st.markdown("---")
 
+    backend = st.radio(
+        "Backend",
+        ["Claude RAG (Yarob+distilled)", "Per-word decoder (offline)"],
+        index=0,
+        help=(
+            "Claude RAG (best quality so far on Gazelle: 67.2% case / 68.8% role / "
+            "44.8% marker). Needs ANTHROPIC_API_KEY in env. "
+            "Per-word decoder is your trained baseline (32.8% case)."
+        ),
+    )
+    use_claude = backend.startswith("Claude")
+    if use_claude and not os.environ.get("ANTHROPIC_API_KEY"):
+        st.warning("ANTHROPIC_API_KEY not set — Claude RAG won't work. Restart Streamlit with the env var.")
+
+    rag_k = 5
+    if use_claude:
+        rag_k = st.slider("RAG few-shot k", 1, 8, 5)
+
+    st.markdown("---")
     show_confidence = st.checkbox("Show confidence scores", value=True)
     show_en = st.checkbox("Show English labels", value=True)
     conf_threshold = st.slider("Low-confidence flag threshold", 0.0, 1.0, 0.6, 0.05)
@@ -110,8 +129,218 @@ A hybrid neural + rule-based system that:
 st.title("I'rāb-Guided Arabic Diacritization")
 st.caption("Tashkīl with a why — every diacritic comes with a grammatical justification")
 
-predictor = load_predictor()
-predictor.confidence_threshold = conf_threshold
+@st.cache_resource(show_spinner="Loading Yarob+distilled retrieval pool…")
+def load_claude_rag_pool():
+    from irab_tashkeel.inference.llm_baselines import load_combined_fewshots
+    return load_combined_fewshots()
+
+
+import re
+import unicodedata as _ud
+
+_DIAC = "ً-ْٰ"
+_DIAC_RE = re.compile(rf"[{_DIAC}]")
+
+
+def _strip_diacritics(s: str) -> str:
+    return _DIAC_RE.sub("", _ud.normalize("NFC", s or ""))
+
+
+def _compare_diacritics(user_marked: str, claude_marked: str):
+    """Return (agrees: bool, user_last_diac: str, claude_last_diac: str).
+
+    Compares only the *last surface diacritic* on each word — that's the case
+    ending. Intra-word root diacritics are mostly invariant; we don't flag
+    those.
+    """
+    def last_diac(w):
+        # Walk from end; first non-diacritic letter; capture trailing diacritics
+        diacs = []
+        for ch in reversed(_ud.normalize("NFC", w)):
+            if _DIAC_RE.fullmatch(ch):
+                diacs.append(ch)
+            else:
+                break
+        return "".join(reversed(diacs))
+    u, c = last_diac(user_marked), last_diac(claude_marked)
+    return (u == c), u, c
+
+
+def _diac_name(d: str) -> str:
+    """Arabic name for a diacritic glyph (for the explanation text)."""
+    names = {
+        "ُ": "الضمة",     "َ": "الفتحة",     "ِ": "الكسرة",
+        "ٌ": "تنوين الضم","ً": "تنوين الفتح","ٍ": "تنوين الكسر",
+        "ْ": "السكون",    "ّ": "الشدة",
+    }
+    if not d:
+        return "بدون حركة"
+    parts = [names.get(ch, ch) for ch in d]
+    return " + ".join(parts)
+
+
+_CASE_TO_VOWEL = {
+    "rafʿ":  "ُ",
+    "naṣb":  "َ",
+    "jarr":  "ِ",
+    "jazm":  "ْ",
+}
+_TANWIN_FOR_CASE = {
+    "rafʿ":  "ٌ",
+    "naṣb":  "ً",
+    "jarr":  "ٍ",
+}
+
+
+def _enforce_case_on_diac(diac_word: str, case: str | None, marker: str | None) -> tuple[str, bool]:
+    """If Claude's diacritized form contradicts its own case label, fix it.
+
+    Returns (possibly_fixed, was_fixed_flag).
+
+    Conservative: only touches the last surface diacritic. Skips:
+      - mabni / unknown case (no surface vowel to enforce)
+      - dual/plural-suffix markers (الياء، الواو، الألف) — those are special
+        and not a single short-vowel.
+      - words ending in ة (we still rewrite the vowel that follows the ة)
+    """
+    if not diac_word or not case:
+        return diac_word, False
+    if case not in _CASE_TO_VOWEL:
+        return diac_word, False
+    # If marker is one of the "special signs" (long-vowel forms), leave alone.
+    if marker:
+        m = marker.strip()
+        if any(s in m for s in ("الواو", "الألف", "الياء", "النون", "حذف")):
+            return diac_word, False
+
+    base = _ud.normalize("NFC", diac_word)
+    use_tanwin = bool(marker and "تنوين" in marker)
+    target = _TANWIN_FOR_CASE[case] if (use_tanwin and case in _TANWIN_FOR_CASE) else _CASE_TO_VOWEL[case]
+
+    # Walk from end, find the last non-diacritic letter, then peel off
+    # any trailing diacritics on it (could be 0-2 chars: e.g. shadda+vowel).
+    chars = list(base)
+    if not chars:
+        return diac_word, False
+    end_diacs: list[str] = []
+    while chars and _DIAC_RE.fullmatch(chars[-1]):
+        end_diacs.append(chars.pop())
+    end_diacs.reverse()
+    if not chars:
+        return diac_word, False
+    # If there's a shadda at end-1, keep it; replace just the vowel after.
+    keep_prefix = []
+    has_shadda = False
+    for d in end_diacs:
+        if d == "ّ":
+            keep_prefix.append(d)
+            has_shadda = True
+        else:
+            # drop existing vowel/sukun/tanwin
+            pass
+    new_diacs = keep_prefix + [target]
+    fixed = "".join(chars) + "".join(new_diacs)
+    return fixed, (fixed != base)
+
+
+def _explain_correction(user_marked: str, item) -> str:
+    role = (item.role or "").strip()
+    case = (item.case or "").strip()
+    marker = (item.marker or "").strip()
+    parts = []
+    if role:
+        parts.append(f"إعرابها: {role}")
+    if marker:
+        parts.append(f"وعلامتها {marker}")
+    elif case:
+        case_ar = {"rafʿ":"الرفع","naṣb":"النصب","jarr":"الجر","jazm":"الجزم","mabni":"البناء"}.get(case, case)
+        parts.append(f"الحالة: {case_ar}")
+    rationale = "، ".join(parts) if parts else "الإعراب أعلاه يوضح السبب"
+    _, u_last, c_last = _compare_diacritics(user_marked, getattr(item, "diacritized", "") or "")
+    return (
+        f"كتبت آخرها بـ«{_diac_name(u_last)}»، "
+        f"والصحيح أن تكون بـ«{_diac_name(c_last)}» — "
+        f"لأن {rationale}."
+    )
+
+
+def claude_rag_predict(sentence, k, raw_user_input=None):
+    """Adapter: shape Claude-RAG output into the same `result` shape the
+    per-word renderer expects, AND attach a list of per-word corrections
+    when the user's input had diacritics that disagree with Claude's.
+    """
+    from irab_tashkeel.inference.llm_baselines import claude_fewshot_rag
+    from irab_tashkeel.data.schema import PredictionResult
+
+    pool = load_claude_rag_pool()
+    bare = _strip_diacritics(sentence).strip()
+    items = claude_fewshot_rag(bare, pool, k=k, model="claude-haiku-4-5")
+
+    # Tokenize the raw user input (preserving diacritics) to compare
+    # against Claude's per-word output.
+    user_words_marked = (raw_user_input or sentence).strip().split()
+    corrections = []
+    self_fixes = []  # cases where we overrode Claude's own diacritization
+    words = []
+    diacritized_parts = []
+    for i, it in enumerate(items):
+        raw_diac = getattr(it, "diacritized", None) or it.word
+        # Self-consistency repair: if Claude's diacritization disagrees with
+        # its own case label, override the last vowel using the case.
+        fixed_diac, was_fixed = _enforce_case_on_diac(raw_diac, it.case, it.marker)
+        if was_fixed:
+            self_fixes.append({
+                "index": i,
+                "claude_form": raw_diac,
+                "fixed_form":  fixed_diac,
+                "case": it.case,
+                "role": it.role,
+            })
+        word_diac = fixed_diac
+        diacritized_parts.append(word_diac)
+
+        # Compare with the user's typed diacritization for this word, if any.
+        u_marked = user_words_marked[i] if i < len(user_words_marked) else ""
+        had_user_diac = bool(_DIAC_RE.search(u_marked))
+        if had_user_diac:
+            agrees, u_last, c_last = _compare_diacritics(u_marked, word_diac)
+            if not agrees:
+                corrections.append({
+                    "index": i,
+                    "user_form":   u_marked,
+                    "fixed_form":  word_diac,
+                    "explanation": _explain_correction(u_marked, it),
+                })
+
+        words.append({
+            "index": i,
+            "surface": it.word,
+            "diacritized": word_diac,
+            "role": it.role or "other",
+            "role_ar": it.role or "—",
+            "role_en": (it.case or "—"),
+            "irab_text": it.irab,
+            "diac_confidence": 1.0,
+            "irab_confidence": 1.0,
+            "low_confidence": False,
+        })
+
+    result = PredictionResult(
+        input_text=sentence,
+        diacritized=" ".join(diacritized_parts),
+        words=words, errors=[], tier=1, tier_flags=[],
+    )
+    # Stash corrections + self-fixes on the result for the renderer to pick up.
+    result.corrections = corrections   # type: ignore[attr-defined]
+    result.self_fixes = self_fixes     # type: ignore[attr-defined]
+    return result
+
+
+if not use_claude:
+    predictor = load_predictor()
+    predictor.confidence_threshold = conf_threshold
+else:
+    predictor = None
 
 examples = {
     "Simple verbal sentence": "ذهب الطالب إلى المدرسة",
@@ -136,11 +365,67 @@ with col_in:
 
 if st.button("Diacritize + analyze", type="primary") and user_input.strip():
     with st.spinner("Running inference…"):
-        result = predictor.predict(user_input)
+        if use_claude:
+            result = claude_rag_predict(user_input, k=rag_k, raw_user_input=user_input)
+        else:
+            result = predictor.predict(user_input)
 
     # ---- Diacritized output ----
     st.subheader("Diacritized text")
     st.markdown(f"<div class='arabic'>{result.diacritized}</div>", unsafe_allow_html=True)
+
+    # ---- Self-consistency repairs (model overrode its own diacritization) ----
+    self_fixes = getattr(result, "self_fixes", None) or []
+    if self_fixes:
+        st.subheader(f"🔧 Self-consistency repairs ({len(self_fixes)})")
+        st.caption(
+            "Claude's diacritization disagreed with its own grammatical analysis. "
+            "We override the last vowel using the case label."
+        )
+        for sf in self_fixes:
+            st.markdown(
+                f"<div style='direction:rtl; padding:10px; background:#fff8e1; "
+                f"border-left:4px solid #f59e0b; border-radius:6px; color:#111; margin-bottom:8px'>"
+                f"<span style='font-family:\"Noto Naskh Arabic\",serif; font-size:22px'>"
+                f"<span style='text-decoration:line-through; color:#888'>{sf['claude_form']}</span> "
+                f"&nbsp;⟶&nbsp; <b>{sf['fixed_form']}</b></span>"
+                f"<div style='font-size:13px; color:#555; margin-top:4px'>"
+                f"الإعراب: {sf.get('role','—')} (case={sf.get('case','?')})"
+                f"</div></div>",
+                unsafe_allow_html=True,
+            )
+
+    # ---- Diacritization corrections (Claude RAG only) ----
+    corrections = getattr(result, "corrections", None) or []
+    if corrections:
+        st.subheader(f"📝 Diacritization corrections ({len(corrections)})")
+        for c in corrections:
+            with st.container():
+                col_l, col_r = st.columns([1, 1])
+                with col_l:
+                    st.markdown(
+                        f"<div style='direction:rtl; padding:8px; background:#fff5f5; "
+                        f"border-left:4px solid #c44; border-radius:6px; color:#111'>"
+                        f"<b>كتبت:</b><br>"
+                        f"<span style='font-family:\"Noto Naskh Arabic\",serif; font-size:24px'>{c['user_form']}</span>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                with col_r:
+                    st.markdown(
+                        f"<div style='direction:rtl; padding:8px; background:#f0fff4; "
+                        f"border-left:4px solid #2a8; border-radius:6px; color:#111'>"
+                        f"<b>الصواب:</b><br>"
+                        f"<span style='font-family:\"Noto Naskh Arabic\",serif; font-size:24px'>{c['fixed_form']}</span>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                st.markdown(
+                    f"<div style='direction:rtl; padding:8px; color:#444; "
+                    f"font-family:\"Noto Naskh Arabic\",serif; font-size:14px; "
+                    f"margin-bottom:12px'>{c['explanation']}</div>",
+                    unsafe_allow_html=True,
+                )
 
     # ---- Tier info ----
     if result.tier > 1:
