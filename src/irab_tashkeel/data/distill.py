@@ -230,10 +230,15 @@ def main():
     call = call_openai if args.provider == "openai" else call_anthropic
 
     # ---- Dry run for cost estimate ----
-    print(f"\n=== Dry run ({args.dry_run_n} samples) — model={model} ===")
+    # Skip if resuming with prior successes — we already know the prompt works.
+    effective_dry_n = 0 if (resume_mode and len(already_done) > 5) else args.dry_run_n
+    if resume_mode and effective_dry_n == 0:
+        print(f"\n=== Skipping dry run (resume detected {len(already_done)} prior samples) ===")
+    else:
+        print(f"\n=== Dry run ({effective_dry_n} samples) — model={model} ===")
     dry_in, dry_out, dry_n = 0, 0, 0
     dry_seen: List[DistillSample] = []
-    for s in seeds[: args.dry_run_n]:
+    for s in seeds[: effective_dry_n]:
         try:
             raw, in_tok, out_tok = call(model, s)
         except Exception as e:
@@ -248,16 +253,21 @@ def main():
         dry_in += in_tok
         dry_out += out_tok
         dry_n += 1
-    if dry_n == 0:
-        sys.exit("dry run produced no parseable samples; aborting before spending more")
-    avg_in = dry_in // dry_n
-    avg_out = dry_out // dry_n
-    est_cost = estimate_cost(args.n, avg_in, avg_out, cost_key)
-    print(f"  dry samples ok: {dry_n}/{args.dry_run_n}")
-    print(f"  avg tokens: in={avg_in} out={avg_out}")
-    print(f"  estimated cost for full run of {args.n}: ${est_cost:.2f}")
-    if est_cost > args.budget_usd:
-        sys.exit(f"estimated cost ${est_cost:.2f} > budget ${args.budget_usd:.2f}; aborting")
+    if effective_dry_n > 0:
+        if dry_n == 0:
+            sys.exit("dry run produced no parseable samples; aborting before spending more")
+        avg_in = dry_in // dry_n
+        avg_out = dry_out // dry_n
+        est_cost = estimate_cost(args.n, avg_in, avg_out, cost_key)
+        print(f"  dry samples ok: {dry_n}/{effective_dry_n}")
+        print(f"  avg tokens: in={avg_in} out={avg_out}")
+        print(f"  estimated cost for full run of {args.n}: ${est_cost:.2f}")
+        if est_cost > args.budget_usd:
+            sys.exit(f"estimated cost ${est_cost:.2f} > budget ${args.budget_usd:.2f}; aborting")
+    else:
+        # Resume mode without dry run — assume per-sample cost from a recent sample.
+        # If we hit budget early, the main loop's cost cap stops us anyway.
+        print(f"  (skipped cost estimate; main loop will enforce ${args.budget_usd} cap)")
 
     # ---- Full run ----
     print(f"\n=== Generating {len(seeds)} samples → {args.out}  (mode={'append' if resume_mode else 'overwrite'}) ===")
