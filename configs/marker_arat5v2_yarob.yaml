@@ -1,0 +1,21 @@
+# Marker FT v2 — Yarob-only training set (no distilled).
+# Tests the teacher-bias hypothesis: does the specialist work better when
+# trained ONLY on hand-authored Yarob (n=1,643) vs Yarob+distilled (n=8,815)?
+
+model_id: UBC-NLP/AraT5v2-base-1024
+pairs_path: data/marker_pairs_yarob_only.jsonl
+val_split: 0.05
+
+learning_rate: 1.0e-4
+weight_decay: 0.01
+warmup_ratio: 0.03
+n_epochs: 10                     # 2x more epochs since 5x less data
+per_device_train_batch_size: 4
+per_device_eval_batch_size: 8
+gradient_accumulation_steps: 4
+max_input_length: 256
+max_target_length: 32
+label_smoothing_factor: 0.1
+
+drop_no_marker_in_train: false
+seed: 42
