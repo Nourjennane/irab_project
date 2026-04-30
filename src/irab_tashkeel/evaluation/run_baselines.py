@@ -139,6 +139,9 @@ def main():
     p.add_argument("--model", default="claude-haiku-4-5",
                    help="Claude model id for the LLM baselines")
     p.add_argument("--rag_k", type=int, default=5)
+    p.add_argument("--no_distilled_pool", action="store_true",
+                   help="exclude data/distilled_irab.jsonl from the RAG retrieval pool "
+                        "(default: include it on top of Yarob)")
     p.add_argument("--out", type=Path, default=Path("runs/baseline_eval"))
     args = p.parse_args()
 
@@ -167,9 +170,15 @@ def main():
         reports.append(rep)
 
     if "claude_rag" in baselines:
-        from ..inference.llm_baselines import claude_fewshot_rag, load_yarob_fewshots
-        pool = load_yarob_fewshots()
-        print(f"  RAG pool: {len(pool)} Yarob examples")
+        from ..inference.llm_baselines import (
+            claude_fewshot_rag, load_combined_fewshots,
+        )
+        pool = load_combined_fewshots(
+            include_yarob=True,
+            include_distilled=not args.no_distilled_pool,
+        )
+        print(f"  RAG pool: {len(pool)} examples "
+              f"(distilled={'yes' if not args.no_distilled_pool else 'no'})")
         rep = evaluate_baseline(
             "claude_rag", sentences, gold_pairs,
             predict_fn=lambda s: claude_fewshot_rag(s, pool, k=args.rag_k, model=args.model),

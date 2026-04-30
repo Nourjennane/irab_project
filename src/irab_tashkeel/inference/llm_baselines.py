@@ -122,6 +122,52 @@ def load_yarob_fewshots(repo_dir: Path | str = "data/yarob_src") -> List[FewShot
     return out
 
 
+def load_distilled_fewshots(
+    path: Path | str = "data/distilled_irab.jsonl",
+) -> List[FewShotExample]:
+    """Load Claude-distilled MSA pairs as RAG few-shot examples."""
+    import json as _json
+    path = Path(path)
+    if not path.exists():
+        return []
+    out: List[FewShotExample] = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                row = _json.loads(line)
+            except _json.JSONDecodeError:
+                continue
+            sent = (row.get("sentence") or "").strip()
+            items = row.get("items") or []
+            if not sent or not items:
+                continue
+            block_lines: List[str] = []
+            for it in items:
+                w = (it.get("word") or "").strip()
+                ir = (it.get("irab") or "").strip()
+                if w and ir:
+                    block_lines.append(f"{w}: {ir}")
+            if not block_lines:
+                continue
+            out.append(FewShotExample(sentence=sent, irab_lines="\n".join(block_lines)))
+    return out
+
+
+def load_combined_fewshots(
+    include_yarob: bool = True,
+    include_distilled: bool = True,
+    yarob_dir: Path | str = "data/yarob_src",
+    distilled_path: Path | str = "data/distilled_irab.jsonl",
+) -> List[FewShotExample]:
+    """Combine Yarob (manual gold) + distilled (Claude-generated MSA) pools."""
+    pool: List[FewShotExample] = []
+    if include_yarob:
+        pool.extend(load_yarob_fewshots(yarob_dir))
+    if include_distilled:
+        pool.extend(load_distilled_fewshots(distilled_path))
+    return pool
+
+
 def retrieve_fewshots(
     query: str, pool: Sequence[FewShotExample], k: int = 5,
 ) -> List[FewShotExample]:

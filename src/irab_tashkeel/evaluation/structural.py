@@ -136,6 +136,7 @@ class StructuralMetrics:
     n_case_correct: int = 0
     n_pos_correct: int = 0
     n_marker_correct: int = 0
+    n_fully_correct: int = 0   # case ∧ role ∧ marker all match (the Mix A metric)
     role_confusion: Counter = field(default_factory=Counter)  # (gold_role, pred_role) -> count
     role_gold_count: Counter = field(default_factory=Counter)
     role_pred_count: Counter = field(default_factory=Counter)
@@ -147,12 +148,20 @@ class StructuralMetrics:
 
         if pred.well_formed:
             self.n_well_formed += 1
-        if gold.case is not None and gold.case == pred.case:
+        case_ok = gold.case is not None and gold.case == pred.case
+        pos_ok = gold.pos is not None and gold.pos == pred.pos
+        marker_ok = gold.marker is not None and gold.marker == pred.marker
+        role_ok = gold.role is not None and gold.role == pred.role
+        if case_ok:
             self.n_case_correct += 1
-        if gold.pos is not None and gold.pos == pred.pos:
+        if pos_ok:
             self.n_pos_correct += 1
-        if gold.marker is not None and gold.marker == pred.marker:
+        if marker_ok:
             self.n_marker_correct += 1
+        # "Fully correct word" = case + role + marker all right.
+        # POS is excluded because gold often lacks an explicit POS phrase.
+        if case_ok and role_ok and marker_ok:
+            self.n_fully_correct += 1
 
         g_role = gold.role or "<none>"
         p_role = pred.role or "<none>"
@@ -180,11 +189,12 @@ class StructuralMetrics:
             return {}
         return {
             "n": float(self.n),
-            "well_formed_rate": self.n_well_formed / self.n,
-            "case_accuracy":    self.n_case_correct / self.n,
-            "pos_accuracy":     self.n_pos_correct / self.n,
-            "marker_em":        self.n_marker_correct / self.n,
-            "role_f1_macro":    self.role_f1_macro(),
+            "well_formed_rate":   self.n_well_formed / self.n,
+            "case_accuracy":      self.n_case_correct / self.n,
+            "pos_accuracy":       self.n_pos_correct / self.n,
+            "marker_em":          self.n_marker_correct / self.n,
+            "role_f1_macro":      self.role_f1_macro(),
+            "fully_correct_word": self.n_fully_correct / self.n,
         }
 
     def pretty(self) -> str:
@@ -197,7 +207,8 @@ class StructuralMetrics:
             f"pos={r['pos_accuracy']:.3f}  "
             f"case={r['case_accuracy']:.3f}  "
             f"role-F1={r['role_f1_macro']:.3f}  "
-            f"marker={r['marker_em']:.3f}"
+            f"marker={r['marker_em']:.3f}  "
+            f"fully={r['fully_correct_word']:.3f}"
         )
 
 
