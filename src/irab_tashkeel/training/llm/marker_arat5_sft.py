@@ -203,11 +203,14 @@ def main():
         greater_is_better=False,
     )
     collator = s["DataCollatorForSeq2Seq"](tok, model=model)
+    import inspect
+    _trainer_params = inspect.signature(s["Seq2SeqTrainer"].__init__).parameters
+    _tok_kw = {"processing_class": tok} if "processing_class" in _trainer_params else {"tokenizer": tok}
     trainer = s["Seq2SeqTrainer"](
         model=model, args=ta,
         train_dataset=train_ds, eval_dataset=val_ds,
         data_collator=collator,
-        processing_class=tok,
+        **_tok_kw,
     )
 
     trainer.train()
