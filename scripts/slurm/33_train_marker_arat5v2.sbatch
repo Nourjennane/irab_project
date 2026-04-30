@@ -20,9 +20,14 @@ module load miniconda3
 module load cuda/12.4
 source activate irab
 
-# Make sure the training stack is installed (idempotent).
-python -c "import transformers, accelerate, datasets, bitsandbytes" 2>/dev/null || \
-    pip install --quiet "transformers>=4.46,<4.55" "accelerate>=1.0" "datasets>=3.1" "bitsandbytes>=0.45"
+# Compute nodes typically have no outbound internet, so we don't pip-install
+# here. The training stack must be present in the env beforehand:
+#   ssh login-node && module load miniconda3 && conda activate irab && \
+#       pip install "transformers>=4.46,<4.55" accelerate datasets bitsandbytes sentencepiece anthropic
+python -c "import transformers, accelerate, datasets, bitsandbytes" || {
+    echo "ERROR: training stack missing from conda env 'irab' — run pip install on the login node first"
+    exit 2
+}
 
 export HF_HOME=$HOME/.hf_cache
 export TRANSFORMERS_CACHE=$HF_HOME/transformers
