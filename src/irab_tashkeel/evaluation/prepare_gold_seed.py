@@ -84,7 +84,8 @@ def main():
     args.out.parent.mkdir(parents=True, exist_ok=True)
     n_done = 0
     spent = 0.0
-    with open(args.out, "w", encoding="utf-8") as f:
+    print(f"streaming output to {args.out} (line-buffered)", flush=True)
+    with open(args.out, "w", encoding="utf-8", buffering=1) as f:
         for ex in chosen:
             if spent >= args.budget_usd:
                 print(f"  budget hit (${spent:.2f}); stopping at {n_done}")
@@ -108,8 +109,8 @@ def main():
             n_done += 1
             # rough cost estimate: input ~ 700 tok with RAG context, output ~ 700 tok
             spent += estimate_cost(1, 700, 700, cost_key)
-            if n_done % 25 == 0:
-                print(f"  [{n_done}/{args.n}]  spent ≈ ${spent:.2f}")
+            if n_done % 5 == 0:
+                print(f"  [{n_done}/{args.n}]  spent ≈ ${spent:.2f}", flush=True)
 
     print(f"\n✓ wrote {n_done} sentences to {args.out}  (~${spent:.2f})")
     print(f"\nNext step: review each row, correct the 'irab' field, set 'verified': true.")

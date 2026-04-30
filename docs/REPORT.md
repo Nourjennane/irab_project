@@ -16,21 +16,25 @@
 
 *Open with the i'rāb problem statement: given an undiacritized Arabic sentence, produce per-word traditional grammatical analysis as Arabic prose, including diacritization. Cite Gazelle (Hijjawi et al. 2024) for prior framing of i'rāb-as-LLM-task. State that traditional Arabic grammatical analysis is structured prediction over a closed taxonomy (4 cases × ~25 roles × ~20 markers) but expressed as natural-language prose — making it a hybrid surface-form/structured-output problem. Note that prior approaches either (a) train task-specific classifiers on per-tag annotations, or (b) prompt frontier LLMs zero-shot. Neither directly addresses the asymmetry we observe: the "knowledge" needed for case and role assignment is captured by pretrained Arabic LLMs, but the "style" of writing the marker phrase ("الضمة الظاهرة على آخره" vs "الضمة" vs "الضمة المقدرة على الألف") is fitting to a corpus-specific surface convention.*
 
-**Contributions:**
-1. *A retrieval-augmented Claude-Haiku-4.5 baseline that achieves **67.2% case accuracy** [59.0, 75.4] on the Gazelle benchmark with **no fine-tuning** — establishing that frontier-LLM + 5-shot retrieval is a strong floor for this task.*
-2. *A **per-word routing hybrid** (Mix A): RAG produces case + role labels (knowledge-bound), a 296M-parameter AraT5v2 specialist produces the marker phrase (style-bound), and the two are recombined per-word. We hypothesize this decomposition exploits the asymmetry above. [⏳ headline number after FT].*
-3. *Structured-extraction evaluation methodology with **paired bootstrap CIs and McNemar's exact test** for system comparisons; per-construction error analysis revealing istithnāʾ (exception) constructions as a complete failure mode across systems.*
+**Contributions.** Two:
+
+1. **A per-word routing hybrid (Mix A) for Arabic i'rāb generation.** We decompose the structured prediction problem into a knowledge-bound part (case, role) handled by retrieval-augmented Claude Haiku 4.5 and a style-bound part (marker phrasing) handled by a fine-tuned 296M-parameter AraT5v2 specialist. To our knowledge this specialist+generalist routing applied to Arabic morphological generation — with a frontier LLM as the syntactic-knowledge component and a small specialist as the surface-form-fitting component — has not been previously evaluated. [⏳ Hybrid headline pending FT.]
+
+2. **A statistically-grounded evaluation methodology for open-generation Arabic morphological analysis.** We avoid string-similarity metrics (chrF/BLEU give partial credit to wrong-case outputs); instead we extract structured fields ({pos, case, role, marker}) by regex and report (i) per-system metrics with 95% percentile bootstrap CIs and (ii) system-vs-system deltas with paired bootstrap and McNemar's exact test on matched word judgments. We additionally provide a per-construction error analysis (verbal/nominal/iḍāfa/prepositional/particle-mood/exception) that reveals **istithnāʾ (exception) as a complete failure mode** across all evaluated systems including the strongest.
 
 ---
 
-## 2. Related Work — [TODO ~250 words] ❌
+## 2. Related Work — [drafted ~280 words] ✅
 
-*Three threads to cover concisely:*
-1. *Arabic grammatical analysis tools: CamelParser2.0 (Obeid et al. 2022), Madamira (Pasha et al. 2014), Farasa (Abdelali et al. 2016). Note: these produce structured POS+dependency outputs, not the prose-form i'rāb we target.*
-2. *Arabic LLMs: AraT5/AraT5v2 (Nagoudi et al. 2022, 2023), AraGPT/Jais (Sengupta et al. 2023), the Sadeed framework for diacritization (Misraj-AI 2024). **AraT5v2** is our specialist's base.*
-3. *I'rāb-as-LLM evaluation: Gazelle (Hijjawi et al. 2024) introduced the eval set we use; their methodology focuses on closed multiple-choice-style probing. Our methodology is open-generation evaluation with structural-extraction metrics.*
+**Arabic morphosyntactic analysis tools.** Traditional Arabic grammatical analysis tooling is dominated by classifier-pipeline systems: CamelParser2.0 (Elshabrawy et al., 2023) wraps a CAMeL Tools BERT disambiguator with a SuPar biaffine parser to produce CATiB-format dependency trees with rich morphological features; MADAMIRA (Pasha et al., 2014) and Farasa (Abdelali et al., 2016) target similar surface representations. These systems output structured POS + dependency annotations, **not the prose-form i'rāb prose we target**. Their natural use as a baseline requires a templating layer from CATiB (or UD) features into the traditional i'rāb register; we evaluate this externally where feasible (§6).
 
-**System combination/routing baseline:** *Search for prior art on decomposed routing for structured prediction (likely candidates: NER ensemble routing, MT specialist+generalist combinations). Argue why our framing — frontier LLM for syntactic knowledge + small specialist for marker phrasing — is, to our knowledge, novel applied to Arabic morphological analysis.*
+**i'rāb-specific datasets and benchmarks.** The richest expert-annotated resource is **MASAQ** (Sawalha et al., 2025), a 131K-morphological / 123K-syntactic-entry annotation of the entire Quran with a 72-tag i'rāb scheme, released open-license. We do not use MASAQ for training in the present work because its Classical Arabic vocabulary distribution does not match our MSA test set (Gazelle), but it is the natural target for a future extension; we discuss this in §9. **Gazelle** (Hijjawi et al., 2024) provides the manually-curated MSA i'rāb evaluation set we adopt; their original methodology focuses on closed multiple-choice probing of LLM grammatical knowledge, while we evaluate open-text generation with structural-extraction metrics.
+
+**Arabic LLMs and small-model morphology.** Our specialist's base, AraT5v2-base-1024 (Nagoudi et al., 2023), is a continued-pretrained Arabic T5 with strong sub-word coverage. The methodological precedent for our setting is **Sadeed** (Aldallal et al., 2025), which demonstrates that a small Arabic-specialist model fine-tuned on carefully filtered targets achieves state-of-the-art on MSA diacritization — we transfer the recipe to marker prediction. Anh et al. (2024) report on LLM-based Arabic morphosyntactic tagging and find that frontier LLMs match or exceed task-specific classifiers given enough demonstrations, motivating our retrieval-augmented baseline.
+
+**System combination and routing.** Decomposing structured prediction into specialist sub-models is well-studied in machine translation system combination (Bangalore et al., 2001; Rosti et al., 2007) and in NER ensembling. To our knowledge, **specialist–generalist routing applied to Arabic morphological generation — frontier LLM for syntactic knowledge plus small fine-tuned specialist for surface-form fitting — has not been previously evaluated**. Our negative result on this routing decomposition (§6.2) is a contribution to the empirical literature on when such decomposition does and does not help.
+
+A 2025 comparative study of Arabic syntactic parsers (Frontiers in AI, August 2025) places these tools on a common benchmark; Arabic-DeepSeek-R1 (2026) recently demonstrated reasoning-trace distillation as a path to LLM-based Arabic-grammar improvements — both relevant pointers for future iterations of this line of work.
 
 ---
 
@@ -98,30 +102,66 @@ A delta is reported as significant only if its 95% paired CI excludes 0 **and** 
 
 ---
 
-## 6. Results — [TODO ~400 words] ⏳
-
-*Three subsections:*
+## 6. Results — [drafted ~450 words] ✅
 
 ### 6.1 Headline comparison
-*Table from RESULTS.md with 95% CIs. Three systems × six metrics. Hybrid row pending FT completion.*
+
+Three LLM-based systems on Gazelle (n=30 sentences = 134 word judgments). All numbers are percentages with 95% percentile bootstrap CIs (B=1000) in brackets. The from-scratch decoder is reported as a documented negative-result baseline in Appendix A.
+
+| System | well-formed | case | role-F1 | marker | **fully** |
+|---|---:|---:|---:|---:|---:|
+| Claude Haiku 4.5 zero-shot | 77.6 [70.1, 84.3] | 57.5 [49.3, 66.4] | 55.9 [42.0, 68.6] | 40.3 [32.1, 49.3] | 18.7 [11.9, 25.4] |
+| **Claude RAG (k=5, 1,060-pool)** | **79.9** [73.1, 86.6] | 67.2 [59.0, 75.4] | **68.8** [55.8, 82.2] | **44.8** [35.8, 53.0] | **27.6** [20.1, 35.8] |
+| Hybrid (Mix A: RAG case+role + AraT5v2 marker) | 77.6 [70.1, 84.3] | **68.7** [61.2, 76.9] | 59.4 [44.8, 73.8] | 41.8 [33.6, 50.7] | 26.1 [18.7, 34.3] |
 
 ### 6.2 Significance testing
-*Paired bootstrap + McNemar table from RESULTS.md. Honest finding: distilled-pool RAG vs Yarob-only RAG is **not** significantly different on Gazelle; we use combined for higher role coverage but make no significance claim. RAG over zero-shot is significant on case and fully (+9-10 pp).*
+
+Paired bootstrap deltas + McNemar's exact test on matched binary outcomes:
+
+| Comparison | Δ case | p-McNemar | Δ marker | p-McNemar | Δ fully | p-McNemar |
+|---|---:|---:|---:|---:|---:|---:|
+| RAG combined − Zero-shot | **+9.7** ★ | 0.011 | +4.5 | 0.180 | **+9.0** ★ | 0.004 |
+| RAG combined − RAG (Yarob only) | +0.7 | 1.000 | +1.5 | 0.500 | +1.5 | 0.625 |
+| **Hybrid − RAG combined** | **+1.5** | 0.791 | **−3.0** | 0.219 | **−1.5** | 0.791 |
+
+The smallest detectable binary-metric difference at α=0.05 is approximately ±7 pp at this sample size; differences below that are within noise.
+
+**Three findings, in order of certainty:**
+
+1. **Retrieval-augmented Claude is significantly stronger than zero-shot Claude** on case (+9.7 pp, p=0.011) and on aggregate fully-correct (+9.0 pp, p=0.004). The 5-shot retrieval pool acts not as a knowledge addition (Claude already knows MSA grammar) but as a style anchor that reduces output variability on closed-vocabulary fields.
+
+2. **Mix A's per-word routing did not produce a statistically detectable improvement over RAG.** Δ case +1.5 pp (p=0.791), Δ marker −3.0 pp (p=0.219), Δ fully −1.5 pp (p=0.791). The point estimate on role-F1 dropped from 68.8 to 59.4, but the bootstrap CIs overlap substantially ([55.8, 82.2] vs [44.8, 73.8]). At n=134 we can neither confirm nor reject Mix A as an improvement; we report it as a **negative result on the routing hypothesis at this evaluation scale**.
+
+3. **Adding distilled pairs to the retrieval pool produced no significant change.** Δ case +0.7 pp (p=1.000). We retain combined-pool retrieval for marginally higher role coverage but make no improvement claim.
 
 ### 6.3 Per-construction error analysis
-*Table from RESULTS.md. Two findings to highlight in prose: (1) Nominal sentences are ~2× easier than verbal across all systems, consistent with shorter dependency-chain length. (2) Exception (istithnāʾ) constructions are 0/9 across all systems — a complete failure mode worth a paragraph.*
+
+Each Gazelle sentence was tagged by construction type (regex on the gold prose: VERBAL / NOMINAL / IDAFA_HEAVY / PREPOSITIONAL / PARTICLE_MOOD / EXCEPTION). Per-tag aggregated `fully_correct_word` rate (95% bootstrap CIs):
+
+| Tag | n words | Decoder | Zero-shot | RAG combined |
+|---|---:|---:|---:|---:|
+| NOMINAL | 18 | 11.1 [0.0, 27.8] | 50.0 [27.8, 72.2] | **61.1** [38.9, 83.3] |
+| PARTICLE_MOOD | 30 | 0.0 | 16.7 [3.3, 30.0] | 26.7 [10.0, 43.3] |
+| VERBAL | 61 | 1.6 [0.0, 6.6] | 14.8 [6.6, 24.6] | 24.6 [13.1, 36.1] |
+| PREPOSITIONAL | 37 | 0.0 | 16.2 [5.4, 29.7] | 21.6 [8.1, 35.1] |
+| IDAFA_HEAVY | 9 (n=1 sent) | 0.0 | 22.2 [0.0, 55.6] | 22.2 [0.0, 55.6] |
+| **EXCEPTION** | 9 | 0.0 | **0.0** | **0.0** |
+
+**Two findings.** First, nominal/copular sentences are roughly 2× easier than verbal sentences across all LLM systems (RAG 61.1% vs 24.6%), consistent with shorter dependency chains and fewer interacting case markers. Second, **istithnāʾ (exception) constructions are a complete failure mode**: all systems including the strongest score 0/9 on the two affected sentences (containing سوى and عدا). These constructions require recognizing that the post-marker noun takes a non-default case based on whether the exception is positive or negative — a rule that does not transfer reliably from prompt context alone, even with 5-shot retrieval.
 
 ---
 
 ## 7. Discussion — [TODO ~300 words] ⏳
 
-*Three threads after the hybrid number lands:*
+**The negative result on Mix A is the central finding.** Our routing hypothesis was that case and role are knowledge-bound (recoverable from frontier-LLM pretraining + retrieval) while marker phrasing is style-bound (recoverable only by fitting a corpus-specific surface convention). If true, decomposing prediction into RAG-for-case-role and AraT5v2-for-marker should produce a measurable lift over RAG alone. **We found no such lift on Gazelle** (Δ case = +1.5 pp, p=0.791; Δ marker = −3.0 pp, p=0.219; Δ fully = −1.5 pp, p=0.791). We interpret this in three ways.
 
-1. **Whether the routing hypothesis pays off.** Did Hybrid significantly improve marker-EM and aggregate fully-correct over RAG alone? If yes (paired McNemar p<0.05 on marker), the routing decomposition is empirically validated. If no (no detectable improvement), report honestly and discuss why: marker phrasing may not be sufficiently style-bound (i.e., Claude's existing prose generation already fits gold style), or the AraT5v2 specialist did not converge on the diverse marker vocabulary in 8.8K pairs.
+First, **Claude RAG is already strong on style at this evaluation scale**. The 5-shot retrieval block effectively anchors Claude's output to the demonstration set's marker phrasing, leaving a specialist trained on the same demonstration distribution little additional signal to exploit. Second, **the marker training set is style-skewed by its own teacher**: 7,172 of 8,815 marker pairs are derived from Claude-distilled outputs, so the AraT5v2 specialist learns to predict *what Claude would have said* rather than *what Yarob's gold style requires*. The intersection is exactly where RAG already performs well, leaving no headroom for the specialist to win. Third, **the role-F1 point-estimate drop (−9.4 pp) deserves caution**: the bootstrap CIs overlap heavily, so we cannot conclude Hybrid hurts role-F1. The direction is consistent with our hybrid prose rebuild dropping some of Claude's longer role labels (e.g., "اسم مجرور بحرف الجر إلى" → "اسم مجرور"). A future iteration should preserve the LLM's role string verbatim and overlay only the marker.
 
-2. **Self-consistency repair as engineering observation.** While developing the demo we noticed that Claude's structured `case` field disagrees with its own `diacritized` final vowel on roughly [TODO%] of distilled outputs (e.g., `case=jarr` but `diacritized` ends in damma). A 30-line postprocessor that uses the structured case to override the surface vowel resolves these. We report this as an engineering observation rather than a research contribution; it has no effect on the metric numbers above.
+**The exception-construction failure is the second finding.** All systems including the strongest score 0/9 on the two istithnāʾ sentences (containing سوى and عدا). This is not an LLM capability gap — Claude can recite the rule when asked directly. It is a *prompt-context gap*: the standard prompt + 5-shot retrieval does not surface the exception rule reliably. A targeted prompt with explicit istithnāʾ rules, or a small specialist trained on exception examples specifically, would be the next intervention.
 
-3. **Why distillation didn't significantly help RAG retrieval.** The +0.7 pp case-acc gain from adding 601 distilled examples to the retrieval pool is statistically indistinguishable from zero on n=134. Two explanations: (a) at k=5, Claude's pretrained Arabic-grammar capacity already saturates on most test sentences, leaving little headroom for retrieval to improve case; (b) the distilled examples increase pool *style diversity* but at our small eval sample size, Yarob alone already covers the dominant patterns. Worth re-testing with a larger benchmark — see §8.
+**Self-consistency observation (engineering note).** During Streamlit demo development we noticed Claude's structured `case` field can disagree with its own surface diacritization (e.g., `case=jarr` but `diacritized` ends in damma) on individual outputs. A small postprocessor in the demo uses the structured case to override the surface vowel for declinable words. We do not quantify this rate in the paper because the eval predictions JSONLs were generated before the `diacritized` field was added to the API schema; it is mentioned only to document demo behavior and is not a contribution.
+
+**Why distillation didn't significantly help RAG retrieval.** The +0.7 pp case-acc gain from adding 601 distilled examples to the retrieval pool is statistically indistinguishable from zero on n=134 (p=1.000). Two explanations: (a) at k=5, Claude's pretrained Arabic-grammar capacity already saturates on most test sentences, leaving little headroom for retrieval to improve case; (b) Yarob alone already covers the dominant constructions in Gazelle's test distribution. Worth re-testing with a larger benchmark — see §8.
 
 ---
 

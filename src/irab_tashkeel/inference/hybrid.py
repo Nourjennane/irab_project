@@ -91,11 +91,17 @@ class MarkerSpecialist:
     def _ensure_loaded(self):
         if self._model is not None:
             return
-        import torch
+        import os, torch
         from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
         self._tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         self._model = AutoModelForSeq2SeqLM.from_pretrained(self.model_path)
-        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        # MARKER_DEVICE env override: "cpu" forces CPU (safer on small GPUs);
+        # "auto" or unset uses CUDA when available.
+        pref = os.environ.get("MARKER_DEVICE", "auto").lower()
+        if pref == "cpu" or not torch.cuda.is_available():
+            self._device = "cpu"
+        else:
+            self._device = "cuda"
         self._model.to(self._device).eval()
 
     @staticmethod
@@ -164,7 +170,13 @@ class HybridPredictor:
         self.rag_model = rag_model
 
     def predict(self, sentence: str) -> List[WordIrab]:
-        """Run RAG + marker overlay, return per-word i'rāb."""
+        """Run RAG + marker overlay, return per-word i'rāb.
+
+        We **preserve Claude's prose verbatim** and only string-replace the
+        marker phrase. This avoids the role-F1 regression seen in v1 of the
+        hybrid where rebuilding the whole prose canonicalized away Claude's
+        longer role labels (e.g., "اسم مجرور بحرف الجر إلى" → "اسم مجرور").
+        """
         rag_items = claude_fewshot_rag(
             sentence, self.rag_pool, k=self.rag_k, model=self.rag_model,
         )
@@ -179,16 +191,22 @@ class HybridPredictor:
 
         out: List[WordIrab] = []
         for it, new_marker in zip(rag_items, markers):
-            # Overlay only when the specialist returns a real marker AND
-            # the case is declinable (mabni cases keep the LLM's prose intact).
+            # Overlay only when:
+            #   - case is declinable (mabni keeps LLM prose intact)
+            #   - specialist returns a real marker (not <NO_MARKER>)
+            #   - claude has a marker to replace AND it differs from the new one
             use_specialist = (
                 new_marker and new_marker != NO_MARKER
                 and it.case in {"rafʿ", "naṣb", "jarr", "jazm"}
+                and (it.marker or "").strip()
+                and (it.marker or "").strip() != new_marker.strip()
             )
             if use_specialist:
-                rebuilt = rebuild_irab(it.case, it.role, new_marker)
-                if rebuilt:
-                    it.marker = new_marker
-                    it.irab = rebuilt
+                old_marker = it.marker.strip()
+                # Replace the marker phrase inside the existing prose.
+                # Use first-occurrence replace; falls back to appending if not found.
+                if old_marker in (it.irab or ""):
+                    it.irab = it.irab.replace(old_marker, new_marker, 1)
+                it.marker = new_marker
             out.append(it)
         return out

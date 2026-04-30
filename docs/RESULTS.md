@@ -15,7 +15,7 @@
 |---|---:|---:|---:|---:|---:|
 | Claude Haiku 4.5 zero-shot | 77.6 [70.1, 84.3] | 57.5 [49.3, 66.4] | 40.3 [32.1, 49.3] | 55.9 [42.0, 68.6] | 18.7 [11.9, 25.4] |
 | **Claude RAG (Yarob+distilled, k=5)** | **79.9 [73.1, 86.6]** | **67.2 [59.0, 75.4]** | **44.8 [35.8, 53.0]** | **68.8 [55.8, 82.2]** | **27.6 [20.1, 35.8]** |
-| Hybrid (RAG case+role + AraT5v2 marker) | TBD | TBD | TBD | TBD | TBD |
+| Hybrid (RAG case+role + AraT5v2 marker) | 77.6 [70.1, 84.3] | 68.7 [61.2, 76.9] | 41.8 [33.6, 50.7] | 59.4 [44.8, 73.8] | 26.1 [18.7, 34.3] |
 
 (Numbers are percentages with 95% bootstrap CIs in brackets.)
 
@@ -30,11 +30,13 @@ The from-scratch character decoder is reported as a documented negative-result b
 | RAG combined − Decoder | **+34.3** ★ | [+24.6, +44.0] | <0.001 | **+31.3** ★ | [+23.1, +40.3] | <0.001 | **+25.4** ★ | [+17.9, +33.6] | <0.001 |
 | RAG combined − Zero-shot | **+9.7** ★ | [+3.0, +16.4] | 0.011 | +4.5 | [-0.7, +9.7] | 0.180 | **+9.0** ★ | [+3.7, +14.9] | 0.004 |
 | RAG combined − RAG (Yarob-only) | +0.7 | [-2.2, +3.7] | 1.000 | +1.5 | [-0.0, +3.7] | 0.500 | +1.5 | [-1.5, +4.5] | 0.625 |
+| **Hybrid − RAG combined** | **+1.5** | [-4.5, +6.7] | **0.791** | **-3.0** | [-6.7, +0.0] | **0.219** | **-1.5** | [-6.7, +3.7] | **0.791** |
 
 **Statistical reading:**
 - **Retrieval augmentation over zero-shot is a real lift** on case (+9.7 pp, p=0.011) and on the aggregate fully-correct rate (+9.0 pp, p=0.004). Marker EM and well-formedness do not change significantly.
 - **Adding 601 Claude-distilled MSA pairs to the retrieval pool produced no significant change on any binary metric** at this evaluation scale. Role-F1 trended upward (+8.1 pp point estimate) but the bootstrap CIs of the two systems overlap heavily ([55.8, 82.2] vs [50.3, 74.9]). We use the combined-pool variant in subsequent comparisons for higher per-system role coverage but **cannot claim distillation lifts retrieval-augmented generation accuracy on Gazelle**.
 - **The from-scratch decoder is dominated** on every metric by every LLM-based system at p<0.001.
+- **Mix A (Hybrid) does not beat Claude RAG at this evaluation scale.** All four binary metrics fall within the noise floor: Δ case +1.5 pp [p=0.791], Δ marker −3.0 pp [p=0.219], Δ fully −1.5 pp [p=0.791], Δ well-formed −2.2 pp [p=0.375]. The point estimate on role-F1 dropped 9.4 pp but bootstrap CIs overlap heavily ([55.8, 82.2] vs [44.8, 73.8]). We interpret this as a **negative result on the per-word routing hypothesis**: at n=134 we cannot detect a difference in either direction. The asymmetry we hypothesized — knowledge-bound case/role vs. style-bound marker — does not translate into measurable gains when the LLM baseline is already strong on style via retrieval-augmented prose generation.
 
 The smallest detectable difference at n=134 with α=0.05 power 0.80 is roughly **±7 percentage points** on a binary proportion; differences below that are within noise.
 
