@@ -85,7 +85,12 @@ OUTPUT:
 
 ## 4. The bet — Mix A (per-word routing)
 
-**Hypothesis:** Claude RAG is strong on case (67%) and role (69%) but weak on marker (45%). A small fine-tuned AraT5v2 specialized on **marker prediction only** should reach 60-65% marker EM, lifting `fully` to 35-45%.
+**Hypothesis:** Claude RAG is strong on case (67%) and role (69%) but weak on marker (45%). A small fine-tuned AraT5v2 specialized on **marker prediction only** *might* lift marker EM into the 50-65% range. Lower-end (50%) is more honest given:
+- 8K training examples is thin for style-fitting
+- Words that are hard for case/role are likely also hard for marker (correlated failure modes), so marker improvement on the easy cases doesn't translate cleanly to fully-correct lift
+- The 30-step smoke test (loss 7.50 → 5.77) tells us the pipeline works, **not** that final accuracy will be high
+
+**Realistic outcome range for `fully`:** 28-40%. Plan for the median (32-35%), not the optimistic end. If the hybrid lands at 30-34% you frame it as a modest documented improvement; if it lands ≥35% you have a clean win; if it lands ≤28% you write a negative result honestly.
 
 **Architecture:**
 ```
@@ -106,14 +111,16 @@ sentence → Claude RAG → [{word, irab, case, role, marker}, ...]
 
 ## 5. Concrete tasks ranked by points-per-effort
 
-### Tier 1 — must-do for 30/30 (in order)
+### Tier 1 — must-do (in order)
 
-#### Task 1.1: Run the marker fine-tune
-Either:
-- **HPC:** `sbatch scripts/slurm/33_train_marker_arat5v2.sbatch` (~3-4h on stud MIG)
-- **Local:** `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True python -m irab_tashkeel.training.llm.marker_arat5_sft --config configs/marker_arat5v2.yaml --output runs/marker_full` (~2.5h on RTX 4060 8GB)
+#### Task 1.1: Run the marker fine-tune (HPC ONLY)
+**Bocconi:** `ssh 3415496@10.35.5.3 'cd ~/irab_project && git pull && sbatch scripts/slurm/33_train_marker_arat5v2.sbatch'` (~3-4h on stud MIG slice).
 
-Output: a fine-tuned AraT5v2 at `runs/marker_full/final/`.
+Do **not** train locally — laptop must stay free for the writeup.
+
+Output: a fine-tuned AraT5v2 at `runs/marker_arat5v2_<JOBID>/final/`. Once done, scp/git-pull it back so inference can use it.
+
+**Whatever number comes back (30%, 38%, or 45% on `fully`), within 24h of starting the job, you have your headline.** Plan around it.
 
 #### Task 1.2: Build the Hybrid inference pipeline
 Create `src/irab_tashkeel/inference/hybrid.py`:
@@ -167,17 +174,19 @@ Sections:
 - **Discussion** — when does each component carry weight; Claude self-disagreement rate; failure modes
 - **Future work** — full QLoRA on 9B Arabic LLM; DPO on the marker head; live constrained decoding
 
-### Tier 2 — pick two more for the last 1-2 points
+### Tier 2 — only if Tier 1 lands clean and time remains
 
-- **Quantify Claude's self-consistency rate.** Run the postprocessor over the 601 distilled samples; report the % of words where Claude's `case` field disagrees with its own `diacritized` final vowel. Likely 5-10%. This is a publishable observation.
-- **LLM-as-judge eval.** 4-axis rubric (well-formed / case / role / marker), GPT-4o-mini judge over both Claude RAG and Hybrid, computed across Gazelle + the 200 gold sentences. ~$5, ~3h.
-- **Constrained decoding.** Wire `inference/constrained.py` (already written, snaps to canonical taxonomy) into the Hybrid output; report well-formedness % before/after.
-- **Per-source ablation.** Train Mix A marker model (a) on Yarob only, (b) on distilled only, (c) on combined; show the data-mix effect.
+These are nice-to-haves for the writeup, **not contributions that move the grade from B+ to 30**. Don't sink a day into any of them. Skip entirely if Tier 1 + writeup is at risk.
 
-### Tier 3 — skip unless time permits
+- **Constrained decoding integration.** Wire `inference/constrained.py` into the Hybrid output. <2 hours. Adds a sentence to the writeup; mention in future work otherwise.
+- **Quantify Claude's self-consistency rate.** Run the case-vs-diac postprocessor over the 601 distilled samples; report the disagreement %. ONE sentence in the writeup. Skip the rabbit hole unless the number is striking (>15%).
+- **LLM-as-judge eval.** Skip unless the hybrid result is unclear and you need a tiebreaker.
+- **Per-source ablation.** Skip — adds runs without changing the central claim.
 
-- Stack A 9B QLoRA on Bocconi (`scripts/slurm/32_train_qlora_fanar_unsloth.sbatch`). Likely better than Hybrid but takes 12-15h on stud MIG. Risky if you don't have the time.
-- Stack B AraT5v2 standalone full FT on whole-i'rāb generation. Less interesting given Mix A.
+### Tier 3 — skip
+
+- Stack A 9B QLoRA. Different project.
+- Stack B AraT5v2 standalone full FT. Less interesting given Mix A.
 
 ---
 
@@ -210,15 +219,13 @@ source .venv/bin/activate || conda activate irab
 # Sanity (should print row counts)
 wc -l data/distilled_irab.jsonl data/marker_pairs.jsonl
 
-# Re-run the current best eval (no API call needed if cache hit; else ~$0.20)
+# Train the marker model — HPC ONLY (do NOT run on the laptop)
+ssh 3415496@10.35.5.3 'cd ~/irab_project && git pull && sbatch scripts/slurm/33_train_marker_arat5v2.sbatch'
+
+# Re-run the current best eval (~$0.20)
 ANTHROPIC_API_KEY=sk-... python -m irab_tashkeel.evaluation.run_baselines \
     --eval gazelle --baselines claude_rag --model claude-haiku-4-5 \
     --out runs/baseline_eval_v3
-
-# Train the marker model (Tier 1.1, local route)
-PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
-python -m irab_tashkeel.training.llm.marker_arat5_sft \
-    --config configs/marker_arat5v2.yaml --output runs/marker_full
 
 # Streamlit demo
 ANTHROPIC_API_KEY=sk-... MODEL_CKPT=runs/model_small/best.pt \
@@ -241,18 +248,23 @@ In order, if you want to ramp up fast:
 
 ---
 
-## 10. The student's grade probability table (from the previous AI's brutal assessment)
+## 10. The honest grade picture
 
-| Path | P(30/30) |
-|---|---:|
-| Submit today as-is | ~10% |
-| Add writeup only | ~25-35% |
-| Writeup + Mix A trained but mediocre | ~50% |
-| Writeup + Mix A + manual gold + Mix A wins by 3+ points | ~70-80% |
+The grade is decided by **whether the writeup is sharp**, not by whether the hybrid hits 30% or 40% on `fully`.
 
-**The bottleneck is execution risk on Mix A.** If marker FT lifts `fully` from 27.6% to ~38%, that's a clear publishable win. If it ekes out to ~30%, the writeup frames it honestly as a documented attempt and still defends a solid grade.
+- **Floor (panic + spread thin):** spreading effort across 6 sub-experiments with 4 days remaining lands at 25-28. Each Tier 2 item that gets half-done makes the writeup messier, not stronger.
+- **Realistic ceiling (focused execution):** working hybrid (any result) + ≥50-sentence hand-corrected benchmark + clean 3-page writeup framing the contribution as a comparison study + methodology = **28-30 range**.
+- **30L is not on the table** in 4 days. That requires a result that surprises the grader; you don't have time to manufacture one.
 
-Your job is to maximize that probability.
+**The contribution that lands:**
+
+> "We compare three approaches to per-word Arabic i'rāb generation: a from-scratch character decoder (32.8% case), zero-shot Claude (57.5%), and retrieval-augmented Claude (67.2%). We propose a hybrid that combines RAG for case/role assignment with a fine-tuned AraT5v2 for marker phrasing, hypothesizing that case/role are knowledge-bound while marker is style-bound. We report results, including a [N]-sentence manually-validated benchmark."
+
+That structure is defensible at 28-30 regardless of whether the hybrid wins by 10 points or 2.
+
+**The bet that actually matters:** can you write a paper-shaped writeup in 2-3 days? If yes, you're at 28-30 regardless of hybrid result. If no — if you're going to spend 4 days on more experiments and 6 hours hastily writing — you're at 25-28 regardless of how good the experiments were.
+
+**Pick the writeup. Run only the experiments that strengthen its central claim.**
 
 ---
 
