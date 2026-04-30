@@ -136,6 +136,8 @@ def main():
                    help="comma-separated subset: claude_zero, claude_rag, decoder")
     p.add_argument("--decoder_ckpt", default=None,
                    help="path to FullModel .pt for the 'decoder' baseline")
+    p.add_argument("--marker_model", default=None,
+                   help="path to AraT5v2 marker fine-tune for the 'hybrid' baseline")
     p.add_argument("--model", default="claude-haiku-4-5",
                    help="Claude model id for the LLM baselines")
     p.add_argument("--rag_k", type=int, default=5)
@@ -185,6 +187,28 @@ def main():
             out_dir=args.out,
         )
         reports.append(rep)
+
+    if "hybrid" in baselines:
+        if not args.marker_model:
+            print("  [hybrid] skipped — pass --marker_model path/to/final/")
+        else:
+            from ..inference.hybrid import HybridPredictor
+            from ..inference.llm_baselines import load_combined_fewshots
+            pool = load_combined_fewshots(
+                include_yarob=True,
+                include_distilled=not args.no_distilled_pool,
+            )
+            print(f"  Hybrid: marker_model={args.marker_model}  RAG pool={len(pool)}")
+            hybrid = HybridPredictor(
+                marker_model_path=args.marker_model,
+                rag_pool=pool, rag_k=args.rag_k, rag_model=args.model,
+            )
+            rep = evaluate_baseline(
+                "hybrid", sentences, gold_pairs,
+                predict_fn=hybrid.predict,
+                out_dir=args.out,
+            )
+            reports.append(rep)
 
     if "decoder" in baselines:
         if not args.decoder_ckpt:
