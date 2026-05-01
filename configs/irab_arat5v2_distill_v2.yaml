@@ -1,0 +1,28 @@
+# Phase 2.1: AraT5v2-base full-irab fine-tune on the 77K Haiku-distilled corpus.
+#
+# Per-word seq2seq:
+#   Input:  أعرب: <word> | في: <sentence>
+#   Output: <full Arabic i'rāb prose>
+#
+# Targets:
+#   - 296M params, fits A100 22GB MIG slice with batch 8 + grad ckpt
+#   - 3 epochs over 77K rows ≈ ~6h on A100
+#   - adamw_torch (no bnb — past HPC failures included bnb in epoch 2)
+
+model_id: UBC-NLP/AraT5v2-base-1024
+pairs_path: data/distill_v2/word_level.jsonl
+val_split: 0.02
+
+learning_rate: 1.0e-4
+weight_decay: 0.01
+warmup_ratio: 0.03
+n_epochs: 3
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 2
+max_input_length: 320
+max_target_length: 192
+label_smoothing_factor: 0.1
+
+seed: 42
+optim: adamw_torch
