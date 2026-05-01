@@ -94,6 +94,45 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 
 ---
 
+## Annotator-disagreement audit (label variation in classical naḥw)
+
+Single-gold scoring assumes one canonical i'rāb per word, but classical Arabic naḥw genuinely admits alternative analyses on a non-trivial fraction of words (sibawayhi vs the Kufan grammarians, ḥāl vs naʿt, mubtadaʾ vs fāʿil for some preverbal nouns, etc.). To quantify how much this assumption inflates strict scoring, we asked Sonnet 4.5 to classify each Gazelle gold word into one of three classes and to list any alternative valid analyses (`src/irab_tashkeel/evaluation/ambiguity.py`):
+
+| Ambiguity class | Definition | n / 134 |
+|---|---|---:|
+| unambiguous | one valid analysis only | 90 (67.2%) |
+| ambiguous_minor | multiple analyses, but **case is fixed** | 23 (17.2%) |
+| ambiguous_major | multiple analyses with **different cases** (e.g. fāʿil vs mubtadaʾ) | 19 (14.2%) |
+| (unannotated) | annotation alignment failure | 2 (1.5%) |
+
+**Permissive scoring** (a system is correct if its prediction matches gold OR any annotated alternative on the targeted dimension):
+
+| System | case strict | case **permissive** | Δ pp | role strict | role permissive | Δ pp | marker | fully |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Stanza | 35.1 | 37.3 | +2.2 | 9.7 | 11.9 | +2.2 | unchanged | unchanged |
+| Haiku zero | 57.5 | 60.4 | +3.0 | 33.6 | 35.8 | +2.2 | unchanged | unchanged |
+| Haiku RAG | 67.2 | 68.7 | +1.5 | 41.8 | 42.5 | +0.7 | unchanged | unchanged |
+| Sonnet zero | 72.4 | 73.1 | +0.7 | 45.5 | 47.8 | +2.2 | unchanged | unchanged |
+| **Sonnet RAG** | 73.9 | **74.6** | +0.7 | 46.3 | 47.8 | +1.5 | unchanged | unchanged |
+
+**Per-ambiguity-class case-acc breakdown for Sonnet RAG (permissive):**
+
+| | unambiguous | ambiguous_minor | ambiguous_major |
+|---|---:|---:|---:|
+| n | 90 | 23 | 19 |
+| Sonnet RAG case-acc | 76.7% | 69.6% | 73.7% |
+
+**Findings (Hovy-relevant):**
+
+1. **31.4% of Gazelle words (42/134) admit multiple valid analyses** under classical naḥw — a quantitative estimate of label variation in this domain. This is a non-negligible fraction; for any per-word benchmark on Arabic syntax, some annotator disagreement is structural, not error.
+2. **The strict→permissive gap is small (≤3 pp on case, ≤2.2 pp on role) and shrinks as systems get stronger** (3.0 pp on Haiku zero → 0.7 pp on Sonnet RAG). Strong systems align with the canonical analysis even on words that admit alternatives, so single-gold scoring under-counts them by very little. **The headline numbers are robust to this concern.**
+3. **Marker EM and fully_correct_word are entirely unaffected** by permissive scoring (gap = 0 pp for every system). Alternative analyses in classical naḥw rarely change the marker phrase (الضمة remains الضمة across role disputes), and the conjunction across case+role+marker is so strict that any single-field alternative match almost never enables a full-word match.
+4. Sonnet RAG case-acc on unambiguous words (76.7%) is only modestly higher than on ambiguous-major (73.7%); the system handles the syntactically harder constructions roughly as well as the easy ones once we permit valid alternatives.
+
+This analysis does NOT eliminate the label-variation concern but quantifies it: ≤1 pp upward bias on case-acc for our headline system, 0 pp on the joint metric. Reported here as methodology transparency in the spirit of Plank (2022) and Hovy & Spruit (2016).
+
+---
+
 ## Sensitivity to retrieval depth `k` (Sonnet RAG)
 
 Sweeping `k ∈ {1, 3, 5, 8, 12}` while holding the LLM (Sonnet 4.5), pool composition (Yarob+distilled, n=1060), and prompt fixed:

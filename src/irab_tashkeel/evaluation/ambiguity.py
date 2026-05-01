@@ -217,12 +217,16 @@ def score_with_permissive(annotations: List[dict],
             sent = a["sentence"]
             word_n = _normalize(a["word"])
             pred_irab = preds.get((sent, word_n), "")
-            if not pred_irab:
-                continue
             cls = a.get("ambiguity_class", "unannotated")
+            # Counted whether or not the system emitted a prediction; missing pred
+            # is treated as wrong on every dimension. This matches the headline
+            # `StructuralMetrics` semantics on the same 134-word eval.
             for dim in ("case", "role", "marker", "fully"):
-                strict = _matches_any(pred_irab, a["gold_irab"], [], dim)
-                perm   = _matches_any(pred_irab, a["gold_irab"], a.get("alternatives") or [], dim)
+                if not pred_irab:
+                    strict = perm = False
+                else:
+                    strict = _matches_any(pred_irab, a["gold_irab"], [], dim)
+                    perm   = _matches_any(pred_irab, a["gold_irab"], a.get("alternatives") or [], dim)
                 per_dim_strict[dim].append(int(strict))
                 per_dim_perm[dim].append(int(perm))
                 per_class_perm[dim][cls].append(int(perm))
