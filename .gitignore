@@ -18,3 +18,4 @@ __pycache__/
 logs/
 .venv/
 data/ambiguity_annotations.jsonl
+data/distill_v2/

@@ -199,8 +199,7 @@ def smoke_distill(sources: List[Dict[str, Any]], n: int,
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             if (i + 1) % 10 == 0:
                 print(f"  [{i+1}/{n_actual}] avg in_tok={in_total/(i+1):.0f} out_tok={out_total/(i+1):.0f}", flush=True)
-    cost = (in_total / 1_000_000 * SONNET_INPUT_PER_M
-            + out_total / 1_000_000 * SONNET_OUTPUT_PER_M)
+    cost = cost_for(model, in_total, out_total, batch=False)
     print(f"\nSmoke complete: {n_actual} sentences")
     print(f"  total tokens: in={in_total}, out={out_total}")
     print(f"  cost (sync, no batch discount): ${cost:.3f}")
@@ -292,8 +291,7 @@ def batch_distill(sources: List[Dict[str, Any]], n: int,
             }
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
             n_ok += 1
-    cost = (in_total / 1_000_000 * SONNET_INPUT_PER_M * BATCH_DISCOUNT
-            + out_total / 1_000_000 * SONNET_OUTPUT_PER_M * BATCH_DISCOUNT)
+    cost = cost_for(model, in_total, out_total, batch=True)
     print(f"\nBatch complete: {n_ok}/{n_actual} succeeded")
     print(f"  total tokens: in={in_total}, out={out_total}")
     print(f"  cost (batch -50%): ${cost:.2f}")
