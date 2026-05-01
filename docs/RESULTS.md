@@ -94,6 +94,24 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 
 ---
 
+## Inference-time variance (Sonnet RAG, temp=0.0)
+
+The Anthropic API does not expose a `seed` parameter, and Claude's sampling is server-side stochastic even at `temperature=0.0`. To estimate this variance we re-ran the headline configuration on the same 30 Gazelle sentences:
+
+| Metric | Run 1 (headline) | Run 2 (repro) | Δ pp | McNemar p |
+|---|---:|---:|---:|---:|
+| well-formed | 79.9 | 79.9 | 0.0 | 1.000 |
+| case-acc | 73.9 | 74.6 | +0.7 | 1.000 |
+| role-F1 | 74.6 | 72.9 | −1.7 | — |
+| marker-EM | 50.0 | 49.3 | −0.7 | 1.000 |
+| **fully** | **32.1** | **32.1** | **0.0** | **1.000** |
+
+Per-word agreement (n=126 aligned words): **case 99.2%, role 98.4%, marker 99.2%, fully (case ∧ role ∧ marker) 96.8%.**
+
+Sonnet 4.5 at `temperature=0.0` is reproducible to ~1 pp on aggregate metrics and ~3% per-word disagreement on the joint metric. All paired McNemar tests give p=1.000. The reported headline numbers are robust to provider-side stochasticity at the scale tested. Full breakdown in `reproducibility/variance.md`; second run predictions in `runs/baseline_eval_sonnet_repro/`.
+
+---
+
 ## Retrieval-pool ablations (Sonnet RAG)
 
 Pool composition matters in principle but barely matters here in practice. The headline pool (Yarob 459 + Distilled 601 = 1,060) was augmented with 1,500 templated MASAQ verses (Sawalha et al. 2025) — Quranic per-word annotations rendered into traditional i'rāb prose by `src/irab_tashkeel/data/masaq.render_word_irab`. Pool grew 1,060 → 2,560.
