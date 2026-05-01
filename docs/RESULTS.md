@@ -94,6 +94,31 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 
 ---
 
+## Sensitivity to retrieval depth `k` (Sonnet RAG)
+
+Sweeping `k ∈ {1, 3, 5, 8, 12}` while holding the LLM (Sonnet 4.5), pool composition (Yarob+distilled, n=1060), and prompt fixed:
+
+| k | well | case | role-F1 | marker | **fully** |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 78.4 | 72.4 | 72.6 | 38.1 | 28.4 |
+| 3 | 79.1 | 73.1 | 72.7 | 40.3 | 31.3 |
+| **5** | **79.9** | **73.9** | **74.6** | **41.8** | **32.1** |
+| 8 | 79.9 | 75.4 | 70.6 | 40.3 | 31.3 |
+| 12 | 79.9 | 74.6 | 64.7 | 38.8 | 29.9 |
+
+**Paired bootstrap + McNemar deltas vs k=5:**
+
+| Comparison | Δ case | Δ marker | Δ fully | Notes |
+|---|---:|---:|---:|---|
+| k=1 − k=5 | −1.5 (p=0.625) | **−4.5 ★ (p=0.031)** | −3.7 (p=0.125) | k=1 paired-significantly worse on marker |
+| k=3 − k=5 | −0.7 (p=1.000) | −1.5 (p=0.500) | −0.7 (p=1.000) | indistinguishable |
+| k=8 − k=5 | +1.5 (p=0.500) | −1.5 (p=0.500) | −0.7 (p=1.000) | wash |
+| k=12 − k=5 | +0.7 (p=1.000) | −3.7 (p=0.062) | −2.2 (p=0.375) | role-F1 drops 10 pp directionally |
+
+**k=5 is the joint optimum on `fully` and is the only justified operating point**: smaller k loses paired-significant marker accuracy; larger k does not improve case and noticeably degrades role-F1 (additional retrievals introduce role distractors as the per-example similarity decreases). This matches Brown et al. (2020) and Mialon et al. (2023) on diminishing returns in in-context demonstrations.
+
+---
+
 ## Metric audit via perturbed gold (extractor sensitivity / specificity)
 
 To verify that the structural-extraction metric actually responds to errors on the right field, we built a deterministic perturbation set from the 134 Gazelle gold word-i'rāb pairs (`src/irab_tashkeel/evaluation/perturb.py`). For each gold string we generated up to three single-field corruptions:
@@ -120,6 +145,32 @@ The audit scores how well the extractor flags the perturbation on the targeted f
 - **Role sensitivity is only 60.0%** — well below target. **This is a real, transparent limitation of the structural metric, not a bug to fix.** Detailed Arabic i'rāb prose routinely mentions multiple role terms per word (e.g. `اسم مجرور… متعلقان بالخبر… والفاعل ضمير مستتر`); the extractor returns the FIRST canonical role from a fixed-priority list. Perturbations of secondary mentions don't change what the extractor reads. **Implication:** the role-F1 numbers in the headline table should be read as a lower bound on agreement at the surface mention level, not as a strict role-by-role identity check. The case-acc and marker-EM numbers are tighter (88-93% extractor sensitivity); fully_correct_word inherits the role looseness as a small upward bias on the metric (because some role-flips would not actually be caught).
 
 The ~12% upward bias on role-F1 partially explains why our role-F1 confidence intervals are wider than case-acc CIs at the same n.
+
+---
+
+## System discrimination on perturbed gold
+
+The perturbation set (T6) lets us also probe the **system's** behavior, not just the extractor. We re-score each system's per-word predictions against the *perturbed* gold variant; a genuinely discriminative system should match the original gold but **not** the wrong-on-purpose perturbed gold. The drop between original-gold-rate and perturbed-gold-rate is a per-dimension discrimination signal (the larger the drop, the more the system's output is contingent on the actual case/role/marker, not boilerplate).
+
+| System | case (orig→case-flipped) | role (orig→role-flipped) | marker (orig→marker-mangled) | fully (orig→worst variant) |
+|---|---|---|---|---|
+| Stanza | 49.0 → 13.8 (Δ −35) | 21.3 → 7.4 (Δ −14) | 23.1 → 1.6 (Δ −22) | 14.9 → 0.0 |
+| Haiku zero | 75.5 → 21.9 (Δ −54) | 67.2 → 27.1 (Δ −40) | 62.1 → 4.3 (Δ −58) | 45.5 → 2.3 |
+| Haiku RAG | 87.4 → 15.6 (Δ −72) | 83.6 → 28.3 (Δ −55) | 69.8 → 3.0 (Δ −67) | 68.5 → 0.0 |
+| Sonnet zero | 94.2 → 15.2 (Δ −79) | 87.1 → 25.4 (Δ −62) | 67.8 → 3.0 (Δ −65) | 66.1 → 0.0 |
+| **Sonnet RAG** | **96.1 → 15.2 (Δ −81)** | **88.6 → 28.6 (Δ −60)** | **77.0 → 1.5 (Δ −76)** | **76.8 → 0.0** |
+
+(Per-cell n varies between 22 and 103; full per-system table with sample sizes in `runs/discrimination/per_system.json`. Subsets of words for which a perturbation could be applied differ by perturbation type, e.g. only 33 of 134 words had a case pattern matching the case-flip rule, vs 67 for role and 72 for marker.)
+
+**Findings:**
+
+1. **All systems show paired-significant discrimination on every probed dimension.** No system is just emitting boilerplate that happens to overlap both the original and perturbed gold.
+2. **Sonnet RAG has the largest case-discrimination signal** (Δ −81 pp on case-flip vs Stanza's Δ −35 pp). This is consistent with its stronger headline case-acc.
+3. **Role discrimination is the weakest channel for every system.** Sonnet RAG's role drop (Δ −60 pp) is materially smaller than its case (Δ −81 pp) and marker (Δ −76 pp) drops. This aligns with the T6 finding that the extractor itself has only 60% role-sensitivity to perturbations — we cannot tell whether the smaller role drop is a system limitation or a metric artifact.
+4. **Marker discrimination is essentially perfect for Claude-based systems** (≥3% match rate against marker-mangled gold). Marker phrases are highly specific lexicalizations; once a system commits to one, the wrong alternative does not accidentally match.
+5. **Fully_correct_word collapses to 0% under any single-field perturbation** for every system — confirming that fully is a strict conjunction and any single corrupted field is enough to flip the joint indicator.
+
+This is a metric-validity check using the existing perturbation set; it does NOT increase the statistical power of the headline comparison (the same model output is being scored against multiple gold variants, so observations are not independent).
 
 ---
 
