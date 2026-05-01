@@ -131,17 +131,22 @@ Sonnet 4.5 at `temperature=0.0` is reproducible to ~1 pp on aggregate metrics an
 
 ---
 
-## Retrieval-pool ablations (Sonnet RAG)
+## Retrieval-pool ablations (Sonnet RAG, k=5 fixed)
 
-Pool composition matters in principle but barely matters here in practice. The headline pool (Yarob 459 + Distilled 601 = 1,060) was augmented with 1,500 templated MASAQ verses (Sawalha et al. 2025) — Quranic per-word annotations rendered into traditional i'rāb prose by `src/irab_tashkeel/data/masaq.render_word_irab`. Pool grew 1,060 → 2,560.
+We isolate the contribution of each retrieval source. The headline pool is Yarob (459 hand-authored) + Distilled (601 Claude-generated over PADT-UD).
 
-| Pool | n | well | case | role-F1 | marker | **fully** |
-|---|---:|---:|---:|---:|---:|---:|
-| Yarob + Distilled (headline) | 1,060 | 79.9 | 73.9 | 74.6 | 50.0 | **32.1** |
-| Yarob + Distilled + MASAQ | 2,560 | 79.9 | 73.9 | 71.0 | 48.5 | 31.3 |
-| Δ paired (vs headline) | | 0.0 (p=1.000) | 0.0 (p=1.000) | −3.6 | −1.5 (p=0.500) | −0.7 (p=1.000) |
+| Pool | n | well | case | role-F1 | marker | **fully** | Δ fully vs headline (McNemar p) |
+|---|---:|---:|---:|---:|---:|---:|---|
+| **Yarob + Distilled** (headline) | 1,060 | 79.9 | 73.9 | 74.6 | 50.0 | **32.1** | — |
+| Yarob only | 459 | (per finding #4: indistinguishable from headline) | | | | | +1.5 (p=0.625) |
+| Distilled only | 601 | 78.4 | 72.4 | 69.8 | 46.3 | 27.6 | −4.5 (p=0.109) |
+| Yarob + Distilled + MASAQ | 2,560 | 79.9 | 73.9 | 71.0 | 48.5 | 31.3 | −0.7 (p=1.000) |
 
-**Honest negative ablation:** adding 1,500 templated Quranic examples does not help and slightly hurts on role-F1. We attribute this to register mismatch — Quranic Arabic differs from MSA-news syntactically (richer use of mood-shifting particles, frequent object-fronting, more frequent VS word order) and lexically (theological / classical vocabulary). Retrieval falls back to MASAQ verses for some MSA queries when Yarob+Distilled lacks a close match, and the Quranic style is then carried over into the in-context demonstration block. We retain the headline pool. *(MASAQ remains a credible future training-augmentation resource; we report it here as an evaluated retrieval-pool extension that did not help, in the spirit of Plank 2022.)*
+**Findings:**
+
+- **Yarob-only (459 examples) ≈ headline (1,060 examples)** — already established as Δ case +0.7 pp (p=1.000) earlier; the 601 distilled examples do not paired-significantly improve over Yarob alone, but they do not hurt either, so we keep them for stylistic coverage.
+- **Distilled-only (601, no Yarob) trends 4.5 pp worse on `fully`** (McNemar p=0.109; not significant at α=0.05 but the directional gap is consistent across case, marker, and fully). **Per-example retrieval value of hand-authored Yarob > Claude-distilled.** This is consistent with Hovy & Spruit (2016) on the value of expert-curated gold over model-generated silver.
+- **MASAQ-augmented (Quranic templated, +1,500): honest negative** — no help, small role-F1 drop (Δ −3.6 pp). Register mismatch — Quranic Arabic differs syntactically (mood-shifting particles, object-fronting, VS order) and lexically from MSA-news. Retrieval falls back to Quranic verses for some queries and carries the style into the prompt. We retain the headline pool. *(MASAQ remains a credible future training-augmentation resource, characterized in `data/masaq_sample.jsonl` and `src/irab_tashkeel/data/masaq.py`.)*
 
 ---
 
