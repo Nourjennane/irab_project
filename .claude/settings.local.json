@@ -86,7 +86,20 @@
       "Bash(pkill -f \"training.llm.marker_arat5_sft\")",
       "Bash(mkdir -p ~/Desktop/rt-detr-hpc)",
       "Bash(rsync -av --info=stats2,progress2 --exclude=data/coco/ --exclude=weights/ --exclude=__pycache__ '--exclude=*.pyc' -e 'ssh -o ConnectTimeout=10' '3415496@10.35.5.3:~/rt-detr/' '~/Desktop/rt-detr-hpc/')",
-      "Bash(rsync -av -e \"ssh -o ConnectTimeout=10\" data/marker_pairs.jsonl 3415496@10.35.5.3:~/irab_project/data/)"
+      "Bash(rsync -av -e \"ssh -o ConnectTimeout=10\" data/marker_pairs.jsonl 3415496@10.35.5.3:~/irab_project/data/)",
+      "Bash(rsync -av -e 'ssh -o ConnectTimeout=10' '3415496@10.35.5.3:~/irab_project/runs/marker_arat5v2_486438/final/' runs/marker_arat5v2_486438/final/)",
+      "Bash(tee /tmp/gold_seed.log)",
+      "Bash(mkdir -p data/masaq)",
+      "Bash(curl -sL \"https://data.mendeley.com/public-api/datasets/9yvrzxktmr/files\")",
+      "WebFetch(domain:data.mendeley.com)",
+      "Bash(curl -sL \"https://data.mendeley.com/api/datasets/9yvrzxktmr/files\")",
+      "Bash(curl -sL \"https://api.data.mendeley.com/datasets/9yvrzxktmr\")",
+      "Bash(curl -sL -H \"Accept: application/json\" \"https://data.mendeley.com/public-api/datasets/9yvrzxktmr/files?folder_id=\")",
+      "Bash(curl -sL -H \"Accept: application/json\" -H \"User-Agent: Mozilla/5.0\" \"https://data.mendeley.com/datasets/9yvrzxktmr\")",
+      "Bash(curl -sL -o masaq_all.zip \"https://data.mendeley.com/public-files/datasets/9yvrzxktmr/files/all\")",
+      "Bash(pkill -f \"prepare_gold_seed\")",
+      "Bash(rsync -av -e 'ssh -o ConnectTimeout=10' data/marker_pairs_yarob_only.jsonl '3415496@10.35.5.3:~/irab_project/data/')",
+      "Bash(tee /tmp/sonnet_hybrid.log)"
     ]
   }
 }

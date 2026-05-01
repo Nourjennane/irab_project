@@ -19,3 +19,7 @@ label_smoothing_factor: 0.1
 
 drop_no_marker_in_train: false
 seed: 42
+
+# 486573/486949 reproducibly died at exit 120 in epoch 2 with adamw_bnb_8bit on
+# the stud-MIG slice. Switching to plain torch optimizer to test the bnb hypothesis.
+optim: adamw_torch

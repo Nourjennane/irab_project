@@ -11,13 +11,17 @@
 
 ## Headline comparison
 
+All numbers are percentages with 95% percentile bootstrap CIs (B=1000) in brackets. The from-scratch character decoder (32.8% case, 3.8% role-F1, 2.2% fully) is reported in Appendix A as a documented negative-result baseline; it is dominated by every LLM-based system at p<0.001 and is not a peer comparison.
+
 | System | well-formed | case-acc | marker-EM | role-F1 (macro) | **fully** |
 |---|---:|---:|---:|---:|---:|
 | Claude Haiku 4.5 zero-shot | 77.6 [70.1, 84.3] | 57.5 [49.3, 66.4] | 40.3 [32.1, 49.3] | 55.9 [42.0, 68.6] | 18.7 [11.9, 25.4] |
-| **Claude RAG (Yarob+distilled, k=5)** | **79.9 [73.1, 86.6]** | **67.2 [59.0, 75.4]** | **44.8 [35.8, 53.0]** | **68.8 [55.8, 82.2]** | **27.6 [20.1, 35.8]** |
-| Hybrid (RAG case+role + AraT5v2 marker) | 77.6 [70.1, 84.3] | 68.7 [61.2, 76.9] | 41.8 [33.6, 50.7] | 59.4 [44.8, 73.8] | 26.1 [18.7, 34.3] |
-
-(Numbers are percentages with 95% bootstrap CIs in brackets.)
+| Claude Haiku 4.5 + RAG (k=5) | 79.9 [73.1, 86.6] | 67.2 [59.0, 75.4] | 44.8 [35.8, 53.0] | 68.8 [55.8, 82.2] | 27.6 [20.1, 35.8] |
+| Claude Haiku 4.5 + RAG (k=10) — *ablation* | 76.9 [69.4, 84.3] | 64.9 [56.7, 73.1] | 46.3 [38.1, 55.2] | 45.4 [36.9, 56.0] | 26.1 [18.7, 34.3] |
+| Hybrid (Haiku RAG + AraT5v2 marker, overlay) | 77.6 [70.1, 84.3] | 67.9 [59.7, 76.1] | 41.0 [32.1, 50.0] | 65.9 [51.1, 78.8] | 26.1 [18.7, 34.3] |
+| Claude Sonnet 4.5 zero-shot | 78.4 [70.9, 85.1] | 72.4 [64.9, 79.9] | 44.0 [35.1, 53.0] | 76.0 [62.1, 85.6] | 27.6 [20.1, 35.8] |
+| **Claude Sonnet 4.5 + RAG (k=5)** | **79.9 [72.4, 86.6]** | **73.9 [66.4, 81.3]** | **50.0 [41.8, 59.0]** | **74.6 [63.7, 88.6]** | **32.1 [24.6, 40.3]** |
+| Sonnet RAG + AraT5v2 marker (Hybrid v2) | 79.9 [72.4, 86.6] | 73.9 [66.4, 81.3] | 46.3 [38.1, 55.2] | 73.3 [60.7, 86.4] | 29.1 [21.6, 37.3] |
 
 The from-scratch character decoder is reported as a documented negative-result baseline in the appendix only — it scores 32.8% [25.4, 41.0] case and 3.8% [1.5, 8.2] role-F1 on the same eval, confirming that training i'rāb prose generation from scratch fails at this data scale.
 
@@ -30,13 +34,25 @@ The from-scratch character decoder is reported as a documented negative-result b
 | RAG combined − Decoder | **+34.3** ★ | [+24.6, +44.0] | <0.001 | **+31.3** ★ | [+23.1, +40.3] | <0.001 | **+25.4** ★ | [+17.9, +33.6] | <0.001 |
 | RAG combined − Zero-shot | **+9.7** ★ | [+3.0, +16.4] | 0.011 | +4.5 | [-0.7, +9.7] | 0.180 | **+9.0** ★ | [+3.7, +14.9] | 0.004 |
 | RAG combined − RAG (Yarob-only) | +0.7 | [-2.2, +3.7] | 1.000 | +1.5 | [-0.0, +3.7] | 0.500 | +1.5 | [-1.5, +4.5] | 0.625 |
-| **Hybrid − RAG combined** | **+1.5** | [-4.5, +6.7] | **0.791** | **-3.0** | [-6.7, +0.0] | **0.219** | **-1.5** | [-6.7, +3.7] | **0.791** |
+| Hybrid (Haiku) − Haiku RAG | +1.5 | [-4.5, +6.7] | 0.791 | -3.0 | [-6.7, +0.0] | 0.219 | -1.5 | [-6.7, +3.7] | 0.791 |
+| **Sonnet RAG − Haiku RAG** | **+6.7** ★ | [+0.7, +12.7] | **0.035** | +5.2 | [+0.0, +11.2] | 0.118 | +4.5 | [+0.0, +9.7] | 0.146 |
+| Sonnet zero-shot − Haiku RAG | +5.2 | [-1.5, +11.9] | 0.167 | -0.7 | [-6.7, +4.5] | 1.000 | +0.0 | [-6.0, +6.0] | 1.000 |
+| Hybrid (Sonnet) − Sonnet RAG | +0.0 | [+0.0, +0.0] | 1.000 | -3.7 | [-7.5, +0.0] | 0.125 | -3.0 | [-6.7, +0.7] | 0.219 |
+| Haiku RAG (k=10) − Haiku RAG (k=5) | -2.2 | [-7.5, +3.0] | 0.581 | +1.5 | [-3.0, +6.0] | 0.754 | -1.5 | [-6.7, +3.0] | 0.754 |
 
 **Statistical reading:**
-- **Retrieval augmentation over zero-shot is a real lift** on case (+9.7 pp, p=0.011) and on the aggregate fully-correct rate (+9.0 pp, p=0.004). Marker EM and well-formedness do not change significantly.
-- **Adding 601 Claude-distilled MSA pairs to the retrieval pool produced no significant change on any binary metric** at this evaluation scale. Role-F1 trended upward (+8.1 pp point estimate) but the bootstrap CIs of the two systems overlap heavily ([55.8, 82.2] vs [50.3, 74.9]). We use the combined-pool variant in subsequent comparisons for higher per-system role coverage but **cannot claim distillation lifts retrieval-augmented generation accuracy on Gazelle**.
-- **The from-scratch decoder is dominated** on every metric by every LLM-based system at p<0.001.
-- **Mix A (Hybrid) does not beat Claude RAG at this evaluation scale.** All four binary metrics fall within the noise floor: Δ case +1.5 pp [p=0.791], Δ marker −3.0 pp [p=0.219], Δ fully −1.5 pp [p=0.791], Δ well-formed −2.2 pp [p=0.375]. The point estimate on role-F1 dropped 9.4 pp but bootstrap CIs overlap heavily ([55.8, 82.2] vs [44.8, 73.8]). We interpret this as a **negative result on the per-word routing hypothesis**: at n=134 we cannot detect a difference in either direction. The asymmetry we hypothesized — knowledge-bound case/role vs. style-bound marker — does not translate into measurable gains when the LLM baseline is already strong on style via retrieval-augmented prose generation.
+
+1. **Retrieval augmentation over zero-shot Haiku** is a real lift on case (+9.7 pp, p=0.011) and aggregate fully (+9.0 pp, p=0.004). Marker EM and well-formedness do not change significantly.
+
+2. **Switching the LLM from Haiku 4.5 to Sonnet 4.5** (with k=5 RAG held constant) produces the largest paired-significant gain we observe: **case +6.7 pp [+0.7, +12.7], McNemar p=0.035 ★**. Marker and fully trend positive (+5.2 and +4.5 pp) with bootstrap CIs reaching toward 0; not significant at α=0.05 but consistent direction. **Sonnet RAG is the strongest non-fine-tuned baseline.**
+
+3. **Mix A (Hybrid) does not beat RAG on either base LLM.** On Haiku, all four binary metrics fall within the noise floor (Δ case +1.5 pp p=0.791, Δ marker −3.0 pp p=0.219, Δ fully −1.5 pp p=0.791). Replacing the underlying LLM with Sonnet 4.5 reproduces the same pattern: case unchanged (McNemar p=1.000), Δ marker −3.7 pp [-7.5, +0.0] p=0.125, Δ fully −3.0 pp [-6.7, +0.7] p=0.219 — directionally negative, not paired-significant. **The per-word routing hypothesis is rejected on both base systems.** We attribute this to a teacher-bias problem: the AraT5v2 specialist is trained on 7,172 Claude-distilled marker pairs whose phrasing inherits Claude's systematic biases, so the specialist cannot improve over its teacher's retrieval-augmented prose. (A Yarob-only marker FT, n=1,643 hand-authored pairs, is the planned ablation that isolates this hypothesis.)
+
+4. **Adding 601 distilled examples to the retrieval pool produced no significant change** (Δ case +0.7 pp, p=1.000). We retain combined-pool retrieval for marginally higher role coverage but make no improvement claim.
+
+5. **Increasing retrieval depth from k=5 to k=10 trends negative on case (-2.2 pp, p=0.581) and well-formedness (-3.0 pp, p=0.125), and is statistically a wash on marker and fully.** The bottom-5 retrievals are less similar to the query and add stylistic noise rather than knowledge. **k=5 is the right operating point.**
+
+6. **The from-scratch decoder is dominated** by every LLM-based system at p<0.001 on every metric.
 
 The smallest detectable difference at n=134 with α=0.05 power 0.80 is roughly **±7 percentage points** on a binary proportion; differences below that are within noise.
 

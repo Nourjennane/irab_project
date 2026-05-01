@@ -82,6 +82,9 @@ class MarkerConfig:
     drop_no_marker_in_train: bool = False  # set True to train only on markered words
     seed: int = 42
 
+    # Optimizer choice (override "adamw_bnb_8bit" if it crashes on a given env)
+    optim: str = "adamw_bnb_8bit"
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "MarkerConfig":
         with open(path, encoding="utf-8") as f:
@@ -193,7 +196,7 @@ def main():
         predict_with_generate=False,
         bf16=torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
         fp16=torch.cuda.is_available() and not torch.cuda.is_bf16_supported(),
-        optim="adamw_bnb_8bit",        # 4× smaller optimizer state vs adamw_torch
+        optim=cfg.optim,
         gradient_checkpointing=True,
         report_to=args.report_to,
         max_steps=args.max_steps if args.max_steps > 0 else -1,
