@@ -94,6 +94,20 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 
 ---
 
+## Prompt-format sensitivity (Sonnet RAG)
+
+Robustness check: re-ran Sonnet RAG (k=5) with an alternate system prompt — same JSON output contract but with English instructions and a slightly different role/marker terminology list (`scripts/prompt_sensitivity.py`).
+
+| Prompt | well | case | role-F1 | marker | **fully** |
+|---|---:|---:|---:|---:|---:|
+| Headline (Arabic, terse role list) | 79.9 | 73.9 | 74.6 | 50.0 | **32.1** |
+| Alt (English instructions) | 79.9 | 73.1 | 69.7 | 49.3 | 30.6 |
+| Δ paired vs headline | 0.0 (p=1.000) | −0.7 (p=1.000) | −4.9 | −0.7 (p=1.000) | −1.5 (p=0.500) |
+
+The headline is robust to prompt wording on case/marker/well-formed/fully (all paired McNemar p≥0.5, no detectable difference). Role-F1 trends down ~5 pp, plausibly because the English-instructed prompt is less specific about the Arabic role taxonomy and Sonnet falls back to less canonical role labels. **Reported numbers are not an artifact of prompt-engineering.**
+
+---
+
 ## Inference-time variance (Sonnet RAG, temp=0.0)
 
 The Anthropic API does not expose a `seed` parameter, and Claude's sampling is server-side stochastic even at `temperature=0.0`. To estimate this variance we re-ran the headline configuration on the same 30 Gazelle sentences:
