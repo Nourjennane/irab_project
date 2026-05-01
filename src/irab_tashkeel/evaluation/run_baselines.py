@@ -210,6 +210,16 @@ def main():
             )
             reports.append(rep)
 
+    if "stanza" in baselines:
+        from ..inference.stanza_baseline import StanzaBaseline
+        sb = StanzaBaseline()
+        rep = evaluate_baseline(
+            "stanza", sentences, gold_pairs,
+            predict_fn=sb.predict,
+            out_dir=args.out,
+        )
+        reports.append(rep)
+
     if "decoder" in baselines:
         if not args.decoder_ckpt:
             print("  [decoder] skipped — pass --decoder_ckpt path/to/best.pt")

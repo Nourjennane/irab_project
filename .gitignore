@@ -9,7 +9,10 @@ data/ud_nyuad/
 data/yarob_src/
 data/distilled_irab.jsonl
 data/marker_pairs.jsonl
+data/marker_pairs_yarob_only.jsonl
 data/gold_seed.jsonl
+data/masaq/
+data/perturbed_eval.jsonl
 __pycache__/
 *.egg-info/
 logs/

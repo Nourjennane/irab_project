@@ -53,6 +53,15 @@ PARTICLE_KEYS = ("إن", "أن", "لن", "لم", "لا", "كان", "ليس", "أ
                  "كأن", "لكن")
 EXCEPTION_KEYS = ("سوى", "إلا", "عدا", "خلا", "حاشا", "غير")
 
+# Sub-particle splits (refinement of PARTICLE_MOOD)
+KANA_SISTERS_KEYS = ("كان", "ليس", "أصبح", "صار", "بات", "ظل",
+                     "ما زال", "ما برح", "ما فتئ", "أمسى", "أضحى")
+INNA_SISTERS_KEYS = ("إن", "أن", "كأن", "لكن", "ليت", "لعل")
+
+RELATIVE_KEYS = ("الذي", "التي", "الذين", "اللاتي", "اللواتي", "ما", "مَن", "من")
+JUSSIVE_KEYS = ("لم", "لا")        # لا الناهية; conservative — also matches لا النافية, accept FP
+SUBJUNCTIVE_KEYS = ("أن", "لن", "كي", "حتى")
+
 
 def classify_sentence(sentence: str, gold_irab_concat: str) -> Set[str]:
     """Return the set of construction tags for one sentence."""
@@ -87,6 +96,41 @@ def classify_sentence(sentence: str, gold_irab_concat: str) -> Set[str]:
         if re.search(rf"(^|[^ء-ي]){re.escape(k)}([^ء-ي]|$)", sn):
             tags.add("EXCEPTION")
             break
+
+    # KANA_SISTERS: kāna and its sisters (assigns naṣb to خبر).
+    for k in KANA_SISTERS_KEYS:
+        if re.search(rf"(^|[^ء-ي]){re.escape(k)}([^ء-ي]|$)", sn):
+            if "اسم كان" in irab or "خبر كان" in irab or "ناقص" in irab:
+                tags.add("KANA_SISTERS")
+                break
+
+    # INNA_SISTERS: inna and its sisters (assigns naṣb to اسم, rafʿ to خبر).
+    for k in INNA_SISTERS_KEYS:
+        if re.search(rf"(^|[^ء-ي]){re.escape(k)}([^ء-ي]|$)", sn):
+            if "اسم إن" in irab or "خبر إن" in irab or "حرف توكيد" in irab:
+                tags.add("INNA_SISTERS")
+                break
+
+    # RELATIVE: relative pronoun in surface AND ṣila marker in gold i'rāb.
+    for k in RELATIVE_KEYS:
+        if re.search(rf"(^|[^ء-ي]){re.escape(k)}([^ء-ي]|$)", sn):
+            if "صلة" in irab or "اسم موصول" in irab:
+                tags.add("RELATIVE")
+                break
+
+    # MOOD_SHIFT_JUSSIVE: jussive particle in surface AND مجزوم in gold.
+    for k in JUSSIVE_KEYS:
+        if re.search(rf"(^|[^ء-ي]){re.escape(k)}([^ء-ي]|$)", sn):
+            if "مجزوم" in irab:
+                tags.add("MOOD_SHIFT_JUSSIVE")
+                break
+
+    # MOOD_SHIFT_SUBJUNCTIVE: subjunctive particle AND منصوب verb in gold.
+    for k in SUBJUNCTIVE_KEYS:
+        if re.search(rf"(^|[^ء-ي]){re.escape(k)}([^ء-ي]|$)", sn):
+            if "فعل مضارع منصوب" in irab:
+                tags.add("MOOD_SHIFT_SUBJUNCTIVE")
+                break
 
     if not tags:
         tags.add("OTHER")
