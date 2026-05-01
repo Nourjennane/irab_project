@@ -181,6 +181,163 @@ def schema_summary(rows: Optional[Iterable[Dict[str, str]]] = None) -> Dict[str,
     }
 
 
+# ---------------------------------------------------------------------------
+# Templating: MASAQ row → traditional Arabic i'rāb prose
+# ---------------------------------------------------------------------------
+_CASE_MOOD_TO_AR = {
+    "NOMINATIVE": "مرفوع",
+    "ACCUSATIVE": "منصوب",
+    "GENITIVE":   "مجرور",
+    "JUSSIVE":    "مجزوم",
+    "SUBJUNCTIVE":"منصوب",
+    "INDICATIVE": "مرفوع",
+}
+_CASE_GEN_FORM = {
+    "NOMINATIVE": "رفعه",
+    "ACCUSATIVE": "نصبه",
+    "GENITIVE":   "جره",
+    "JUSSIVE":    "جزمه",
+    "SUBJUNCTIVE":"نصبه",
+    "INDICATIVE": "رفعه",
+}
+_MARKER_TO_AR = {
+    "DAMMA":  "الضمة الظاهرة",
+    "FATHA":  "الفتحة الظاهرة",
+    "KASRA":  "الكسرة الظاهرة",
+    "SUKUN":  "السكون",
+    "WAW":    "الواو",
+    "ALIF":   "الألف",
+    "YA":     "الياء",
+    "NUN":    "النون",
+}
+_ROLE_TO_AR = {
+    "SUBJ":         "فاعل",
+    "OBJ":          "مفعول به",
+    "GEN_CONS":     "مضاف إليه",
+    "PREP_OBJ":     "اسم مجرور بحرف الجر",
+    "PRED":         "خبر",
+    "TOPIC":        "مبتدأ",
+    "ADJ_OF":       "نعت",
+    "REL_CL_HEAD":  "اسم موصول",
+    "PREP":         "حرف جر",
+    "PUNCT":        "علامة ترقيم",
+}
+_POS_TO_AR_NOUN = {"NOUN_PROP", "NOUN_ABSTRACT", "NOUN_CONCRETE", "NOUN_COL"}
+_POS_TO_AR_VERB = {"PV", "IV", "CV", "VERB_PERF", "VERB_IMPERF", "VERB_IMPER"}
+_POS_INVAR_HARFAR = {"PREP", "CONJ", "DET", "PART_NEG", "PART_INTERROG", "PART_VOC", "PART"}
+
+
+def render_word_irab(stem_features: Dict[str, str]) -> str:
+    """Render a MASAQ stem-segment dict to a single Arabic i'rāb prose line.
+
+    Returns "" when the templating cannot produce a clean prose form (which
+    happens for some clitic-stripped fragments, complex pronouns, etc.).
+    """
+    morph = stem_features.get("morph_tag", "")
+    case_mood = stem_features.get("case_mood", "")
+    marker = stem_features.get("case_mood_marker", "")
+    role = stem_features.get("syntactic_role", "")
+    invar = stem_features.get("invariable_declinable", "")
+    constr = stem_features.get("possessive_construct", "")
+
+    role_ar = _ROLE_TO_AR.get(role, "")
+    case_ar = _CASE_MOOD_TO_AR.get(case_mood, "")
+    case_gen = _CASE_GEN_FORM.get(case_mood, "")
+    marker_ar = _MARKER_TO_AR.get(marker, "")
+
+    if morph in _POS_TO_AR_NOUN and case_ar and marker_ar:
+        head = role_ar or "اسم"
+        # Avoid repeating the case word when the role already contains it
+        # (e.g. role="اسم مجرور بحرف الجر" already has "مجرور").
+        case_part = "" if case_ar in head else f" {case_ar}"
+        out = f"{head}{case_part} وعلامة {case_gen} {marker_ar}"
+        if constr == "CONSTRUCT":
+            out += " وهو مضاف"
+        return out
+    if morph in _POS_TO_AR_VERB:
+        if case_mood in ("INDICATIVE", "NOMINATIVE"):
+            return "فعل مضارع مرفوع وعلامة رفعه الضمة الظاهرة"
+        if case_mood in ("SUBJUNCTIVE", "ACCUSATIVE"):
+            return "فعل مضارع منصوب وعلامة نصبه الفتحة الظاهرة"
+        if case_mood == "JUSSIVE":
+            return "فعل مضارع مجزوم وعلامة جزمه السكون"
+        if morph == "PV" or morph == "VERB_PERF":
+            return "فعل ماض مبني على الفتح"
+        if morph == "CV" or morph == "VERB_IMPER":
+            return "فعل أمر مبني على السكون"
+        return "فعل"
+    if morph in _POS_INVAR_HARFAR or invar == "INVAR":
+        if morph == "PREP":
+            return "حرف جر مبني على الكسر"
+        if morph == "CONJ":
+            return "حرف عطف مبني"
+        if morph == "DET":
+            return "أداة تعريف"
+        return "حرف مبني"
+    if morph in {"REL_PRO", "DEM_PRO", "PERS_PRO", "POSS_PRON", "SUBJ_PRON", "OBJ_PRON"}:
+        if case_mood == "NOMINATIVE":
+            return "ضمير مبني في محل رفع"
+        if case_mood == "ACCUSATIVE":
+            return "ضمير مبني في محل نصب"
+        if case_mood == "GENITIVE":
+            return "ضمير مبني في محل جر"
+        return "ضمير مبني"
+    return ""
+
+
+def to_fewshots(max_verses: int = 1500, src: Path | str = DEFAULT_PATH) -> List["object"]:
+    """Build FewShotExample objects from MASAQ for the RAG retrieval pool.
+
+    Groups segments by (sura, verse), renders each word's stem features into
+    Arabic i'rāb prose, and packages as `{sentence, irab_lines}`. Skips verses
+    where fewer than 2 words template cleanly (insufficient signal for RAG).
+
+    Returns the same FewShotExample type used by `llm_baselines`. Capped at
+    `max_verses` to keep the augmented pool from dominating the retrieval
+    distribution.
+    """
+    from ..inference.llm_baselines import FewShotExample
+
+    rows = load_masaq_segments(src)
+    by_word: Dict[Tuple[str, str, str], List[Dict[str, str]]] = defaultdict(list)
+    word_surface: Dict[Tuple[str, str, str], str] = {}
+    verse_words: Dict[Tuple[str, str], Dict[str, str]] = defaultdict(dict)
+
+    for r in rows:
+        wkey = (r["Sura_No"], r["Verse_No"], r["Word_No"])
+        by_word[wkey].append(r)
+        word_surface.setdefault(wkey, r.get("Without_Diacritics") or r.get("Word", ""))
+        verse_words[(r["Sura_No"], r["Verse_No"])][r["Word_No"]] = word_surface[wkey]
+
+    out: List[FewShotExample] = []
+    for verse_key, words_dict in verse_words.items():
+        if len(out) >= max_verses:
+            break
+        sentence = " ".join(words_dict[w] for w in sorted(words_dict, key=int))
+        if len(sentence.split()) < 3:
+            continue
+        block_lines: List[str] = []
+        for word_no in sorted(words_dict, key=int):
+            wkey = (verse_key[0], verse_key[1], word_no)
+            segs = by_word.get(wkey) or []
+            stem = next((s for s in segs if s.get("Morph_Type") == "Stem"), segs[0] if segs else {})
+            feats = {
+                "morph_tag": stem.get("Morph_Tag", ""),
+                "case_mood": stem.get("Case_Mood", ""),
+                "case_mood_marker": stem.get("Case_Mood_Marker", ""),
+                "syntactic_role": stem.get("Syntactic_Role", ""),
+                "invariable_declinable": stem.get("Invariable_Declinable", ""),
+                "possessive_construct": stem.get("Possessive_Construct", ""),
+            }
+            irab = render_word_irab(feats)
+            if irab:
+                block_lines.append(f"{words_dict[word_no]}: {irab}")
+        if len(block_lines) < 2:
+            continue
+        out.append(FewShotExample(sentence=sentence, irab_lines="\n".join(block_lines)))
+    return out
+
+
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser(description="MASAQ loader / sampler")

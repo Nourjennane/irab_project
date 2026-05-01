@@ -144,6 +144,13 @@ def main():
     p.add_argument("--no_distilled_pool", action="store_true",
                    help="exclude data/distilled_irab.jsonl from the RAG retrieval pool "
                         "(default: include it on top of Yarob)")
+    p.add_argument("--no_yarob_pool", action="store_true",
+                   help="exclude Yarob from the RAG retrieval pool")
+    p.add_argument("--openweight_model", default="Qwen/Qwen2.5-7B-Instruct",
+                   help="HF model id for the 'openweight' baseline (loaded in 4-bit)")
+    p.add_argument("--include_masaq_pool", action="store_true",
+                   help="add templated MASAQ (Quranic) examples to the RAG pool")
+    p.add_argument("--masaq_max_verses", type=int, default=1500)
     p.add_argument("--out", type=Path, default=Path("runs/baseline_eval"))
     args = p.parse_args()
 
@@ -176,11 +183,15 @@ def main():
             claude_fewshot_rag, load_combined_fewshots,
         )
         pool = load_combined_fewshots(
-            include_yarob=True,
+            include_yarob=not args.no_yarob_pool,
             include_distilled=not args.no_distilled_pool,
+            include_masaq=args.include_masaq_pool,
+            masaq_max_verses=args.masaq_max_verses,
         )
         print(f"  RAG pool: {len(pool)} examples "
-              f"(distilled={'yes' if not args.no_distilled_pool else 'no'})")
+              f"(yarob={'no' if args.no_yarob_pool else 'yes'}, "
+              f"distilled={'no' if args.no_distilled_pool else 'yes'}, "
+              f"masaq={'yes' if args.include_masaq_pool else 'no'})")
         rep = evaluate_baseline(
             "claude_rag", sentences, gold_pairs,
             predict_fn=lambda s: claude_fewshot_rag(s, pool, k=args.rag_k, model=args.model),
@@ -209,6 +220,25 @@ def main():
                 out_dir=args.out,
             )
             reports.append(rep)
+
+    if "openweight" in baselines:
+        from ..inference.openweight_baseline import openweight_fewshot_rag
+        from ..inference.llm_baselines import load_combined_fewshots
+        pool = load_combined_fewshots(
+            include_yarob=not args.no_yarob_pool,
+            include_distilled=not args.no_distilled_pool,
+            include_masaq=args.include_masaq_pool,
+            masaq_max_verses=args.masaq_max_verses,
+        )
+        print(f"  Open-weight: model={args.openweight_model}  RAG pool={len(pool)}")
+        rep = evaluate_baseline(
+            "openweight", sentences, gold_pairs,
+            predict_fn=lambda s: openweight_fewshot_rag(
+                s, pool, k=args.rag_k, model_id=args.openweight_model,
+            ),
+            out_dir=args.out,
+        )
+        reports.append(rep)
 
     if "stanza" in baselines:
         from ..inference.stanza_baseline import StanzaBaseline

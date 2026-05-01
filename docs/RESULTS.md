@@ -94,6 +94,20 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 
 ---
 
+## Retrieval-pool ablations (Sonnet RAG)
+
+Pool composition matters in principle but barely matters here in practice. The headline pool (Yarob 459 + Distilled 601 = 1,060) was augmented with 1,500 templated MASAQ verses (Sawalha et al. 2025) — Quranic per-word annotations rendered into traditional i'rāb prose by `src/irab_tashkeel/data/masaq.render_word_irab`. Pool grew 1,060 → 2,560.
+
+| Pool | n | well | case | role-F1 | marker | **fully** |
+|---|---:|---:|---:|---:|---:|---:|
+| Yarob + Distilled (headline) | 1,060 | 79.9 | 73.9 | 74.6 | 50.0 | **32.1** |
+| Yarob + Distilled + MASAQ | 2,560 | 79.9 | 73.9 | 71.0 | 48.5 | 31.3 |
+| Δ paired (vs headline) | | 0.0 (p=1.000) | 0.0 (p=1.000) | −3.6 | −1.5 (p=0.500) | −0.7 (p=1.000) |
+
+**Honest negative ablation:** adding 1,500 templated Quranic examples does not help and slightly hurts on role-F1. We attribute this to register mismatch — Quranic Arabic differs from MSA-news syntactically (richer use of mood-shifting particles, frequent object-fronting, more frequent VS word order) and lexically (theological / classical vocabulary). Retrieval falls back to MASAQ verses for some MSA queries when Yarob+Distilled lacks a close match, and the Quranic style is then carried over into the in-context demonstration block. We retain the headline pool. *(MASAQ remains a credible future training-augmentation resource; we report it here as an evaluated retrieval-pool extension that did not help, in the spirit of Plank 2022.)*
+
+---
+
 ## Annotator-disagreement audit (label variation in classical naḥw)
 
 Single-gold scoring assumes one canonical i'rāb per word, but classical Arabic naḥw genuinely admits alternative analyses on a non-trivial fraction of words (sibawayhi vs the Kufan grammarians, ḥāl vs naʿt, mubtadaʾ vs fāʿil for some preverbal nouns, etc.). To quantify how much this assumption inflates strict scoring, we asked Sonnet 4.5 to classify each Gazelle gold word into one of three classes and to list any alternative valid analyses (`src/irab_tashkeel/evaluation/ambiguity.py`):
