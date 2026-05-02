@@ -17,6 +17,7 @@ All numbers are percentages with 95% percentile bootstrap CIs (B=1000) in bracke
 |---|---:|---:|---:|---:|---:|
 | Stanza Arabic (UD pipeline + UD→i'rāb stub) | 59.7 [51.5, 68.7] | 35.1 [26.9, 43.3] | 13.4 [8.2, 19.4] | 10.9 [6.8, 19.7] | 5.2 [2.2, 9.7] |
 | Qwen2.5-7B-Instruct + RAG (k=5, 4-bit local) | 66.4 [58.2, 73.9] | 43.3 [35.1, 52.2] | 19.4 [12.7, 26.9] | 20.8 [10.1, 31.2] | 3.0 [0.0, 6.0] |
+| AraT5v2-base (296M) full FT on Haiku-5K (77 K word rows) | 79.9 [72.4, 86.6] | 65.7 [57.5, 73.9] | 44.0 [35.8, 53.0] | 54.2 [40.6, 68.2] | 24.6 [17.9, 32.8] |
 | Claude Haiku 4.5 zero-shot | 77.6 [70.1, 84.3] | 57.5 [49.3, 66.4] | 40.3 [32.1, 49.3] | 55.9 [42.0, 68.6] | 18.7 [11.9, 25.4] |
 | Claude Haiku 4.5 + RAG (k=5) | 79.9 [73.1, 86.6] | 67.2 [59.0, 75.4] | 44.8 [35.8, 53.0] | 68.8 [55.8, 82.2] | 27.6 [20.1, 35.8] |
 | Claude Haiku 4.5 + RAG (k=10) — *ablation* | 76.9 [69.4, 84.3] | 64.9 [56.7, 73.1] | 46.3 [38.1, 55.2] | 45.4 [36.9, 56.0] | 26.1 [18.7, 34.3] |
@@ -36,6 +37,8 @@ The from-scratch character decoder is reported as a documented negative-result b
 | Sonnet RAG − Stanza | **+38.8** ★ | [+30.6, +47.8] | <0.001 | **+36.6** ★ | [+27.6, +45.5] | <0.001 | **+26.9** ★ | [+19.4, +35.8] | <0.001 |
 | Sonnet RAG − Qwen2.5-7B+RAG (open-weight) | **+30.6** ★ | [+23.1, +38.8] | <0.001 | **+30.6** ★ | [+21.6, +39.6] | <0.001 | **+29.1** ★ | [+20.9, +38.1] | <0.001 |
 | Qwen2.5-7B+RAG − Stanza | +8.2 | [+0.0, +17.2] | 0.080 | +6.0 | [-2.2, +14.9] | 0.185 | -2.2 | [-6.7, +1.5] | 0.453 |
+| **Sonnet RAG − AraT5v2-base FT (Haiku-5K)** | **+8.2** ★ | [+2.2, +14.2] | **0.013** | +6.0 | [+0.0, +11.9] | 0.077 | **+7.5** ★ | [+2.2, +13.4] | **0.021** |
+| AraT5v2-base FT − Qwen2.5-7B+RAG | **+22.4** ★ | [+13.4, +31.3] | <0.001 | **+24.6** ★ | [+15.7, +33.6] | <0.001 | **+21.6** ★ | [+13.4, +29.9] | <0.001 |
 | RAG combined − Decoder | **+34.3** ★ | [+24.6, +44.0] | <0.001 | **+31.3** ★ | [+23.1, +40.3] | <0.001 | **+25.4** ★ | [+17.9, +33.6] | <0.001 |
 | RAG combined − Zero-shot | **+9.7** ★ | [+3.0, +16.4] | 0.011 | +4.5 | [-0.7, +9.7] | 0.180 | **+9.0** ★ | [+3.7, +14.9] | 0.004 |
 | RAG combined − RAG (Yarob-only) | +0.7 | [-2.2, +3.7] | 1.000 | +1.5 | [-0.0, +3.7] | 0.500 | +1.5 | [-1.5, +4.5] | 0.625 |
@@ -62,6 +65,8 @@ The from-scratch character decoder is reported as a documented negative-result b
 7. **Stanza Arabic (UD pipeline + a deterministic UD→i'rāb stub) is the only published-prior-work peer baseline we evaluated.** It scores well-formed 59.7%, case 35.1%, role-F1 10.9%, fully 5.2%. Sonnet RAG beats it on every metric paired-significantly at p<0.001 (case Δ +38.8 pp, fully Δ +26.9 pp ★). Stanza's well-formedness is meaningfully positive (≈60%), confirming the UD parser produces grammatically-locatable predictions, but its role-F1 of 10.9% reflects the UD label set's mismatch with traditional Arabic role taxonomy: many UD `nmod`/`obl` arcs do not map cleanly onto مفعول به / حال / مضاف إليه. **Stanza is reported as a peer comparison; the from-scratch decoder is not.**
 
 8. **Open-weight peer (Qwen2.5-7B-Instruct + same RAG, 4-bit local).** Best open-weight LLM that fits on an 8GB consumer GPU. Result: case 43.3%, role-F1 20.8%, marker 19.4%, fully 3.0%. Paired-significantly weaker than Sonnet RAG on every metric (case Δ −30.6 pp, fully Δ −29.1 pp, p<0.001 ★) and **statistically indistinguishable from Stanza** as a peer baseline (Δ case +8.2 pp p=0.080, Δ fully −2.2 pp p=0.453). **Sonnet RAG's lead over open-weight alternatives is real and large.** Reported as evidence per Hovy & Spruit (2016) that the closed-source advantage is being honestly compared, not disguised by absence of an open peer.
+
+9. **Open-weight FT scaling experiment (Phase 2.1).** AraT5v2-base (296M params) full fine-tuned on the 77,534-row Haiku-distilled corpus (`data/distill_v2/word_level.jsonl`, see `data/distill_v2/STATS.md`). Result: case 65.7%, role-F1 54.2%, marker 44.0%, **fully 24.6%**. **Closes most of the open-weight gap to Claude-based systems**: paired-significantly better than Qwen-7B+RAG on every metric (case Δ +22.4 pp, fully Δ +21.6 pp, p<0.001 ★), reaches Haiku-zero-shot levels (Haiku zero fully = 18.7% vs AraT5v2-FT 24.6%). Still paired-significantly worse than Sonnet RAG (case Δ −8.2 pp p=0.013 ★, fully Δ −7.5 pp p=0.021 ★). **Reading**: a small open-weight model trained on ~77K teacher-distilled rows recovers most of the Haiku-RAG performance level (fully 27.6%) but does not bridge to Sonnet RAG. The remaining gap reflects (a) teacher-quality limit (Haiku 67.2% case vs Sonnet 73.9% — see Limitation #6) and (b) capacity/RAG-context limit (296M model with no in-context retrieval cannot match a 7-70B+ class system that retrieves at inference). This is the scaling-study headline.
 
 The smallest detectable difference at n=134 with α=0.05 power 0.80 is roughly **±7 percentage points** on a binary proportion; differences below that are within noise.
 
@@ -96,6 +101,8 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 4. **Verbal-vs-prepositional is essentially a wash** (Sonnet RAG 32.8 vs 29.7) — no detectable effect of preposition presence on aggregate correctness once verbal-sentence frequency is accounted for.
 
 5. **Sample-size warning.** RELATIVE, IDAFA_HEAVY, INNA_SISTERS each have ≤1 Gazelle sentence (≤9 word judgments), so their per-tag scores are not reliably informative — the bootstrap CIs are wider than the point values. We report them for transparency but base no claims on them. The two robust cross-system failures (EXCEPTION, KANA_SISTERS) both have n≥7 and 0% point estimates, which the bootstrap CIs cannot widen.
+
+6. **AraT5v2-base trained model preserves the same failure modes** (per-construction CSV at `runs/error_analysis/per_construction_with_arat5.json`). EXCEPTION 0/9 and KANA_SISTERS 0/7 hold for the trained model just as for every Claude variant. This is informative: **the failure is not Claude-specific stylistic** (since AraT5v2 trained on Haiku-distilled data also fails on the same constructions); it is **structural to the task or to the available training distribution**. The remaining gap to Sonnet RAG concentrates in NOMINAL (50% vs 72%, gap 22 pp) and PARTICLE_MOOD (6.7% vs 23.3%, gap 17 pp), where Sonnet RAG's larger model + retrieval context appears to make the difference. AraT5v2-base **matches Sonnet RAG on PREPOSITIONAL** (29.7% vs 29.7%, gap 0) and is statistically tied on VERBAL (29.5% vs 32.8%, gap 3 pp).
 
 ---
 
@@ -301,6 +308,12 @@ Total API spend for these evaluations: ~$0.50 across 3 systems × 30 sentences.
 2. **Construction coverage.** Gazelle's distribution skews toward short verbal sentences (50%) and prepositional phrases (27%); iḍāfa chains of length ≥3 (n=1) and exception constructions (n=2) are under-represented. Generalization claims are limited to *MSA news-style sentences within these construction frequencies*.
 3. **Marker extractor floor.** The regex/FSM extractor recovers an explicit marker phrase for 89.7% of distilled training sentences; the remaining 10.3% (mahall pronouns, unparsed Claude outputs) are scored as `<NO_MARKER>`. This introduces a systematic ~10% measurement floor on marker EM.
 4. **Teacher-bound retrieval pool.** 601 of 1,060 retrieval pool examples are Claude-generated (with manual lookup over Yarob 459 as the gold source). Mix A's marker training set inherits Claude's systematic phrasing biases; we cannot rule out that any AraT5v2 marker model fits Claude's style rather than gold MSA grammatical-tradition style.
+
+5. **Per-word inference scope.** All evaluations are word-level i'rāb on isolated sentences (no document context, no anaphora resolution beyond the single sentence). Real-world i'rāb annotation often references the broader paragraph (e.g. for ضمير anaphora). We make no claim about cross-sentence behavior.
+
+6. **Distillation teacher quality (Phase 2.1).** Our distilled training corpus for the open-weight scaling comparison was generated by Claude Haiku 4.5 (case accuracy 67.2% on Gazelle) rather than Sonnet 4.5 (73.9%), due to a $50 API budget. Open-weight models trained on this corpus inherit teacher errors; the observed gap to Sonnet RAG (case Δ −8.2 pp ★, fully Δ −7.5 pp ★ for AraT5v2-base) may therefore overstate the gap to a hypothetical "best-teacher" baseline. We chose Haiku because the alternative (Sonnet ~1,500 rows under the same budget) would have been too small to cleanly fine-tune 296M-7B-class models without saturation. Reported here as a transparent budget-trade-off, not a hidden one.
+
+7. **HPC fragility was a real cost.** Five separate sbatch attempts failed before Phase 2.1's training run completed: the first four (HPC #486563, 486573, 486949, 486952) crashed silently mid-training; the fifth (487235) trained all 14,247 steps but exit-1'd in the final-save step due to a disk-quota wall (the script never wrote the `final/` directory). The trained model at `checkpoint-14247` is intact and usable; we promoted it via symlink. The directive's Phase 2 timeline (~3-4 h per training run on a stable A100) was off by 6-12 h once the failure recovery is included. We did not attempt the directive's AraT5v2-large or Fanar-9B Phase 2 runs because of this fragility plus deadline pressure; see Future Work.
 
 ---
 

@@ -148,6 +148,8 @@ def main():
                    help="exclude Yarob from the RAG retrieval pool")
     p.add_argument("--openweight_model", default="Qwen/Qwen2.5-7B-Instruct",
                    help="HF model id for the 'openweight' baseline (loaded in 4-bit)")
+    p.add_argument("--arat5_irab_path", default=None,
+                   help="path to AraT5v2-irab fine-tuned model dir (for the 'arat5_irab' baseline)")
     p.add_argument("--include_masaq_pool", action="store_true",
                    help="add templated MASAQ (Quranic) examples to the RAG pool")
     p.add_argument("--masaq_max_verses", type=int, default=1500)
@@ -217,6 +219,20 @@ def main():
             rep = evaluate_baseline(
                 "hybrid", sentences, gold_pairs,
                 predict_fn=hybrid.predict,
+                out_dir=args.out,
+            )
+            reports.append(rep)
+
+    if "arat5_irab" in baselines:
+        from ..inference.arat5_irab import ArAT5IrabPredictor
+        if not args.arat5_irab_path:
+            print("  [arat5_irab] skipped — pass --arat5_irab_path path/to/final/")
+        else:
+            print(f"  AraT5v2-irab: model={args.arat5_irab_path}")
+            pred = ArAT5IrabPredictor(args.arat5_irab_path)
+            rep = evaluate_baseline(
+                "arat5_irab", sentences, gold_pairs,
+                predict_fn=pred.predict,
                 out_dir=args.out,
             )
             reports.append(rep)
