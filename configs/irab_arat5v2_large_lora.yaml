@@ -1,9 +1,12 @@
-# Phase 2.3: AraT5v2-large (1.2B) LoRA fine-tune on the 77K Haiku-distilled corpus.
+# Phase 2.3: AraT5-base (v1, ~520M) LoRA fine-tune on the 77K Haiku-distilled corpus.
 #
-# AraT5v2-large is too big for full FT on a 22GB MIG slice. LoRA r=32 trains
-# only ~1-2% of params (~15M trainable), fits comfortably with grad ckpt.
+# UBC-NLP did NOT release AraT5v2-large. The "large" tier the directive named
+# doesn't exist. We use AraT5-base (v1, ~520M) as the intermediate scaling point
+# between AraT5v2-base (v2, 296M) and Qwen2.5-7B. Full FT for fair comparison;
+# LoRA only used because v1 had a 512-token sequence limit (we set max_input
+# accordingly).
 
-model_id: UBC-NLP/AraT5v2-large-1024
+model_id: UBC-NLP/AraT5-base
 pairs_path: data/distill_v2/word_level.jsonl
 val_split: 0.02
 
