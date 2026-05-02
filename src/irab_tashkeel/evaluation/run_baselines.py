@@ -150,6 +150,8 @@ def main():
                    help="HF model id for the 'openweight' baseline (loaded in 4-bit)")
     p.add_argument("--arat5_irab_path", default=None,
                    help="path to AraT5v2-irab fine-tuned model dir (for the 'arat5_irab' baseline)")
+    p.add_argument("--include_distilled_v2_pool", action="store_true",
+                   help="add ~5K Phase 1 distillation rows (data/distill_v2/distilled.jsonl) to the RAG pool")
     p.add_argument("--include_masaq_pool", action="store_true",
                    help="add templated MASAQ (Quranic) examples to the RAG pool")
     p.add_argument("--masaq_max_verses", type=int, default=1500)
@@ -187,6 +189,7 @@ def main():
         pool = load_combined_fewshots(
             include_yarob=not args.no_yarob_pool,
             include_distilled=not args.no_distilled_pool,
+            include_distilled_v2=args.include_distilled_v2_pool,
             include_masaq=args.include_masaq_pool,
             masaq_max_verses=args.masaq_max_verses,
         )
@@ -243,6 +246,7 @@ def main():
         pool = load_combined_fewshots(
             include_yarob=not args.no_yarob_pool,
             include_distilled=not args.no_distilled_pool,
+            include_distilled_v2=args.include_distilled_v2_pool,
             include_masaq=args.include_masaq_pool,
             masaq_max_verses=args.masaq_max_verses,
         )

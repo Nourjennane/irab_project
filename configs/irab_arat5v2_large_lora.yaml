@@ -1,0 +1,36 @@
+# Phase 2.3: AraT5v2-large (1.2B) LoRA fine-tune on the 77K Haiku-distilled corpus.
+#
+# AraT5v2-large is too big for full FT on a 22GB MIG slice. LoRA r=32 trains
+# only ~1-2% of params (~15M trainable), fits comfortably with grad ckpt.
+
+model_id: UBC-NLP/AraT5v2-large-1024
+pairs_path: data/distill_v2/word_level.jsonl
+val_split: 0.02
+
+learning_rate: 5.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.03
+n_epochs: 3
+per_device_train_batch_size: 4
+per_device_eval_batch_size: 8
+gradient_accumulation_steps: 4
+max_input_length: 320
+max_target_length: 192
+label_smoothing_factor: 0.1
+
+seed: 42
+optim: adamw_torch
+
+# LoRA settings
+use_lora: true
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_modules:
+  - q
+  - k
+  - v
+  - o
+  - wi_0
+  - wi_1
+  - wo

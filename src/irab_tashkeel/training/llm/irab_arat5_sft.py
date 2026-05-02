@@ -73,6 +73,13 @@ class IrabConfig:
     seed: int = 42
     optim: str = "adamw_torch"       # avoid bnb 8bit (4 prior HPC failures)
 
+    # LoRA (used for AraT5v2-large to fit in 22-40GB MIG)
+    use_lora: bool = False
+    lora_r: int = 32
+    lora_alpha: int = 64
+    lora_dropout: float = 0.05
+    lora_target_modules: tuple = ("q", "k", "v", "o", "wi_0", "wi_1", "wo")
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "IrabConfig":
         with open(path, encoding="utf-8") as f:
@@ -126,6 +133,20 @@ def main():
     print(f"loading {cfg.model_id}", flush=True)
     tok = s["AutoTokenizer"].from_pretrained(cfg.model_id)
     model = s["AutoModelForSeq2SeqLM"].from_pretrained(cfg.model_id)
+
+    if cfg.use_lora:
+        from peft import LoraConfig, TaskType, get_peft_model
+        print(f"  LoRA: r={cfg.lora_r} alpha={cfg.lora_alpha} targets={list(cfg.lora_target_modules)}", flush=True)
+        lcfg = LoraConfig(
+            task_type=TaskType.SEQ_2_SEQ_LM,
+            r=cfg.lora_r,
+            lora_alpha=cfg.lora_alpha,
+            lora_dropout=cfg.lora_dropout,
+            target_modules=list(cfg.lora_target_modules),
+            bias="none",
+        )
+        model = get_peft_model(model, lcfg)
+        model.print_trainable_parameters()
 
     pairs = _load_pairs(cfg.pairs_path)
     print(f"raw pairs: {len(pairs)}", flush=True)

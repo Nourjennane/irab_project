@@ -161,18 +161,23 @@ def load_distilled_fewshots(
 def load_combined_fewshots(
     include_yarob: bool = True,
     include_distilled: bool = True,
+    include_distilled_v2: bool = False,
     include_masaq: bool = False,
     masaq_max_verses: int = 1500,
     yarob_dir: Path | str = "data/yarob_src",
     distilled_path: Path | str = "data/distilled_irab.jsonl",
+    distilled_v2_path: Path | str = "data/distill_v2/distilled.jsonl",
 ) -> List[FewShotExample]:
-    """Combine Yarob (manual gold) + distilled (Claude-generated MSA) +
+    """Combine Yarob (manual gold) + distilled v1 (601 PADT-Haiku) +
+    optionally distilled v2 (~5K Wikipedia/PADT/Tashkeela-Haiku) +
     optionally MASAQ (templated Quranic, Sawalha et al. 2025) pools."""
     pool: List[FewShotExample] = []
     if include_yarob:
         pool.extend(load_yarob_fewshots(yarob_dir))
     if include_distilled:
         pool.extend(load_distilled_fewshots(distilled_path))
+    if include_distilled_v2:
+        pool.extend(load_distilled_fewshots(distilled_v2_path))
     if include_masaq:
         from ..data.masaq import to_fewshots as _masaq_to_fewshots
         pool.extend(_masaq_to_fewshots(max_verses=masaq_max_verses))
