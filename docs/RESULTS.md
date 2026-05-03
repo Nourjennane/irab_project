@@ -254,7 +254,7 @@ To extend the n=134 Gazelle eval, we built a 5,007-word MASAQ Quranic eval surfa
 | Haiku zero-shot | 56.3 [42.4, 71.2] | (eval pending) | — | — |
 | Haiku RAG | 70.4 [57.8, 84.5] | (eval pending) | — | — |
 | Sonnet zero-shot | 78.1 [65.3, 91.9] | (eval pending) | — | — |
-| Sonnet RAG | 75.7 [65.1, 90.0] | 11.9 [8.3, 22.1] (n=104, partial — eval interrupted) | 16% (preliminary) | Sonnet MASAQ eval was killed mid-run for cost-efficiency reasons; batch re-run TBD. |
+| Sonnet RAG | 75.7 [65.1, 90.0] | **14.1 [11.9, 18.8]** (n=999) | **19%** | **Largest cross-register drop of any system tested.** |
 
 ### Cross-register role-F1 deltas (two-sample bootstrap, B=1000)
 
@@ -265,15 +265,17 @@ The Gazelle subset (n=78) and MASAQ subset (n=999) are distinct items — differ
 | Stanza | 10.4 | 17.6 (n=999) | **−7.2 pp** | [−11.8, +1.9] | ns (CI crosses 0) |
 | mT5-base FT | 32.8 | 18.6 (n=999) | **+14.2 pp** | [+1.5, +26.3] | ★ |
 | AraT5v2-base FT | 58.9 | 24.3 (n=999) | **+34.7 pp** | [+18.7, +48.9] | ★ |
-| Sonnet RAG | 75.7 | 11.9 (n=104, partial) | +63.8 pp | [+47.7, +76.6] | ★ (preliminary, awaiting batch) |
+| Sonnet RAG | 75.7 | **14.1 (n=999)** | **+61.7 pp** | [+48.8, +75.3] | ★ |
 
-### Three cross-register findings
+### Four cross-register findings
 
-1. **Trained Arabic models show substantial cross-register role degradation.** AraT5v2-base loses 34.7 pp (★) when moved from MSA-news to Quranic register (Gazelle 58.9 → MASAQ 24.3). mT5-base loses 14.2 pp (★). Both trained models retain only 41–55% of their MSA role-F1 on Quranic. This is a real, paired-significant cross-register effect.
+1. **Trained Arabic models show substantial cross-register role degradation.** AraT5v2-base loses 34.7 pp (★) when moved from MSA-news to Quranic register (Gazelle 58.9 → MASAQ 24.3). mT5-base loses 14.2 pp (★). Both trained models retain only 41–57% of their MSA role-F1 on Quranic. This is a real, paired-significant cross-register effect.
 
 2. **Stanza (UD parser) is register-stable.** No significant degradation; in fact a slight (non-significant) GAIN of 7.2 pp moving from MSA to Quranic (Gazelle 10.4 → MASAQ 17.6). The closed UD POS+deprel label set applies uniformly across registers via the same templater on both sides; whatever role distribution Stanza produces, it produces it the same way regardless of register.
 
-3. **Arabic-specific pretraining is LESS register-stable than multilingual pretraining at this scale.** AraT5v2-base (296M, Arabic-only pretraining) drops 34.7 pp; mT5-base (580M, multilingual including Arabic) drops only 14.2 pp. A plausible reading: AraT5v2's Arabic-only pretraining biases it more strongly toward MSA-news syntactic frequencies, which fail to transfer to Quranic VS-order, mood-particle-rich constructions; mT5's broader multilingual exposure leaves a weaker but more register-portable Arabic prior. We report this with caveat — the absolute Gazelle role-F1 of mT5 (32.8) is much lower than AraT5v2 (58.9), so the smaller drop is partially explained by the smaller starting point. The CIs of the two drops do overlap (mT5 [+1.5, +27.2] vs AraT5v2 [+18.7, +48.9]), so the "AraT5v2 drops MORE than mT5" claim is directionally consistent but not paired-significant on its own.
+3. **Even the strongest closed-system baseline shows substantial cross-register effect.** Sonnet RAG drops by **+61.7 pp ★** (Gazelle 75.7 → MASAQ 14.1), retaining only **19%** of its MSA role-F1 on Quranic — the **largest cross-register drop of any system tested**, larger than the trained Arabic-specific AraT5v2-base. This pattern suggests register variation between MSA-news and Quranic is a **fundamental challenge for the role-identification task**, not an artifact of any specific training pipeline. The effect cuts across closed-source RAG systems, Arabic-specific fine-tuned open models, and multilingual fine-tuned open models alike.
+
+4. **Arabic-specific pretraining is LESS register-stable than multilingual pretraining at this scale.** Among the trained open-weight models, AraT5v2-base (296M, Arabic-only pretraining) drops 34.7 pp while mT5-base (580M, multilingual including Arabic) drops only 14.2 pp. The CIs do overlap (mT5 [+1.5, +26.3] vs AraT5v2 [+18.7, +48.9]), so this comparison is directionally consistent but not paired-significant in isolation. A plausible reading: Arabic-only pretraining biases models toward the MSA-news distribution they're then fine-tuned on, while broader multilingual exposure leaves a weaker but more register-portable Arabic prior. The mT5 vs AraT5v2 absolute Gazelle role-F1 difference (32.8 vs 58.9) means the mT5 drop has less "room to fall," partially explaining the smaller delta.
 
 The full role-F1 numbers (including all 5,007 MASAQ words) are reported in the appendix as `*_full` columns of `runs/role_extractor_diagnosis/` for completeness, but should not be used for cross-register comparisons.
 
