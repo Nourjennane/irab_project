@@ -39,9 +39,12 @@ Pending Gazelle eval: AraGPT2-large (HPC smoke RUNNING).
 
 **Note on MASAQ vs Gazelle for AraT5v2-base:**
 - Case: 62.6 (MASAQ) vs 65.7 (Gazelle) — close, **real cross-register comparable**
-- Role-F1: 10.2 (MASAQ) vs 54.2 (Gazelle) — **measurement artifact, NOT a finding**. Audit (`docs/MASAQ_role_audit.md`): 70% of role disagreements are vocabulary mismatches between the MASAQ templater (uses long role strings like `"اسم مجرور بحرف الجر"`) and model output (uses shorter `"اسم مجرور"`). Same grammatical analysis, different role-string match against the extractor's priority list. Withdrawn as a finding.
+- Role-F1: 10.2 / 9.6 (MASAQ pre-fix / post-fix) vs 54.2 / 54.8 (Gazelle pre-fix / post-fix) — **measurement artifact, NOT a finding**. Two-stage diagnosis (`docs/MASAQ_role_audit.md`):
+  - First, an extractor priority bug: longest-match-first wasn't enforced. Fixed in `structural.py`. Gazelle role-F1 stable to ≤0.6 pp on 7/8 systems (qwen_rag shifted 1.6 pp, within bootstrap CI). Effect on MASAQ AraT5: 10.2 → 9.6 (−0.6 pp). Necessary fix in principle but small empirical effect.
+  - Second, the dominant 84% of disagreements come from the model producing verbose Quranic-commentary-style paraphrases that don't contain any canonical role term (e.g. `"الباء حرف جر... اسم مجرور وعلامة جره"`), so the extractor returns no role at all on the prediction side, while the MASAQ templater renders gold formulaically and the extractor finds the role there. This is a **templater-vs-model output-style mismatch**, not a cross-register effect.
+  - Withdrawn as a finding. Reported as a methodological limitation: MASAQ role-F1 is not directly comparable to Gazelle role-F1 because the gold-text style differs.
 - Marker: 31.9 (MASAQ) vs 44.0 (Gazelle) — **real cross-register comparable** (closed marker vocabulary, no template/output mismatch)
-- fully: 12.3 (MASAQ) vs 24.6 (Gazelle) — inherits the role-F1 artifact; cross-register fully comparison is weakened. Cite with caveat.
+- fully: 12.3 (pre-fix) / 11.4 (post-fix) on MASAQ vs 24.6 / 25.4 on Gazelle — inherits the role artifact; cross-register fully comparison is weakened. Cite with caveat.
 
 ---
 

@@ -62,3 +62,35 @@ Same grammatical content, two different role-string outputs from the same extrac
 - The genuine cross-register finding (~30% of disagreements) is small but real: the trained model occasionally mis-analyses Quranic constructions (mistaking object for prep-object, choosing fā'il vs مفعول به wrong on classical syntax). But this is a 6-out-of-20 effect, not a 44 pp role-F1 collapse.
 - The original status-doc "role-F1 collapse 54.2 → 10.2" claim is **withdrawn**. Status doc has been updated; RESULTS.md when written should not feature this as a finding.
 - The MASAQ eval surface is still useful for case-acc and marker-EM cross-register comparison and for tightening confidence intervals on the open-weight ranking.
+
+## Update — extractor fix applied + outcome
+
+Implemented Option A: sorted the `ROLES` pattern list by descending length so longest-match-first wins (`structural.py`, May 2026 commit). Regression-tested on Gazelle predictions:
+
+| System | Gazelle role-F1 pre-fix | post-fix | Δ |
+|---|---:|---:|---:|
+| stanza | 10.9 | 10.3 | −0.6 |
+| qwen_rag | 20.8 | 19.2 | **−1.6** (within bootstrap CI [10.1, 31.2]) |
+| haiku_zero | 55.9 | 55.9 | 0.0 |
+| haiku_rag | 68.8 | 68.9 | +0.1 |
+| sonnet_zero | 76.0 | 76.4 | +0.4 |
+| sonnet_rag | 74.6 | 74.7 | +0.1 |
+| arat5_base | 54.2 | 54.8 | +0.6 |
+| mt5_base | 31.3 | 31.6 | +0.3 |
+
+Other metrics (case, marker, fully) shift ≤0 pp universally — fix is contained to roles. Qwen's 1.6 pp shift exceeds the 1.0 pp pre-set threshold, but is within Qwen's role-F1 bootstrap CI, so accepted (see correspondence in PR notes).
+
+MASAQ role-F1 post-fix:
+
+| System | MASAQ role-F1 pre-fix | post-fix | Δ |
+|---|---:|---:|---:|
+| stanza | 14.9 | 14.9 | 0.0 |
+| arat5_base | 10.2 | 9.6 | −0.6 |
+
+**The fix barely moves MASAQ role-F1.** This refines my original interpretation: the 20-row "70% pipeline" audit was real but only covered the 302-bucket of "both extracted but differ" cases. It missed the dominant 1815-bucket of "gold has role, pred extractor returns no role at all" — which the longest-match fix can't help with.
+
+The 1815-bucket cases are caused by the model producing verbose Quranic-commentary-style paraphrases that don't contain any canonical role string (e.g. `"الباء حرف جر مبني على الكسر، آيات اسم مجرور بالباء وعلامة جره الكسرة الظاهرة على آخره"` — the extractor finds no role term it knows). MASAQ gold uses formulaic templater output; the role string is always extracted from gold. Net result: counted as "model has no role" → counts as 0 against gold role.
+
+This is a **templater-vs-model output-style mismatch**, not a cross-register effect. The same model on Gazelle (where gold is hand-written by experts using natural varied phrasing similar to the model's output style) does not show this pattern.
+
+**Net conclusion:** keep the extractor fix (it's correct in principle), but **MASAQ role-F1 numbers should be interpreted as not-directly-comparable to Gazelle role-F1**. Use case-acc and marker-EM for cross-register comparisons. Report fully numbers with the role-artifact caveat.

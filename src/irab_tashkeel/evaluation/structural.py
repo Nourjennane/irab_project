@@ -72,7 +72,13 @@ def _compile(terms: Iterable[str]) -> List[Tuple[str, re.Pattern]]:
 
 
 _POS_PATTERNS = _compile(POS_TERMS)
-_ROLE_PATTERNS = _compile(ROLES)
+# CONTAINED FIX (May 2026): sort ROLES patterns by descending length so that
+# when both "اسم مجرور بحرف الجر" and "اسم مجرور" could match, the longer
+# (more specific) one wins. The MASAQ role audit (docs/MASAQ_role_audit.md)
+# found that 70% of role disagreements were vocabulary mismatches caused by
+# this priority. Fix is intentionally CONTAINED to ROLES only — POS, CASE,
+# and MARKER extraction are unchanged.
+_ROLE_PATTERNS = _compile(sorted(ROLES, key=len, reverse=True))
 _MARKER_PATTERNS = _compile(MARKERS)
 _CASE_PATTERNS = {label: _compile(words) for label, words in CASES.items()}
 
