@@ -57,6 +57,7 @@ from __future__ import annotations
 
 import csv
 import json
+import random
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
@@ -338,6 +339,103 @@ def to_fewshots(max_verses: int = 1500, src: Path | str = DEFAULT_PATH) -> List[
     return out
 
 
+# ---------------------------------------------------------------------------
+# MASAQ → eval set (Gazelle-compatible format)
+# ---------------------------------------------------------------------------
+def write_eval_jsonl(out_path: Path | str = "data/masaq_eval.jsonl",
+                     target_words: int = 5000,
+                     min_words_per_sent: int = 4,
+                     max_words_per_sent: int = 25,
+                     seed: int = 42,
+                     src: Path | str = DEFAULT_PATH) -> Path:
+    """Build a held-out eval set in the same JSONL shape as our Gazelle pipeline:
+        {"sentence": str, "items": [{"word": str, "irab": str}, ...], ...}
+
+    Filters:
+      - skip verses whose word count is outside [min_words_per_sent, max_words_per_sent]
+      - skip verses where ANY word fails to template (we want clean per-verse gold)
+      - sample randomly until target_words per-word rows are accumulated
+    """
+    out = Path(out_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    rows = load_masaq_segments(src)
+    by_word: Dict[Tuple[str, str, str], List[Dict[str, str]]] = defaultdict(list)
+    word_surface: Dict[Tuple[str, str, str], str] = {}
+    verse_words: Dict[Tuple[str, str], Dict[str, str]] = defaultdict(dict)
+    for r in rows:
+        wkey = (r["Sura_No"], r["Verse_No"], r["Word_No"])
+        by_word[wkey].append(r)
+        word_surface.setdefault(wkey, r.get("Without_Diacritics") or r.get("Word", ""))
+        verse_words[(r["Sura_No"], r["Verse_No"])][r["Word_No"]] = word_surface[wkey]
+
+    rng = random.Random(seed)
+    verse_keys = list(verse_words.keys())
+    rng.shuffle(verse_keys)
+
+    n_total_words = 0
+    n_verses = 0
+    n_skipped = 0
+    n_skipped_too_short = 0
+    n_skipped_too_long = 0
+    n_skipped_template_fail = 0
+
+    with open(out, "w", encoding="utf-8") as f:
+        for verse_key in verse_keys:
+            if n_total_words >= target_words:
+                break
+            words_dict = verse_words[verse_key]
+            n_words = len(words_dict)
+            if n_words < min_words_per_sent:
+                n_skipped_too_short += 1
+                continue
+            if n_words > max_words_per_sent:
+                n_skipped_too_long += 1
+                continue
+
+            sentence = " ".join(words_dict[w] for w in sorted(words_dict, key=int))
+            items = []
+            for word_no in sorted(words_dict, key=int):
+                wkey = (verse_key[0], verse_key[1], word_no)
+                segs = by_word.get(wkey) or []
+                stem = next((s for s in segs if s.get("Morph_Type") == "Stem"), segs[0] if segs else {})
+                feats = {
+                    "morph_tag": stem.get("Morph_Tag", ""),
+                    "case_mood": stem.get("Case_Mood", ""),
+                    "case_mood_marker": stem.get("Case_Mood_Marker", ""),
+                    "syntactic_role": stem.get("Syntactic_Role", ""),
+                    "invariable_declinable": stem.get("Invariable_Declinable", ""),
+                    "possessive_construct": stem.get("Possessive_Construct", ""),
+                }
+                irab = render_word_irab(feats)
+                if not irab:
+                    continue   # skip THIS word; keep the rest of the verse
+                items.append({"word": words_dict[word_no], "irab": irab})
+            # Need ≥3 templatable words per verse to be a useful eval point
+            if len(items) < 3:
+                n_skipped_template_fail += 1
+                continue
+
+            row = {
+                "sentence": sentence,
+                "items": items,
+                "source": "masaq",
+                "sura_verse": f"{verse_key[0]}:{verse_key[1]}",
+            }
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            n_total_words += len(items)
+            n_verses += 1
+
+    print(f"\n=== MASAQ eval written ===")
+    print(f"  out: {out}")
+    print(f"  verses kept: {n_verses}")
+    print(f"  word-level judgments: {n_total_words}")
+    print(f"  skipped — too short: {n_skipped_too_short}")
+    print(f"  skipped — too long:  {n_skipped_too_long}")
+    print(f"  skipped — template fail (≥1 word didn't render): {n_skipped_template_fail}")
+    return out
+
+
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser(description="MASAQ loader / sampler")
@@ -345,7 +443,13 @@ if __name__ == "__main__":
                    help="write N word-level rows to data/masaq_sample.jsonl")
     p.add_argument("--summary", action="store_true",
                    help="print schema summary (morph/role/case/marker tag distributions)")
+    p.add_argument("--build_eval", type=int, default=0, metavar="N_WORDS",
+                   help="write a Gazelle-compatible eval JSONL with ~N word judgments to data/masaq_eval.jsonl")
     args = p.parse_args()
+
+    if args.build_eval > 0:
+        write_eval_jsonl(target_words=args.build_eval)
+        import sys; sys.exit(0)
 
     if args.summary:
         rows = load_masaq_segments()

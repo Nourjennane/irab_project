@@ -280,10 +280,15 @@ def mcnemar_exact(flags_a: Sequence[bool], flags_b: Sequence[bool]) -> Tuple[int
         return (n10, n01, 1.0)
     # Two-sided exact binomial: prob of seeing as extreme a split as observed
     k = min(n10, n01)
-    # P(K <= k) under Binom(n_disc, 0.5)
-    cum = 0.0
-    for i in range(k + 1):
-        cum += math.comb(n_disc, i) * (0.5 ** n_disc)
+    # P(K <= k) under Binom(n_disc, 0.5).
+    # Compute in log-space to avoid float underflow for large n_disc:
+    #   log p = log(C(n_disc, i)) - n_disc * log(2)
+    log_half = -math.log(2)
+    log_pmf = [math.lgamma(n_disc + 1) - math.lgamma(i + 1) - math.lgamma(n_disc - i + 1)
+               + n_disc * log_half for i in range(k + 1)]
+    # Sum exp(log_pmf) safely via log-sum-exp
+    m = max(log_pmf)
+    cum = math.exp(m) * sum(math.exp(lp - m) for lp in log_pmf)
     p_two = min(1.0, 2 * cum)
     return (n10, n01, p_two)
 

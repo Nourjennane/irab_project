@@ -46,6 +46,26 @@ def _gold_pairs_from_gazelle(items: Sequence[GazelleItem]) -> List[Tuple[str, Li
     return out
 
 
+def _gold_pairs_from_jsonl(path: Path) -> List[Tuple[str, List[Tuple[str, str]]]]:
+    """Load (sentence, [(word, irab)]) tuples from a JSONL file with rows
+    {"sentence": str, "items": [{"word": str, "irab": str}, ...]}.
+    Used by the MASAQ eval (--eval masaq) and other JSONL-based eval sets."""
+    out: List[Tuple[str, List[Tuple[str, str]]]] = []
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            sent = row.get("sentence", "")
+            items = row.get("items") or []
+            pairs = [(it.get("word", ""), it.get("irab", "")) for it in items
+                     if isinstance(it, dict) and it.get("word") and it.get("irab")]
+            if sent and pairs:
+                out.append((sent, pairs))
+    return out
+
+
 def _align_pred(gold_words: Sequence[str], preds: Sequence[Dict]) -> List[str]:
     """Align prediction items to gold words by surface match (best effort).
 
@@ -131,7 +151,7 @@ def per_word_decoder_predictor(checkpoint_path: str):
 
 def main():
     p = argparse.ArgumentParser(description="Compare i'rāb baselines on Gazelle")
-    p.add_argument("--eval", choices=["gazelle"], default="gazelle")
+    p.add_argument("--eval", choices=["gazelle", "masaq"], default="gazelle")
     p.add_argument("--baselines", default="claude_zero,claude_rag",
                    help="comma-separated subset: claude_zero, claude_rag, decoder")
     p.add_argument("--decoder_ckpt", default=None,
@@ -165,6 +185,10 @@ def main():
         items = load_gazelle_iraab()
         gold = _gold_pairs_from_gazelle(items)
         print(f"loaded {len(gold)} gazelle items as gold pairs")
+    elif args.eval == "masaq":
+        gold = _gold_pairs_from_jsonl(Path("data/masaq_eval.jsonl"))
+        n_words = sum(len(p) for _, p in gold)
+        print(f"loaded {len(gold)} masaq verses as gold pairs ({n_words} word judgments)")
     else:
         raise ValueError(f"unknown --eval {args.eval}")
     sentences = [s for s, _ in gold]
