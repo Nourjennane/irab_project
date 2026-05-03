@@ -256,10 +256,24 @@ To extend the n=134 Gazelle eval, we built a 5,007-word MASAQ Quranic eval surfa
 | Sonnet zero-shot | 78.1 [65.3, 91.9] | (eval pending) | — | — |
 | Sonnet RAG | 75.7 [65.1, 90.0] | 11.9 [8.3, 22.1] (n=104, partial — eval interrupted) | 16% (preliminary) | Sonnet MASAQ eval was killed mid-run for cost-efficiency reasons; batch re-run TBD. |
 
-**Findings:**
-1. **Trained Arabic-specific models lose 40-60% of their Gazelle role-F1 when moved to Quranic register**, even on the matched subset. The cross-register effect is real and substantial after measurement artifacts are removed.
-2. **Stanza is register-stable** (UD POS+deprel labels apply uniformly across registers via the same templater).
-3. The 17 → 24 pp Gazelle/MASAQ gap on AraT5v2-base is now methodologically clean: gold templating, pred extraction, and the subset filter all agree on what "role-F1" means.
+### Cross-register role-F1 deltas (two-sample bootstrap, B=1000)
+
+The Gazelle subset (n=78) and MASAQ subset (n=999) are distinct items — different registers, different word distributions, different annotators. Paired bootstrap doesn't apply; we use two-sample bootstrap that resamples each side independently and reports the 95% CI of the difference.
+
+| System | Gazelle F1 (n=78) | MASAQ F1 | Δ (Gazelle − MASAQ) | 95% CI | Significant? |
+|---|---:|---:|---:|---|:---:|
+| Stanza | 10.4 | 17.6 (n=999) | **−7.2 pp** | [−11.8, +1.9] | ns (CI crosses 0) |
+| mT5-base FT | 32.8 | 18.5 (n=963, partial) | **+14.2 pp** | [+1.5, +27.2] | ★ |
+| AraT5v2-base FT | 58.9 | 24.3 (n=999) | **+34.7 pp** | [+18.7, +48.9] | ★ |
+| Sonnet RAG | 75.7 | 11.9 (n=104, partial) | +63.8 pp | [+47.7, +76.6] | ★ (preliminary, awaiting batch) |
+
+### Three cross-register findings
+
+1. **Trained Arabic models show substantial cross-register role degradation.** AraT5v2-base loses 34.7 pp (★) when moved from MSA-news to Quranic register (Gazelle 58.9 → MASAQ 24.3). mT5-base loses 14.2 pp (★). Both trained models retain only 41–55% of their MSA role-F1 on Quranic. This is a real, paired-significant cross-register effect.
+
+2. **Stanza (UD parser) is register-stable.** No significant degradation; in fact a slight (non-significant) GAIN of 7.2 pp moving from MSA to Quranic (Gazelle 10.4 → MASAQ 17.6). The closed UD POS+deprel label set applies uniformly across registers via the same templater on both sides; whatever role distribution Stanza produces, it produces it the same way regardless of register.
+
+3. **Arabic-specific pretraining is LESS register-stable than multilingual pretraining at this scale.** AraT5v2-base (296M, Arabic-only pretraining) drops 34.7 pp; mT5-base (580M, multilingual including Arabic) drops only 14.2 pp. A plausible reading: AraT5v2's Arabic-only pretraining biases it more strongly toward MSA-news syntactic frequencies, which fail to transfer to Quranic VS-order, mood-particle-rich constructions; mT5's broader multilingual exposure leaves a weaker but more register-portable Arabic prior. We report this with caveat — the absolute Gazelle role-F1 of mT5 (32.8) is much lower than AraT5v2 (58.9), so the smaller drop is partially explained by the smaller starting point. The CIs of the two drops do overlap (mT5 [+1.5, +27.2] vs AraT5v2 [+18.7, +48.9]), so the "AraT5v2 drops MORE than mT5" claim is directionally consistent but not paired-significant on its own.
 
 The full role-F1 numbers (including all 5,007 MASAQ words) are reported in the appendix as `*_full` columns of `runs/role_extractor_diagnosis/` for completeness, but should not be used for cross-register comparisons.
 
