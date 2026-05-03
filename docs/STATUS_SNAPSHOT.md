@@ -38,9 +38,10 @@ Pending Gazelle eval: AraGPT2-large (HPC smoke RUNNING).
 - Stanza − AraT5v2 (n=5007): well −41.0, case −17.9, marker −17.0, fully −7.1 (all p<0.001 ★)
 
 **Note on MASAQ vs Gazelle for AraT5v2-base:**
-- Case: 62.6 (MASAQ) vs 65.7 (Gazelle) — close
-- Role-F1: 10.2 (MASAQ) vs 54.2 (Gazelle) — collapse, register mismatch
-- fully: 12.3 (MASAQ) vs 24.6 (Gazelle) — about half
+- Case: 62.6 (MASAQ) vs 65.7 (Gazelle) — close, **real cross-register comparable**
+- Role-F1: 10.2 (MASAQ) vs 54.2 (Gazelle) — **measurement artifact, NOT a finding**. Audit (`docs/MASAQ_role_audit.md`): 70% of role disagreements are vocabulary mismatches between the MASAQ templater (uses long role strings like `"اسم مجرور بحرف الجر"`) and model output (uses shorter `"اسم مجرور"`). Same grammatical analysis, different role-string match against the extractor's priority list. Withdrawn as a finding.
+- Marker: 31.9 (MASAQ) vs 44.0 (Gazelle) — **real cross-register comparable** (closed marker vocabulary, no template/output mismatch)
+- fully: 12.3 (MASAQ) vs 24.6 (Gazelle) — inherits the role-F1 artifact; cross-register fully comparison is weakened. Cite with caveat.
 
 ---
 
