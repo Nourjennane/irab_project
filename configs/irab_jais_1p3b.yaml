@@ -1,0 +1,41 @@
+# Phase 2.4: Jais-family-1.3B causal-LM SFT for i'rāb generation.
+#
+# Decoder-only Arabic+English model (1.3B params) trained by Inception/G42.
+# Adds the "Arabic-specific intermediate" scaling point we couldn't get from
+# the AraT5 family (no large variant) or mT5 (multilingual, weak Arabic prior).
+#
+# Memory budget on 40GB MIG:
+#   - bf16 weights: 1.3B × 2 = 2.6GB
+#   - LoRA r=32 trainable params: ~10M = 20MB
+#   - Optimizer state (adamw_torch on LoRA only): ~80MB
+#   - Activations + grad ckpt at batch 2 + grad_accum 8: ~6-10GB
+#   Total: ~12GB. Comfortable. (Full FT would be ~13GB just for optimizer state
+#   on 1.3B params, also fits but slower; we use LoRA for speed.)
+
+model_id: inceptionai/jais-family-1p3b
+pairs_path: data/distill_v2/word_level.jsonl
+val_split: 0.02
+
+learning_rate: 2.0e-4
+weight_decay: 0.01
+warmup_ratio: 0.05
+n_epochs: 3
+per_device_train_batch_size: 2
+per_device_eval_batch_size: 4
+gradient_accumulation_steps: 8
+max_input_length: 320
+max_total_length: 512
+label_smoothing_factor: 0.0
+
+seed: 42
+optim: adamw_torch
+
+use_lora: true
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_modules:
+  - c_attn
+  - c_proj
+  - c_fc
+load_in_4bit: false
