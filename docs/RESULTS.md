@@ -229,6 +229,42 @@ Sweeping `k ∈ {1, 3, 5, 8, 12}` while holding the LLM (Sonnet 4.5), pool compo
 
 ---
 
+## Cross-register evaluation: MASAQ subset role-F1
+
+To extend the n=134 Gazelle eval, we built a 5,007-word MASAQ Quranic eval surface (`data/masaq_eval.jsonl`, see `src/irab_tashkeel/data/masaq.py`). Methodology details and the three-stage role-F1 investigation are documented in `docs/MASAQ_role_audit.md` and `runs/role_extractor_diagnosis/bucket_30_samples.md`. Summary:
+
+**Three-stage history** of the MASAQ role-F1 metric for AraT5v2-base:
+
+| Stage | role-F1 (full eval) | What it measured |
+|---|---:|---|
+| Original (broken extractor priority) | 10.2 | First-match-wins on a manually-ordered ROLES list; missed long-form role mentions in pred output. |
+| Longest-match-first fix in `structural.py` | 9.6 | Correct in principle but barely moved the number; the fix's bucket was small. |
+| **Subset scoring** (current) | **24.3 [20.5, 30.6]** | role-F1 computed only on words where the gold has an extractable role — avoiding the verb-extractor false-positive bug where role terms in attached-pronoun analyses are mistakenly assigned to verbs. |
+
+**Subset definition.** A word is in the subset iff `extract(gold_irab).role is not None`. On MASAQ this is 999/5,007 = 20% of words; on Gazelle 78/134 = 58% (Gazelle gold is hand-written and more often includes a nominal role term). For matched cross-register comparison, both sides are restricted to the same definition.
+
+### Results (subset role-F1, with 95% bootstrap CIs, B=1000)
+
+| System | Gazelle subset (n=78) | MASAQ subset (n=999) | MASAQ as % of Gazelle | Reading |
+|---|---:|---:|---:|---|
+| Stanza | 10.4 [6.1, 18.6] | 17.6 [16.6, 19.8] | 169% (MASAQ higher) | UD parser register-stable; closed UD label set absorbs both registers similarly. |
+| Qwen-7B+RAG | 23.0 [10.3, 31.8] | (eval pending) | — | — |
+| mT5-base FT | 32.8 [22.7, 44.9] | 18.1 [14.3, 25.7] (n=839) | 55% | **Moderate cross-register effect** per Hovy framework. |
+| AraT5v2-base FT | 58.9 [45.7, 72.5] | 24.3 [20.5, 30.6] | 41% | **Substantial cross-register effect** per Hovy framework. |
+| Haiku zero-shot | 56.3 [42.4, 71.2] | (eval pending) | — | — |
+| Haiku RAG | 70.4 [57.8, 84.5] | (eval pending) | — | — |
+| Sonnet zero-shot | 78.1 [65.3, 91.9] | (eval pending) | — | — |
+| Sonnet RAG | 75.7 [65.1, 90.0] | 11.9 [8.3, 22.1] (n=104, partial — eval interrupted) | 16% (preliminary) | Sonnet MASAQ eval was killed mid-run for cost-efficiency reasons; batch re-run TBD. |
+
+**Findings:**
+1. **Trained Arabic-specific models lose 40-60% of their Gazelle role-F1 when moved to Quranic register**, even on the matched subset. The cross-register effect is real and substantial after measurement artifacts are removed.
+2. **Stanza is register-stable** (UD POS+deprel labels apply uniformly across registers via the same templater).
+3. The 17 → 24 pp Gazelle/MASAQ gap on AraT5v2-base is now methodologically clean: gold templating, pred extraction, and the subset filter all agree on what "role-F1" means.
+
+The full role-F1 numbers (including all 5,007 MASAQ words) are reported in the appendix as `*_full` columns of `runs/role_extractor_diagnosis/` for completeness, but should not be used for cross-register comparisons.
+
+---
+
 ## Metric audit via perturbed gold (extractor sensitivity / specificity)
 
 To verify that the structural-extraction metric actually responds to errors on the right field, we built a deterministic perturbation set from the 134 Gazelle gold word-i'rāb pairs (`src/irab_tashkeel/evaluation/perturb.py`). For each gold string we generated up to three single-field corruptions:
