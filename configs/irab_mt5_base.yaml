@@ -1,0 +1,28 @@
+# Phase 2.3 (substituted): mT5-base (~580M) full FT on the 77K Haiku-distilled corpus.
+#
+# UBC-NLP/AraT5v2-large doesn't exist (only base+small variants); UBC-NLP/AraT5-base
+# v1 is also ~296M params (not larger than v2). To get a real intermediate-size
+# model, we use Google's mT5-base (580M) — same T5 architecture so the training
+# script needs no changes. Multilingual but Arabic-trained.
+#
+# Full FT is fine on 40GB MIG: 580M × 2B (bf16) = 1.2GB + adamw_torch optimizer
+# (~2.3GB) + activations (~10-15GB at batch 4). Fits comfortably; no LoRA needed.
+
+model_id: google/mt5-base
+pairs_path: data/distill_v2/word_level.jsonl
+val_split: 0.02
+
+learning_rate: 5.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.05
+n_epochs: 3
+per_device_train_batch_size: 4
+per_device_eval_batch_size: 8
+gradient_accumulation_steps: 4
+max_input_length: 320
+max_target_length: 192
+label_smoothing_factor: 0.1
+
+seed: 42
+optim: adamw_torch
+use_lora: false

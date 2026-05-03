@@ -148,12 +148,15 @@ We isolate the contribution of each retrieval source. The headline pool is Yarob
 | Yarob only | 459 | (per finding #4: indistinguishable from headline) | | | | | +1.5 (p=0.625) |
 | Distilled only | 601 | 78.4 | 72.4 | 69.8 | 46.3 | 27.6 | −4.5 (p=0.109) |
 | Yarob + Distilled + MASAQ | 2,560 | 79.9 | 73.9 | 71.0 | 48.5 | 31.3 | −0.7 (p=1.000) |
+| Yarob + Distilled-v1 + Distilled-v2 (Qwen-7B baseline test) | 6,057 | (Qwen2.5-7B+RAG result) 72.4 | 41.8 | 23.6 | 21.6 | **3.0** (vs 3.0 headline-Qwen-pool, Δ=0.0 p=1.000) | n/a — Qwen, not Sonnet |
 
 **Findings:**
 
 - **Yarob-only (459 examples) ≈ headline (1,060 examples)** — already established as Δ case +0.7 pp (p=1.000) earlier; the 601 distilled examples do not paired-significantly improve over Yarob alone, but they do not hurt either, so we keep them for stylistic coverage.
 - **Distilled-only (601, no Yarob) trends 4.5 pp worse on `fully`** (McNemar p=0.109; not significant at α=0.05 but the directional gap is consistent across case, marker, and fully). **Per-example retrieval value of hand-authored Yarob > Claude-distilled.** This is consistent with Hovy & Spruit (2016) on the value of expert-curated gold over model-generated silver.
 - **MASAQ-augmented (Quranic templated, +1,500): honest negative** — no help, small role-F1 drop (Δ −3.6 pp). Register mismatch — Quranic Arabic differs syntactically (mood-shifting particles, object-fronting, VS order) and lexically from MSA-news. Retrieval falls back to Quranic verses for some queries and carries the style into the prompt. We retain the headline pool. *(MASAQ remains a credible future training-augmentation resource, characterized in `data/masaq_sample.jsonl` and `src/irab_tashkeel/data/masaq.py`.)*
+
+- **Distillation-v2-augmented for the open-weight side: also honest negative** (Phase 2.2). Re-ran Qwen2.5-7B+RAG with the augmented 6,057-example pool (1,060 + 4,997 from Phase 1 distillation): well-formed +6.0 pp (close to significant, p=0.096), case −1.5 pp (p=0.815), marker +2.2 pp (p=0.607), **fully unchanged at 3.0% (Δ=0.0 pp, p=1.000)**. Augmenting the retrieval pool does not move the open-weight needle either. Bottleneck for Qwen-7B is the model's pattern-following ability (it produces verbose Arabic that doesn't always parse cleanly via the structural extractor), not the size or composition of the retrieval pool.
 
 ---
 
