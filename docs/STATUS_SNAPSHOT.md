@@ -30,7 +30,7 @@ Pending Gazelle eval: AraGPT2-large (HPC smoke RUNNING).
 |---|---:|---:|---:|---:|---:|---:|
 | Stanza Arabic | n/a | 59.0 | 44.6 | 14.9 | 14.8 | 5.2 |
 | AraT5v2-base FT | 296M | 100.0 | 62.6 | 10.2 | 31.9 | 12.3 |
-| mT5-base FT | 580M | (running) | | | | |
+| mT5-base FT | 580M | 100.0 | 57.0 | 18.6 (subset n=999) | 28.4 | 11.0 |
 | AraGPT2-large FT | 792M | (pending) | | | | |
 | Qwen2.5-7B + RAG | 7B | (paused at 17%; will resume) | | | | |
 

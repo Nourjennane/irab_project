@@ -249,7 +249,7 @@ To extend the n=134 Gazelle eval, we built a 5,007-word MASAQ Quranic eval surfa
 |---|---:|---:|---:|---|
 | Stanza | 10.4 [6.1, 18.6] | 17.6 [16.6, 19.8] | 169% (MASAQ higher) | UD parser register-stable; closed UD label set absorbs both registers similarly. |
 | Qwen-7B+RAG | 23.0 [10.3, 31.8] | (eval pending) | — | — |
-| mT5-base FT | 32.8 [22.7, 44.9] | 18.1 [14.3, 25.7] (n=839) | 55% | **Moderate cross-register effect** per Hovy framework. |
+| mT5-base FT | 32.8 [22.7, 44.9] | 18.6 [14.6, 25.4] (n=999) | 57% | **Moderate cross-register effect** per Hovy framework. |
 | AraT5v2-base FT | 58.9 [45.7, 72.5] | 24.3 [20.5, 30.6] | 41% | **Substantial cross-register effect** per Hovy framework. |
 | Haiku zero-shot | 56.3 [42.4, 71.2] | (eval pending) | — | — |
 | Haiku RAG | 70.4 [57.8, 84.5] | (eval pending) | — | — |
@@ -263,7 +263,7 @@ The Gazelle subset (n=78) and MASAQ subset (n=999) are distinct items — differ
 | System | Gazelle F1 (n=78) | MASAQ F1 | Δ (Gazelle − MASAQ) | 95% CI | Significant? |
 |---|---:|---:|---:|---|:---:|
 | Stanza | 10.4 | 17.6 (n=999) | **−7.2 pp** | [−11.8, +1.9] | ns (CI crosses 0) |
-| mT5-base FT | 32.8 | 18.5 (n=963, partial) | **+14.2 pp** | [+1.5, +27.2] | ★ |
+| mT5-base FT | 32.8 | 18.6 (n=999) | **+14.2 pp** | [+1.5, +26.3] | ★ |
 | AraT5v2-base FT | 58.9 | 24.3 (n=999) | **+34.7 pp** | [+18.7, +48.9] | ★ |
 | Sonnet RAG | 75.7 | 11.9 (n=104, partial) | +63.8 pp | [+47.7, +76.6] | ★ (preliminary, awaiting batch) |
 
