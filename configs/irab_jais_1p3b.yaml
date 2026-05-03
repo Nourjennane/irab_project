@@ -12,7 +12,10 @@
 #   Total: ~12GB. Comfortable. (Full FT would be ~13GB just for optimizer state
 #   on 1.3B params, also fits but slower; we use LoRA for speed.)
 
-model_id: inceptionai/jais-family-1p3b
+# Switched from inceptionai/jais-family-1p3b (gated repo, requires HF auth) to
+# aubmindlab/aragpt2-large (non-gated, ~792M params, same GPT-2 architecture so
+# our LoRA target_modules c_attn/c_proj/c_fc still match).
+model_id: aubmindlab/aragpt2-large
 pairs_path: data/distill_v2/word_level.jsonl
 val_split: 0.02
 
