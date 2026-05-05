@@ -101,21 +101,25 @@ def subset_score(path: Path) -> dict:
 
 
 GAZELLE_PATHS = {
-    "stanza":      "runs/baseline_eval_stanza/stanza.predictions.jsonl",
-    "qwen_rag":    "runs/baseline_eval_openweight/openweight.predictions.jsonl",
-    "haiku_zero":  "runs/baseline_eval/claude_zero.predictions.jsonl",
-    "haiku_rag":   "runs/baseline_eval_v2/claude_rag.predictions.jsonl",
-    "sonnet_zero": "runs/baseline_eval_sonnet/claude_zero.predictions.jsonl",
-    "sonnet_rag":  "runs/baseline_eval_sonnet/claude_rag.predictions.jsonl",
-    "arat5_base":  "runs/baseline_eval_arat5_irab/arat5_irab.predictions.jsonl",
-    "mt5_base":    "runs/baseline_eval_mt5_gazelle/arat5_irab.predictions.jsonl",
+    "stanza":        "runs/baseline_eval_stanza/stanza.predictions.jsonl",
+    "qwen_rag":      "runs/baseline_eval_openweight/openweight.predictions.jsonl",
+    "haiku_zero":    "runs/baseline_eval/claude_zero.predictions.jsonl",
+    "haiku_rag":     "runs/baseline_eval_v2/claude_rag.predictions.jsonl",
+    "sonnet_zero":   "runs/baseline_eval_sonnet/claude_zero.predictions.jsonl",
+    "sonnet_rag":    "runs/baseline_eval_sonnet/claude_rag.predictions.jsonl",
+    "arat5_base":    "runs/baseline_eval_arat5_irab/arat5_irab.predictions.jsonl",
+    "mt5_base":      "runs/baseline_eval_mt5_gazelle/arat5_irab.predictions.jsonl",
+    "aragpt2_large": "runs/baseline_eval_aragpt2_gazelle/aragpt2_irab.predictions.jsonl",
+    "acegpt_13b":    "runs/baseline_eval_acegpt13b_gazelle/acegpt_irab.predictions.jsonl",
 }
 
 MASAQ_PATHS = {
-    "stanza":     "runs/baseline_eval_masaq_stanza/stanza.predictions.jsonl",
-    "arat5_base": "runs/baseline_eval_masaq_arat5/arat5_irab.predictions.jsonl",
-    "mt5_base":   "runs/baseline_eval_masaq_mt5/arat5_irab.predictions.jsonl",
-    "sonnet_rag": "runs/baseline_eval_masaq_sonnet/claude_rag.predictions.jsonl",
+    "stanza":        "runs/baseline_eval_masaq_stanza/stanza.predictions.jsonl",
+    "arat5_base":    "runs/baseline_eval_masaq_arat5/arat5_irab.predictions.jsonl",
+    "mt5_base":      "runs/baseline_eval_masaq_mt5/arat5_irab.predictions.jsonl",
+    "aragpt2_large": "runs/baseline_eval_masaq_aragpt2/aragpt2_irab.predictions.jsonl",
+    "acegpt_13b":    "runs/baseline_eval_masaq_acegpt13b/acegpt_irab.predictions.jsonl",
+    "sonnet_rag":    "runs/baseline_eval_masaq_sonnet/claude_rag.predictions.jsonl",
 }
 
 

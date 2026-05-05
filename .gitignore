@@ -19,3 +19,9 @@ logs/
 .venv/
 data/ambiguity_annotations.jsonl
 data/distill_v2/
+
+# LaTeX build artefacts
+docs/paper/*.aux
+docs/paper/*.log
+docs/paper/*.out
+docs/paper/missfont.log

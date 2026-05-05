@@ -170,6 +170,13 @@ def main():
                    help="HF model id for the 'openweight' baseline (loaded in 4-bit)")
     p.add_argument("--arat5_irab_path", default=None,
                    help="path to AraT5v2-irab fine-tuned model dir (for the 'arat5_irab' baseline)")
+    p.add_argument("--aragpt2_irab_path", default=None,
+                   help="path to AraGPT2-irab LoRA adapter dir (for the 'aragpt2_irab' baseline)")
+    p.add_argument("--acegpt_irab_path", default=None,
+                   help="path to AceGPT-13B-irab LoRA adapter dir (for the 'acegpt_irab' baseline)")
+    p.add_argument("--acegpt_base_model", default=None,
+                   help="optional override for AceGPT base model path/id "
+                        "(default: read from adapter_config.json)")
     p.add_argument("--include_distilled_v2_pool", action="store_true",
                    help="add ~5K Phase 1 distillation rows (data/distill_v2/distilled.jsonl) to the RAG pool")
     p.add_argument("--include_masaq_pool", action="store_true",
@@ -259,6 +266,34 @@ def main():
             pred = ArAT5IrabPredictor(args.arat5_irab_path)
             rep = evaluate_baseline(
                 "arat5_irab", sentences, gold_pairs,
+                predict_fn=pred.predict,
+                out_dir=args.out,
+            )
+            reports.append(rep)
+
+    if "aragpt2_irab" in baselines:
+        from ..inference.aragpt2_irab import AraGPT2IrabPredictor
+        if not args.aragpt2_irab_path:
+            print("  [aragpt2_irab] skipped — pass --aragpt2_irab_path path/to/final/")
+        else:
+            print(f"  AraGPT2-irab: model={args.aragpt2_irab_path}")
+            pred = AraGPT2IrabPredictor(args.aragpt2_irab_path)
+            rep = evaluate_baseline(
+                "aragpt2_irab", sentences, gold_pairs,
+                predict_fn=pred.predict,
+                out_dir=args.out,
+            )
+            reports.append(rep)
+
+    if "acegpt_irab" in baselines:
+        from ..inference.acegpt_irab import AceGPTIrabPredictor
+        if not args.acegpt_irab_path:
+            print("  [acegpt_irab] skipped — pass --acegpt_irab_path path/to/final/")
+        else:
+            print(f"  AceGPT-irab: model={args.acegpt_irab_path}  base={args.acegpt_base_model or '(from adapter)'}")
+            pred = AceGPTIrabPredictor(args.acegpt_irab_path, base_model_id=args.acegpt_base_model)
+            rep = evaluate_baseline(
+                "acegpt_irab", sentences, gold_pairs,
                 predict_fn=pred.predict,
                 out_dir=args.out,
             )

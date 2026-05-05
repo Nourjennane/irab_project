@@ -16,11 +16,13 @@ Last updated: 2026-05-03 (auto-mode session). This is the single source of truth
 | Hybrid (Haiku RAG + AraT5v2 marker overlay) | — | 77.6 | 67.9 | 65.9 | 41.0 | 26.1 |
 | **mT5-base (580M) FT on Haiku-5K** | 580M | 79.9 | 61.9 | 31.3 | 32.8 | **18.7** |
 | AraT5v2-base (296M) FT on Haiku-5K | 296M | 79.9 | 65.7 | 54.2 | 44.0 | 24.6 |
+| AraGPT2-large (792M) LoRA FT on Haiku-5K | 792M | 79.9 | 64.9 | 54.6 | 43.3 | 26.1 |
+| AceGPT-13B QLoRA FT on Haiku-5K | 13B | 79.1 | 66.4 | 54.1 | 43.3 | 25.4 |
 | Claude Sonnet 4.5 zero-shot | — | 78.4 | 72.4 | 76.0 | 44.0 | 27.6 |
 | Sonnet RAG + AraT5v2 marker overlay (Hybrid v2) | — | 79.9 | 73.9 | 73.3 | 46.3 | 29.1 |
 | **Claude Sonnet 4.5 + RAG (k=5)** *(headline)* | — | **79.9** | **73.9** | **74.6** | **50.0** | **32.1** |
 
-Pending Gazelle eval: AraGPT2-large (HPC smoke RUNNING).
+Pending Gazelle eval: (none — AraGPT2-large evaluated 2026-05-03).
 
 ---
 
@@ -29,9 +31,22 @@ Pending Gazelle eval: AraGPT2-large (HPC smoke RUNNING).
 | System | Params | well | case | role-F1 | marker | **fully** |
 |---|---:|---:|---:|---:|---:|---:|
 | Stanza Arabic | n/a | 59.0 | 44.6 | 14.9 | 14.8 | 5.2 |
-| AraT5v2-base FT | 296M | 100.0 | 62.6 | 10.2 | 31.9 | 12.3 |
-| mT5-base FT | 580M | 100.0 | 57.0 | 18.6 (subset n=999) | 28.4 | 11.0 |
-| AraGPT2-large FT | 792M | (pending) | | | | |
+| AraT5v2-base FT | 296M | 100.0 | 62.6 | 9.6 (subset 24.3) | 31.9 | 11.4 |
+| mT5-base FT | 580M | 100.0 | 57.0 | 9.2 (subset 18.6) | 28.4 | 11.0 |
+| AraGPT2-large FT | 792M | 99.9 | 61.1 | 8.0 (subset 20.2) | 31.1 | 10.0 |
+| AceGPT-13B QLoRA FT (n=1075/5007 partial) | 13B | 99.9 | 62.0 | 9.8 (subset 22.2) | 32.9 | 10.7 |
+| Claude Sonnet 4.5 + RAG | — | (see prior row, fully 6.6) | | | | |
+
+**MASAQ paired comparison: AraGPT2-large vs AraT5v2-base** (n=5007, the 792M decoder vs 296M seq2seq):
+- case Δ −1.4 pp ★ (p<0.001), fully Δ −1.4 pp ★ (p<0.001), marker Δ −0.8 (p=0.049)
+- AraGPT2-large is paired-significantly *under* AraT5v2-base on MASAQ even though they tied on Gazelle (all p=1.000) → larger Arabic decoder doesn't transfer better to Quranic register than smaller Arabic seq2seq.
+
+**Cross-register Δ (Gazelle role-F1 subset − MASAQ role-F1 subset):**
+- stanza −7.2 pp [−11.8, +1.9] (ns)
+- mt5_base +14.2 ★
+- arat5_base +34.7 ★
+- aragpt2_large +37.9 ★ (similar to arat5_base, CI overlaps)
+- sonnet_rag +61.7 ★ (largest drop — Sonnet RAG suffers most from Quranic-register shift)
 | Qwen2.5-7B + RAG | 7B | (paused at 17%; will resume) | | | | |
 
 **MASAQ paired vs AraT5v2-base** (the only complete comparison so far):
@@ -109,7 +124,7 @@ These hold for the trained AraT5v2-base too → failure is structural, not Claud
 |---|---|---|
 | AraT5v2-base FT (Phase 2.1) | `runs/irab_arat5v2_distill_v2_487235/final/` (1.4 GB local) | ✅ done, evaluated |
 | mT5-base FT (Phase 2.3) | `runs/irab_mt5_base_distill_v2_487432/final/` (2.2 GB local) | ✅ done, Gazelle ✓ MASAQ pending |
-| AraGPT2-large FT (Phase 2.4) | (pending — smoke 487441 first) | smoke RUNNING |
+| AraGPT2-large FT (Phase 2.4) | smoke ✓ at 487441; full job 487443 PENDING in HPC `stud` queue | queued (user opted to wait); ETA ~6h to start, ~3.5h training+eval after |
 
 ---
 

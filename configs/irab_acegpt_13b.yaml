@@ -1,0 +1,49 @@
+# Phase 2.4 ext — AceGPT-13B QLoRA SFT for i'rāb generation.
+#
+# Substituted for Jais-13B (all 4 inceptionai/core42 Jais-13B repos return 403).
+# AceGPT-13B (FreedomIntelligence/AceGPT-13B) is non-gated, Llama-2-13B base
+# extended for Arabic. ONE attempt only with hard 24h budget per directive.
+#
+# Memory budget on 40GB MIG (4-bit NF4):
+#   - Weights: 13B × 0.5 = 6.5 GB
+#   - LoRA r=32 on attn-only (q/k/v/o): ~30M trainable = 60 MB
+#   - Optimizer state (adamw on LoRA only): ~240 MB
+#   - Activations + grad ckpt at batch 1, grad_accum 16, seq 512: ~6-9 GB
+#   Total: ~13-15 GB. Comfortable on 40 GB MIG.
+#
+# Training-time budget:
+#   - 77K examples / 1 / grad_accum 16 = ~4825 optimizer steps per epoch
+#   - 2 epochs = ~9650 steps
+#   - 13B@4bit on MIG ≈ 3-4 sec/step → ~8-10 h/epoch → 16-20 h total
+#   Hard cap per directive: 24 h wall, including final save + eval.
+
+model_id: /home/3415496/acegpt13b
+pairs_path: data/distill_v2/word_level.jsonl
+val_split: 0.02
+
+learning_rate: 1.0e-4         # smaller LR for 13B vs 1.3B (per directive)
+weight_decay: 0.01
+warmup_ratio: 0.05            # ~480 warmup steps
+n_epochs: 1                    # forced down from 2 by 24h budget — smoke timed at 16 sec/step → 21.5h per epoch on MIG 3g.40gb
+per_device_train_batch_size: 1
+per_device_eval_batch_size: 1
+gradient_accumulation_steps: 16
+max_input_length: 320
+max_total_length: 512
+label_smoothing_factor: 0.0
+
+seed: 42
+optim: adamw_torch              # paged_adamw_8bit also available; keep adamw_torch for stability
+
+use_lora: true
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+# Llama-2 attention modules. Restricted to attention only (not MLP) to keep
+# trainable params small and training speed up — sufficient for SFT on 77K rows.
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+load_in_4bit: true

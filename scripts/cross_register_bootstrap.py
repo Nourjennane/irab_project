@@ -34,14 +34,16 @@ def two_sample_bootstrap_diff(pairs_a, pairs_b, B: int = 1000, seed: int = 42):
 
 
 SYSTEMS = {
-    "stanza":     ("runs/baseline_eval_stanza/stanza.predictions.jsonl",
-                   "runs/baseline_eval_masaq_stanza/stanza.predictions.jsonl"),
-    "mt5_base":   ("runs/baseline_eval_mt5_gazelle/arat5_irab.predictions.jsonl",
-                   "runs/baseline_eval_masaq_mt5/arat5_irab.predictions.jsonl"),
-    "arat5_base": ("runs/baseline_eval_arat5_irab/arat5_irab.predictions.jsonl",
-                   "runs/baseline_eval_masaq_arat5/arat5_irab.predictions.jsonl"),
-    "sonnet_rag": ("runs/baseline_eval_sonnet/claude_rag.predictions.jsonl",
-                   "runs/baseline_eval_masaq_sonnet/claude_rag.predictions.jsonl"),
+    "stanza":       ("runs/baseline_eval_stanza/stanza.predictions.jsonl",
+                     "runs/baseline_eval_masaq_stanza/stanza.predictions.jsonl"),
+    "mt5_base":     ("runs/baseline_eval_mt5_gazelle/arat5_irab.predictions.jsonl",
+                     "runs/baseline_eval_masaq_mt5/arat5_irab.predictions.jsonl"),
+    "arat5_base":   ("runs/baseline_eval_arat5_irab/arat5_irab.predictions.jsonl",
+                     "runs/baseline_eval_masaq_arat5/arat5_irab.predictions.jsonl"),
+    "aragpt2_large":("runs/baseline_eval_aragpt2_gazelle/aragpt2_irab.predictions.jsonl",
+                     "runs/baseline_eval_masaq_aragpt2/aragpt2_irab.predictions.jsonl"),
+    "sonnet_rag":   ("runs/baseline_eval_sonnet/claude_rag.predictions.jsonl",
+                     "runs/baseline_eval_masaq_sonnet/claude_rag.predictions.jsonl"),
 }
 
 

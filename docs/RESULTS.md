@@ -19,6 +19,8 @@ All numbers are percentages with 95% percentile bootstrap CIs (B=1000) in bracke
 | Qwen2.5-7B-Instruct + RAG (k=5, 4-bit local) | 66.4 [58.2, 73.9] | 43.3 [35.1, 52.2] | 19.4 [12.7, 26.9] | 19.2 [9.5, 29.4] | 3.0 [0.0, 6.0] |
 | mT5-base (580M) full FT on Haiku-5K (77 K word rows) | 79.9 [72.4, 86.6] | 61.9 [53.7, 70.1] | 32.8 [25.4, 41.0] | 31.6 [21.0, 44.4] | 18.7 [11.9, 25.4] |
 | AraT5v2-base (296M) full FT on Haiku-5K (77 K word rows) | 79.9 [72.4, 86.6] | 65.7 [57.5, 73.9] | 44.0 [35.8, 53.0] | 54.8 [41.2, 68.7] | 24.6 [17.9, 32.8] |
+| AraGPT2-large (792M) LoRA FT on Haiku-5K (77 K word rows) | 79.9 [72.4, 86.6] | 64.9 [57.5, 73.1] | 43.3 [35.1, 51.5] | 54.6 [42.2, 69.0] | 26.1 [19.4, 34.3] |
+| AceGPT-13B QLoRA FT on Haiku-5K (77 K word rows) | 79.1 [72.4, 85.8] | 66.4 [58.2, 75.4] | 43.3 [35.1, 51.5] | 55.5 [40.4, 66.5] | 25.4 [17.9, 32.8] |
 | Claude Haiku 4.5 zero-shot | 77.6 [70.1, 84.3] | 57.5 [49.3, 66.4] | 40.3 [32.1, 49.3] | 55.9 [42.0, 68.6] | 18.7 [11.9, 25.4] |
 | Claude Haiku 4.5 + RAG (k=5) | 79.9 [73.1, 86.6] | 67.2 [59.0, 75.4] | 44.8 [35.8, 53.0] | 68.9 [55.9, 82.3] | 27.6 [20.1, 35.8] |
 | Claude Haiku 4.5 + RAG (k=10) — *ablation* | 76.9 [69.4, 84.3] | 64.9 [56.7, 73.1] | 46.3 [38.1, 55.2] | 45.4 [36.9, 56.0] | 26.1 [18.7, 34.3] |
@@ -67,11 +69,13 @@ The from-scratch character decoder is reported as a documented negative-result b
 
 8. **Open-weight peer (Qwen2.5-7B-Instruct + same RAG, 4-bit local).** Best open-weight LLM that fits on an 8GB consumer GPU. Result: case 43.3%, role-F1 19.2%, marker 19.4%, fully 3.0%. Paired-significantly weaker than Sonnet RAG on every metric (case Δ −30.6 pp, fully Δ −29.1 pp, p<0.001 ★) and **statistically indistinguishable from Stanza** as a peer baseline (Δ case +8.2 pp p=0.080, Δ fully −2.2 pp p=0.453). **Sonnet RAG's lead over open-weight alternatives is real and large.** Reported as evidence per Hovy & Spruit (2016) that the closed-source advantage is being honestly compared, not disguised by absence of an open peer.
 
-9. **Open-weight FT capacity comparison (Phase 2.1 + 2.3).** Two open-weight T5-architecture models trained on the same 77,534-row Haiku-distilled corpus, same recipe:
-   - **AraT5v2-base (296M, Arabic-specific pretraining):** case 65.7%, role-F1 54.8%, marker 44.0%, **fully 24.6%**
-   - **mT5-base (580M, multilingual pretraining):** case 61.9%, role-F1 31.6%, marker 32.8%, **fully 18.7%**
+9. **Open-weight FT capacity comparison (Phase 2.1 + 2.3 + 2.4 + 2.5).** Four open-weight models trained on the same 77,534-row Haiku-distilled corpus, same recipe:
+   - **AraT5v2-base (296M, T5 enc-dec, Arabic-specific pretraining):** case 65.7%, role-F1 54.8%, marker 44.0%, **fully 24.6%**
+   - **mT5-base (580M, T5 enc-dec, multilingual pretraining):** case 61.9%, role-F1 31.6%, marker 32.8%, **fully 18.7%**
+   - **AraGPT2-large (792M, GPT-2 decoder-only, Arabic-specific pretraining, LoRA r=32):** case 64.9%, role-F1 54.6%, marker 43.3%, **fully 26.1%**
+   - **AceGPT-13B (13B, Llama-2 decoder-only, Arabic-extended pretraining, QLoRA 4-bit r=32, 1 epoch):** case 66.4%, role-F1 55.5%, marker 43.3%, **fully 25.4%**
 
-   AraT5v2-base **dominates mT5-base on every metric despite half the params**: case Δ +3.8 pp, role-F1 Δ +23.2 pp, marker Δ +11.2 pp, **fully Δ +5.9 pp**. **Arabic-specific pretraining beats raw scale at this size.** Both models also paired-significantly beat Qwen-7B+RAG by ~20 pp on `fully` (p<0.001 ★) — task-specific training matters more than parameter count when the base model has no Arabic-i'rāb prior. AraT5v2-base remains paired-significantly worse than Sonnet RAG (case Δ −8.2 pp p=0.013 ★, fully Δ −7.5 pp p=0.021 ★); the closed-source advantage is real but bounded.
+   On Gazelle: **AceGPT-13B (13B), AraGPT2-large (792M), and AraT5v2-base (296M) are paired-statistically indistinguishable on every metric** — every pairwise Δ has McNemar p=1.000 and CIs cross 0 (e.g. AceGPT-13B vs AraT5v2-base: case Δ +0.7, marker Δ −0.7, fully Δ +0.0; AraGPT2-large vs AraT5v2-base: case Δ −0.7, marker Δ −0.7, fully Δ +0.7). **A 44× parameter scale-up over the 296M reference adds no measurable Gazelle improvement.** AraT5v2-base **dominates mT5-base on every metric despite half the params** (case Δ +3.8 pp, role-F1 Δ +23.2 pp, marker Δ +5.2 pp ★ p=0.039, fully Δ +6.0 pp ★ p=0.021). **Arabic-specific pretraining beats raw scale at this size, and adding architecture-and-scale (decoder, +500M to +12.7B params) on top of Arabic pretraining adds nothing measurable on Gazelle.** All three Arabic-pretrained models paired-significantly beat Qwen-7B+RAG by ~20 pp on `fully` (p<0.001 ★). All remain paired-significantly worse than Sonnet RAG (AceGPT-13B: case Δ −7.5 pp p=0.013 ★, marker Δ −6.7 pp p=0.035 ★, fully Δ −6.7 pp p=0.022 ★; AraT5v2-base: case Δ −8.2 pp p=0.013 ★, fully Δ −7.5 pp p=0.021 ★; AraGPT2-large: case Δ −9.0 pp p=0.004 ★, marker Δ −6.7 pp p=0.035 ★); the closed-source advantage is real but bounded, and **does not narrow with open-weight scale alone**.
 
 The smallest detectable difference at n=134 with α=0.05 power 0.80 is roughly **±7 percentage points** on a binary proportion; differences below that are within noise.
 
@@ -107,7 +111,7 @@ Each Gazelle sentence was classified into one or more of 11 construction tags us
 
 5. **Sample-size warning.** RELATIVE, IDAFA_HEAVY, INNA_SISTERS each have ≤1 Gazelle sentence (≤9 word judgments), so their per-tag scores are not reliably informative — the bootstrap CIs are wider than the point values. We report them for transparency but base no claims on them. The two robust cross-system failures (EXCEPTION, KANA_SISTERS) both have n≥7 and 0% point estimates, which the bootstrap CIs cannot widen.
 
-6. **AraT5v2-base trained model preserves the same failure modes** (per-construction CSV at `runs/error_analysis/per_construction_with_arat5.json`). EXCEPTION 0/9 and KANA_SISTERS 0/7 hold for the trained model just as for every Claude variant. This is informative: **the failure is not Claude-specific stylistic** (since AraT5v2 trained on Haiku-distilled data also fails on the same constructions); it is **structural to the task or to the available training distribution**. The remaining gap to Sonnet RAG concentrates in NOMINAL (50% vs 72%, gap 22 pp) and PARTICLE_MOOD (6.7% vs 23.3%, gap 17 pp), where Sonnet RAG's larger model + retrieval context appears to make the difference. AraT5v2-base **matches Sonnet RAG on PREPOSITIONAL** (29.7% vs 29.7%, gap 0) and is statistically tied on VERBAL (29.5% vs 32.8%, gap 3 pp).
+6. **AraT5v2-base and AraGPT2-large trained models preserve the same failure modes.** EXCEPTION 0/9 and KANA_SISTERS 0/7 hold for both trained models just as for every Claude variant. This is informative: **the failure is not Claude-specific stylistic** (since both an Arabic seq2seq and an Arabic decoder, trained on Haiku-distilled data, fail on the same constructions); it is **structural to the task or to the available training distribution**. The remaining gap to Sonnet RAG concentrates in NOMINAL (AraT5v2 50%, AraGPT2 50% vs Sonnet RAG 72%, gap ≈22 pp) and PARTICLE_MOOD (AraT5v2 10%, AraGPT2 13.3% vs Sonnet RAG 23.3%, gap ≈10–13 pp), where Sonnet RAG's larger model + retrieval context appears to make the difference. AraGPT2-large **edges Sonnet RAG on PREPOSITIONAL** (35.1% vs 29.7%, +5.4 pp, CIs overlap) and matches AraT5v2 (29.7%) — the only category where an open-weight FT model meets the closed-source headline. Both trained models are statistically tied on VERBAL (29.5% AraT5v2 = 29.5% AraGPT2 vs 32.8% Sonnet RAG, gap 3 pp).
 
 ---
 
@@ -251,6 +255,8 @@ To extend the n=134 Gazelle eval, we built a 5,007-word MASAQ Quranic eval surfa
 | Qwen-7B+RAG | 23.0 [10.3, 31.8] | (eval pending) | — | — |
 | mT5-base FT | 32.8 [22.7, 44.9] | 18.6 [14.6, 25.4] (n=999) | 57% | **Moderate cross-register effect** per Hovy framework. |
 | AraT5v2-base FT | 58.9 [45.7, 72.5] | 24.3 [20.5, 30.6] | 41% | **Substantial cross-register effect** per Hovy framework. |
+| AraGPT2-large FT | 58.1 [45.2, 74.3] | 20.2 [17.6, 25.9] (n=999) | 35% | **Substantial cross-register effect**, similar to AraT5v2 (CI overlaps). |
+| AceGPT-13B QLoRA FT | 60.4 [45.1, 72.2] | 22.2 [20.5, 34.2] (n=210, partial 21% MASAQ) | 37% | Similar drop magnitude despite 44× params over AraT5v2-base. |
 | Haiku zero-shot | 56.3 [42.4, 71.2] | (eval pending) | — | — |
 | Haiku RAG | 70.4 [57.8, 84.5] | (eval pending) | — | — |
 | Sonnet zero-shot | 78.1 [65.3, 91.9] | (eval pending) | — | — |
@@ -265,12 +271,14 @@ The Gazelle subset (n=78) and MASAQ subset (n=999) are distinct items — differ
 | Stanza | 10.4 | 17.6 (n=999) | **−7.2 pp** | [−11.8, +1.9] | ns (CI crosses 0) |
 | mT5-base FT | 32.8 | 18.6 (n=999) | **+14.2 pp** | [+1.5, +26.3] | ★ |
 | AraT5v2-base FT | 58.9 | 24.3 (n=999) | **+34.7 pp** | [+18.7, +48.9] | ★ |
+| AraGPT2-large FT | 58.1 | 20.2 (n=999) | **+37.9 pp** | [+21.3, +53.3] | ★ |
+| AceGPT-13B QLoRA FT | 60.4 | 22.2 (n=210 partial) | **+38.2 pp** | [+22.8, +52.7] | ★ |
 | Sonnet RAG | 75.7 | **14.1 (n=999)** | **+61.7 pp** | [+48.8, +75.3] | ★ |
 | Sonnet zero-shot (no retrieval) | 78.1 | **11.0 (n=657)** | **+67.0 pp** | [+52.1, +78.0] | ★ |
 
 ### Four cross-register findings
 
-1. **Trained Arabic models show substantial cross-register role degradation.** AraT5v2-base loses 34.7 pp (★) when moved from MSA-news to Quranic register (Gazelle 58.9 → MASAQ 24.3). mT5-base loses 14.2 pp (★). Both trained models retain only 41–57% of their MSA role-F1 on Quranic. This is a real, paired-significant cross-register effect.
+1. **Trained Arabic models show substantial cross-register role degradation.** AraT5v2-base loses 34.7 pp (★), AraGPT2-large loses 37.9 pp (★), AceGPT-13B loses 38.2 pp (★, partial MASAQ n=210), mT5-base loses 14.2 pp (★) when moved from MSA-news to Quranic register. The trained models retain 35–57% of their MSA role-F1 on Quranic. This is a real, paired-significant cross-register effect across all three open-weight architectures tested (T5 enc-dec, GPT-2 decoder-only, Llama-2 decoder-only) and all four parameter scales (296M, 580M, 792M, 13B). **Scaling from 296M to 13B (44×) does not narrow the cross-register gap.**
 
 2. **Stanza (UD parser) is register-stable.** No significant degradation; in fact a slight (non-significant) GAIN of 7.2 pp moving from MSA to Quranic (Gazelle 10.4 → MASAQ 17.6). The closed UD POS+deprel label set applies uniformly across registers via the same templater on both sides; whatever role distribution Stanza produces, it produces it the same way regardless of register.
 
@@ -278,7 +286,7 @@ The Gazelle subset (n=78) and MASAQ subset (n=999) are distinct items — differ
 
    **Retrieval-pool confound tested and rejected.** A natural concern: Sonnet RAG retrieves from a 100% MSA pool (1,060 examples), so the few-shot context on MASAQ is itself register-mismatched. We re-ran Sonnet **zero-shot** on the first 400 MASAQ verses (n_subset=657) to isolate the model from the retrieval contribution. Result: zero-shot Sonnet MASAQ subset role-F1 = **11.0 [10.9, 15.8]**, *lower* than RAG's 14.1 by 3 pp — not paired-significant (CI [−2.1, +6.8] crosses 0). Cross-register Δ for zero-shot Sonnet: **+67.0 pp ★ [+52.1, +78.0]**, slightly *larger* than RAG's drop. The retrieval pool is not masking the model's cross-register competence; if anything, retrieval marginally helps in Quranic register too. The fundamental-challenge framing stands.
 
-4. **Pretraining-distribution effects on register portability.** Among the trained open-weight models, the Arabic-specifically-pretrained model (AraT5v2-base, 296M) shows a larger cross-register drop (Δ +34.7 pp ★) than the multilingually-pretrained model (mT5-base, 580M, Δ +14.2 pp ★). This is consistent with — though not definitive evidence for — a hypothesis that Arabic-specific pretraining biases models toward MSA-news distributions that fail to transfer to Quranic register. The CIs overlap (mT5 [+1.5, +26.3] vs AraT5v2 [+18.7, +48.9]) and the mT5 vs AraT5v2 absolute Gazelle role-F1 difference (32.8 vs 58.9) means the mT5 drop has less "room to fall." The frontier closed-system baseline (Sonnet RAG and zero-shot Sonnet) shows the **largest drop overall** (+61.7 / +67.0 pp), suggesting that for general-purpose models without targeted register exposure, model capability alone does not protect against register shift.
+4. **Pretraining-distribution effects on register portability.** Among the trained open-weight models, the Arabic-specifically-pretrained models (AraT5v2-base 296M Δ +34.7 pp ★; AraGPT2-large 792M Δ +37.9 pp ★; AceGPT-13B Δ +38.2 pp ★) show larger cross-register drops than the multilingually-pretrained model (mT5-base 580M Δ +14.2 pp ★). This is consistent with — though not definitive evidence for — a hypothesis that Arabic-specific pretraining biases models toward MSA-news distributions that fail to transfer to Quranic register. The CIs overlap broadly (mT5 [+1.5, +26.3] vs AraT5v2 [+18.7, +48.9] vs AraGPT2 [+21.3, +53.3] vs AceGPT [+22.8, +52.7]) and the mT5 vs Arabic-pretrained absolute Gazelle role-F1 differences (32.8 vs 58.1 / 58.9 / 60.4) mean the mT5 drop has less "room to fall." The frontier closed-system baseline (Sonnet RAG and zero-shot Sonnet) shows the **largest drop overall** (+61.7 / +67.0 pp), suggesting that for general-purpose models without targeted register exposure, model capability alone does not protect against register shift. **Neither architecture nor scale closes the gap**: AraT5v2-base (T5 enc-dec, 296M), AraGPT2-large (GPT-2 decoder-only, 792M), and AceGPT-13B (Llama-2 decoder-only, 13B) all drop by statistically indistinguishable amounts (CI overlap, Δ-of-Δs ≤3.5 pp).
 
 The full role-F1 numbers (including all 5,007 MASAQ words) are reported in the appendix as `*_full` columns of `runs/role_extractor_diagnosis/` for completeness, but should not be used for cross-register comparisons.
 
