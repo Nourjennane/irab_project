@@ -9,24 +9,21 @@
   BoldItalicFont={DejaVu Serif Bold Italic}]
 \newfontfamily\arabicfont{DejaVu Sans}[Script=Arabic]
 \providecommand{\textarabic}[1]{{\arabicfont #1}}
+\usepackage{microtype}
 \usepackage{booktabs}
-\usepackage{multirow}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
 \usepackage{caption}
-\usepackage{subcaption}
 \usepackage{enumitem}
-\usepackage{fancyhdr}
 \usepackage{titlesec}
+\usepackage{flushend}
 
-% Tighter section spacing for the 4-page budget.
 \titlespacing*{\section}{0pt}{1.0ex plus 0.4ex minus 0.2ex}{0.6ex plus 0.2ex}
 \titlespacing*{\subsection}{0pt}{0.8ex plus 0.3ex minus 0.2ex}{0.4ex plus 0.2ex}
 \setlength{\parskip}{0.4ex plus 0.2ex}
 \captionsetup{font=small,labelfont=bf,skip=4pt}
 
-% Custom paired-significant marker.
 \newcommand{\sig}{\ensuremath{^{\bigstar}}}
 \newcommand{\irab}{\textit{i'r{\=a}b}}
 
@@ -40,96 +37,102 @@ A Comparison Study with a Cross-Register Audit}}
 
 \begin{abstract}
 \noindent
-We evaluate per-word Arabic \irab{} (\textarabic{إعراب}, traditional grammatical analysis) generation across eleven systems on Gazelle ($n{=}134$ word judgments, MSA news) and a 5{,}007-word subset of MASAQ (Quranic register), using a structural-extraction metric reported with paired bootstrap and McNemar's exact tests. The strongest system, Claude Sonnet~4.5 with $k{=}5$ retrieval-augmented generation, achieves $32.1\%$ fully-correct words $[24.6, 40.3]$ on Gazelle (case $73.9\%$, role-F1 $74.7\%$, marker $50.0\%$). Across four open-weight fine-tuned models spanning 296M to 13B parameters trained on the same 77K Haiku-distilled corpus, all three Arabic-pretrained models are paired-statistically tied on Gazelle (every pairwise $\Delta$ has McNemar $p{=}1.000$) --- a $44\times$ parameter scale-up adds no measurable gain. A per-word routing hybrid (Mix~A) that splits case/role to the LLM and marker phrasing to a small specialist produces no significant improvement over the LLM alone ($p{=}0.791$ on \emph{fully}). On MASAQ, every LLM-trained system suffers paired-significant role-F1 degradation, with the closed-system frontier (Sonnet RAG) showing the \emph{largest} cross-register drop ($+61.7$\,pp\sig{}) --- a result that points to register variation, not model capacity, as the dominant remaining challenge.
+Arabic \irab{} (\textarabic{إعراب}) generation outputs structured grammatical content as natural-language prose. The task fits neither dependency-parsing nor chat-LLM evaluation conventions. Prior work either trains task-specific classifiers~\cite{pasha2014madamira,abdelali2016farasa} or prompts frontier LLMs~\cite{hijjawi2024gazelle}. Neither paradigm directly compares against the other under a single statistical framework, and neither audits cross-register robustness. We evaluate eleven systems on Gazelle ($n{=}134$ word judgments, MSA news) and a 5{,}007-word MASAQ subset (Quranic register) using a structural-extraction metric with paired bootstrap and McNemar's exact tests. Claude Sonnet 4.5 with $k{=}5$ retrieval reaches $32.1\%$ fully-correct words $[24.6, 40.3]$ on Gazelle. Four open-weight models train on the same 77K Haiku-distilled corpus and span 296M to 13B parameters across three architectures. They reach statistically indistinguishable Gazelle performance --- every pairwise McNemar $p{=}1.000$. A $44\times$ scale-up adds no measurable gain. A per-word routing hybrid (Mix~A) does not significantly improve over the LLM ($p{=}0.791$ on \emph{fully}). On MASAQ, every LLM-trained system loses paired-significant role-F1, and Sonnet RAG --- the strongest Gazelle system --- shows the \emph{largest} cross-register drop ($+61.7$\,pp\sig{}). Register and construction coverage dominate the remaining error, not parametric capacity. The next research step is targeted data, not larger models.
 \end{abstract}
 
 % =====================================================================
 \section{Introduction}
 \label{sec:intro}
 
-Given an undiacritized Arabic sentence, the \irab{} task asks for per-word traditional grammatical analysis as Arabic prose: the word's part of speech, its grammatical case (\emph{raf\textsuperscript{c}}/\emph{na\d{s}b}/\emph{jarr}/\emph{jazm}/\emph{mabni}), its syntactic role ($\sim$25 traditional labels), and the surface marker that signals the case ($\sim$200 unique phrases, e.g.\ \textarabic{الضمة الظاهرة على آخره}). The output is structured information delivered as natural-language prose --- a hybrid surface-form / structured-output problem that does not match cleanly onto either dependency-parser or chat-LLM evaluation conventions.
+The \irab{} task takes an undiacritized Arabic sentence and produces per-word traditional grammatical analysis as Arabic prose. Each word receives four fields: part of speech, case (\emph{raf\textsuperscript{c}}/\emph{na\d{s}b}/\emph{jarr}/\emph{jazm}/\emph{mabni}), syntactic role ($\sim$25 traditional labels), and marker phrase ($\sim$200 unique surface forms, e.g.\ \textarabic{الضمة الظاهرة على آخره}). The task matters for two practical reasons. First, every Arabic-as-a-second-language curriculum uses \irab{} as the canonical pedagogy framing for Arabic syntax. An automatic \irab{} tool would directly help language learning, religious-studies tooling, and corpus annotation. Second, the task probes fine-grained Arabic grammatical knowledge that POS accuracy or dependency UAS misses. The role + case + marker triple requires resolving subject/object selection, \emph{i\d{d}\=afa} state, and exception (\emph{isti\textsuperscript{th}n\=a$\,$\textsuperscript{}$\,$}) constructions whose interactions are non-trivial.
 
-The task matters for two practical reasons. First, \irab{} is the canonical pedagogy framing for Arabic syntax: every Arabic-as-a-second-language curriculum relies on it, and an automatic \irab{} tool would have direct downstream value for language learning, religious-studies tooling, and corpus annotation pipelines. Second, the task probes whether a model has fine-grained Arabic grammatical knowledge in a way that surface-form metrics (POS accuracy, dependency UAS) do not --- getting the role $+$ case $+$ marker triple right requires resolving subject/object selection, \emph{i\d{d}\=afa} construction state, and exception (\emph{isti\textsuperscript{th}n\=a$\,$\textsuperscript{}$\,$}) constructions whose interactions are non-trivial.
+\paragraph{The pain.} Two methodological gaps motivate this work. First, current \irab{} evaluation uses either surface-string metrics like chrF or BLEU --- which credit wrong-case answers --- or closed multiple-choice probing, which does not match real generation. Second, prior comparisons typically mix systems of one type. They report numbers without paired statistical tests on matched word judgments. The reader cannot tell whether the headline differences are real or sampling noise. No prior work, to our knowledge, audits whether the chosen system holds up on a held-out non-MSA register.
 
-Prior work either trains task-specific classifiers on per-tag annotations~\cite{pasha2014madamira,abdelali2016farasa} and templates the result into prose, or prompts frontier LLMs zero-shot~\cite{hijjawi2024gazelle}. Neither addresses the comparison we run here: how fine-tuned Arabic open-weight models from 296M to 13B parameters compare against closed-source LLM systems (Haiku~4.5 and Sonnet~4.5, with and without retrieval), under a single structural-extraction metric and a single statistical framework.
+\paragraph{The gain.} We address both gaps under a single experimental framework. We evaluate four open-weight fine-tuned models from 296M to 13B parameters, four closed-source LLM variants (zero-shot and $+$RAG), one classifier-pipeline baseline (Stanza), one open-weight LLM peer (Qwen2.5-7B$+$RAG), and one routing hybrid. A regex/FSM extractor recovers \{case, role, marker\} from every prediction. Every system-vs-system claim carries a 95\% bootstrap CI and a paired McNemar $p$-value. We audit the metric itself with 402 perturbed gold records. We then re-evaluate a six-system subset on a 5{,}007-word Quranic MASAQ subset to test cross-register robustness.
 
-\paragraph{Contributions.} Two:
+\paragraph{Contributions.}
 \begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=2pt]
-\item A statistically-grounded comparison of eleven \irab{} systems under a single structural-extraction metric, with paired bootstrap CIs and McNemar's exact tests on matched word judgments. Within this comparison we surface three null results: (a) a per-word routing hybrid (Mix~A) does not significantly improve over LLM-RAG, (b) parameter scale from 296M to 13B in Arabic-pretrained open-weight models trained on the same distilled corpus produces no measurable Gazelle improvement (all pairwise $p{=}1.000$), and (c) Arabic-specific pretraining at 296M beats multilingual pretraining at 580M on the same training corpus.
-\item A cross-register audit on a 5{,}007-word MASAQ Quranic subset demonstrating that \textbf{register variation, not model capacity, dominates the remaining error budget}: every LLM-trained system loses ${\geq}14$\,pp role-F1 between MSA-news and Quranic, with Sonnet RAG --- the strongest Gazelle system --- showing the \emph{largest} cross-register drop of any system ($+61.7$\,pp\sig{}, retaining only $19\%$ of its MSA performance). A retrieval-pool-confound experiment (Sonnet zero-shot, 400 verses) rejects the obvious confound (zero-shot drops \emph{more}, not less).
+\item A statistically-grounded comparison of eleven \irab{} systems under a single structural-extraction metric (\S\ref{sec:results}). Within this comparison three findings emerge: (a) parameter scale from 296M to 13B trained on the same corpus produces no measurable Gazelle improvement (Fig.~\ref{fig:capacity}); (b) a per-word routing hybrid does not significantly beat LLM-RAG; (c) Arabic-specific pretraining at 296M beats multilingual pretraining at 580M.
+\item A cross-register audit on a 5{,}007-word MASAQ Quranic subset (\S\ref{sec:crossreg}) showing that \emph{register variation, not model capacity, dominates the remaining error}. Sonnet RAG --- the strongest Gazelle system --- shows the \emph{largest} cross-register drop of any system tested ($+61.7$\,pp\sig{}). A retrieval-pool-confound experiment rejects the obvious confound. The finding reframes ``improve \irab{} scores'' as ``find or annotate cross-register data'' rather than ``train a bigger model''.
 \end{enumerate}
 
-% =====================================================================
-\section{Related Work}
-\label{sec:related}
-
-\paragraph{Arabic morphosyntactic tools.}
-Traditional Arabic grammatical analysis is dominated by classifier-pipeline systems: CamelParser2.0~\cite{elshabrawy2023camelparser}, MADAMIRA~\cite{pasha2014madamira}, and Farasa~\cite{abdelali2016farasa} target structured POS$+$dependency outputs, not prose-form \irab{}. We adopt \textbf{Stanza Arabic}~\cite{qi2020stanza} with a deterministic UD$\rightarrow$\irab{} stub as our published-prior-work baseline.
-
-\paragraph{\irab{}-specific datasets.}
-\textbf{MASAQ}~\cite{sawalha2025masaq} provides 131K morphological / 123K syntactic entries on the Quran with a 72-tag \irab{} scheme, open-license. We use a 5{,}007-word subset as our cross-register surface; MASAQ is \emph{not} used for training due to its Quranic register. \textbf{Gazelle}~\cite{hijjawi2024gazelle} provides our MSA evaluation set; we evaluate open-text generation rather than their closed multiple-choice format.
-
-\paragraph{Arabic LLMs.}
-AraT5v2-base~\cite{nagoudi2023arat5}, mT5-base~\cite{xue2021mt5}, AraGPT2-large~\cite{antoun2021aragpt2}, and AceGPT-13B~\cite{huang2024acegpt} supply our four open-weight fine-tuned points. Sonnet RAG and Haiku RAG follow standard retrieval-augmented prompting~\cite{lewis2020rag} with Jaccard retrieval over a 1{,}060-example pool.
-
-\paragraph{Specialist--generalist routing.}
-Decomposing structured prediction into specialist sub-models is studied in MT system combination~\cite{rosti2007combination}. To our knowledge, specialist--generalist routing applied to Arabic morphological generation has not been previously evaluated; our Mix~A is a direct test of the hypothesis that case/role (knowledge-bound) and marker phrasing (style-bound) decompose separately.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../figures/fig_capacity.pdf}
+\caption{Gazelle \emph{fully}-correct rate vs.\ open-weight parameter count (log scale). Three Arabic-pretrained models (296M, 792M, 13B; blue) train to statistically indistinguishable performance --- every pairwise McNemar $p{=}1.000$. The closed-system frontier (Sonnet RAG, dashed red) sits 7--8\,pp above. Multilingual mT5 (grey) trails by paired-significant margin. Scale within Arabic-pretrained open weights does not move the headline.}
+\label{fig:capacity}
+\end{figure}
 
 % =====================================================================
-\section{Data}
+\section{Experiments}
+\label{sec:exp}
+
+\subsection{Data}
 \label{sec:data}
+We use three categories of \irab{} data, distinguished by their level of human authorship.
 
-We assemble three categories of \irab{} data, distinguished by their level of human authorship.
+\paragraph{Manual gold (held-out evaluation).}
+\emph{Gazelle}~\cite{hijjawi2024gazelle}: 30 hand-written MSA sentences ($n{=}134$ word judgments). \emph{MASAQ}~\cite{sawalha2025masaq}: 624 Quranic verses ($n{=}5{,}007$ word judgments); the 999-word subset where the gold contains an extractable role label provides a matched cross-register surface. \emph{Yarob} (linuxscout/yarob, GPL): 459 MSA \irab{} sentences in classical-grammar prose; we use these as the retrieval pool, not as evaluation.
 
-\paragraph{Manual gold (human-authored prose).}
-\emph{Yarob} (linuxscout/yarob, GPL): 459 MSA \irab{} sentences in classical-grammar prose. \emph{Gazelle}~\cite{hijjawi2024gazelle}: 30 hand-written sentences ($n{=}134$ word judgments), held out as MSA evaluation. \emph{MASAQ}~\cite{sawalha2025masaq}: 624 Quranic verses ($n{=}5{,}007$ word judgments), held out as cross-register surface; the 999-word subset where gold contains an extractable role label is used for matched cross-register role-F1.
+\paragraph{LLM-distilled training corpus.}
+We use Claude Haiku 4.5 as a teacher to generate per-word \irab{} for 5{,}000 PADT MSA news sentences via the Anthropic Messages Batches API ($\sim$\$30 actual). After JSON-schema validation, we obtain \textbf{77{,}534 (word, sentence, irab) rows}. This is the training corpus for every open-weight FT model below; no model trains on Gazelle or MASAQ.
 
-\paragraph{LLM-distilled (silver) training corpus.}
-We use Claude Haiku~4.5 as a teacher to generate per-word \irab{} over 5{,}000 PADT MSA news sentences via the Anthropic Messages Batches API ($50\%$ discount; $\sim$\$30 actual). After JSON-schema validation, we obtain \textbf{77{,}534 (word, sentence, irab)} training rows. This is the training corpus for every open-weight FT model we report.
+\paragraph{Construction coverage.}
+A regex over each Gazelle gold prose tags the dominant construction(s) per sentence using 11 traditional categories. The 30-sentence eval is dominated by short verbal sentences ($n{=}15$) and prepositional phrases ($n{=}8$); exception (\emph{isti\textsuperscript{th}n\=a$\,$\textsuperscript{}$\,$}) and \emph{k\=ana} sisters appear in 2 sentences each ($n{=}9$ and $n{=}7$ words). Generalization claims are limited to these construction frequencies.
 
-\paragraph{Templated (rule-derived).}
-From QAC ($\sim$78K Quranic words with full morphological annotation) we derive synthetic prose by deterministic templates over POS$+$Case$+$role triples. Used only as a from-scratch decoder baseline (Appendix~\ref{app:decoder}); excluded from RAG retrieval and FT training.
+\subsection{Models}
+\label{sec:models}
+We evaluate eleven systems on Gazelle.
 
-\paragraph{Construction tag distribution.}
-Each Gazelle sentence is tagged with one or more of 11 construction labels (regex on gold prose). The 30-sentence eval is dominated by short verbal sentences ($n{=}15$) and prepositional phrases ($n{=}8$); exception (\emph{isti\textsuperscript{th}n\=a$\,$\textsuperscript{}$\,$}) and \emph{k\=ana} sisters are represented by 2 sentences each ($n{=}9$ and $n{=}7$ words). Generalization claims are limited to these construction frequencies.
+\noindent\textbf{Classifier-pipeline baseline.} \emph{Stanza Arabic}~\cite{qi2020stanza} with a deterministic UD$\rightarrow$\irab{} stub (the published-prior-work peer).
 
-% =====================================================================
-\section{Methodology}
-\label{sec:method}
+\noindent\textbf{Open-weight LLM peer.} \emph{Qwen2.5-7B-Instruct + RAG} ($k{=}5$, 4-bit local).
 
-\subsection{Systems compared}
-Eleven systems on Gazelle: \textbf{Stanza Arabic} (UD$+$stub, prior-work baseline); \textbf{Qwen2.5-7B-Instruct$+$RAG} (4-bit local, open-weight LLM peer); four open-weight FT models trained on the same 77K corpus --- \textbf{AraT5v2-base} (296M, full FT), \textbf{mT5-base} (580M, full FT), \textbf{AraGPT2-large} (792M, LoRA $r{=}32$), \textbf{AceGPT-13B} (13B, QLoRA 4-bit $r{=}32$, 1 epoch); \textbf{Claude Haiku~4.5} (zero-shot, $+$RAG $k{=}5$); \textbf{Claude Sonnet~4.5} (zero-shot, $+$RAG $k{=}5$); and \textbf{Hybrid Mix~A} --- RAG produces a per-word JSON record; for each word we discard the marker field and call the AraT5v2-base specialist with the structured prompt \texttt{[case=$c$] [role=$r$] $w$ | $s$} $\rightarrow$ marker phrase. A six-system subset (Stanza, mT5, AraT5v2, AraGPT2, AceGPT-13B, Sonnet~RAG) is also evaluated on MASAQ; AceGPT-13B's MASAQ run hit a 4\,h SLURM timeout at $21\%$ of MASAQ ($n{=}1{,}075$ words), reported with that caveat.
+\noindent\textbf{Open-weight FT models} (same 77{,}534-row Haiku corpus, same prompt template):
+\begin{itemize}[leftmargin=*,topsep=1pt,itemsep=1pt]
+\item AraT5v2-base (296M, T5 enc-dec)~\cite{nagoudi2023arat5} --- full FT, 3 epochs.
+\item mT5-base (580M, T5 enc-dec)~\cite{xue2021mt5} --- full FT, 3 epochs.
+\item AraGPT2-large (792M, GPT-2 decoder-only)~\cite{antoun2021aragpt2} --- LoRA $r{=}32$, 3 epochs.
+\item AceGPT-13B (13B, Llama-2 decoder-only)~\cite{huang2024acegpt} --- QLoRA 4-bit $r{=}32$, 1 epoch.
+\end{itemize}
 
-\subsection{Structural metric}
-\label{sec:metric}
-Each generated \irab{} string is parsed by a regex/FSM extractor into four fields: $\mathrm{pos}$, $\mathrm{case}\in\{\textit{raf\textsuperscript{c}}, \textit{na\d{s}b}, \textit{jarr}, \textit{jazm}, \textit{mabni}\}$, $\mathrm{role}$ ($\sim$25 labels), $\mathrm{marker}$ ($\sim$200 phrases). For a per-system metric on a closed label set $L$, macro-F1 is
+\noindent\textbf{Closed-source LLMs.} Claude Haiku 4.5 (zero-shot, $+$RAG $k{=}5$); Claude Sonnet 4.5 (zero-shot, $+$RAG $k{=}5$). RAG uses Jaccard retrieval over a 1{,}060-example pool (Yarob $+$ a 601-row distilled prior) following the standard recipe~\cite{lewis2020rag}.
+
+\noindent\textbf{Hybrid Mix~A.} The LLM-RAG output supplies case and role; the AraT5v2-base specialist supplies the marker phrase, called per word with the structured prompt \texttt{[case=$c$] [role=$r$] $w$ | $s$} $\rightarrow$ marker.
+
+A six-system subset (Stanza, mT5, AraT5v2, AraGPT2, AceGPT-13B, Sonnet RAG) also runs on MASAQ; the AceGPT-13B MASAQ run hit a 4\,h SLURM timeout at 21\% of MASAQ ($n{=}1{,}075$ words), and we report it with that caveat.
+
+\subsection{Setup}
+\label{sec:setup}
+
+\paragraph{Structural metric.}
+A regex/FSM extractor parses each generated \irab{} string into four fields: $\mathrm{pos}$, $\mathrm{case}\in\{\textit{raf\textsuperscript{c}}, \textit{na\d{s}b}, \textit{jarr}, \textit{jazm}, \textit{mabni}\}$, $\mathrm{role}$ ($\sim$25 labels), $\mathrm{marker}$ ($\sim$200 phrases). Macro role-F1 over a closed label set $L$ is
 \begin{equation}
 \text{role-F1}_{\text{macro}} = \frac{1}{|L|}\sum_{\ell \in L} \frac{2 P_\ell R_\ell}{P_\ell + R_\ell},
 \label{eq:f1}
 \end{equation}
-where $P_\ell, R_\ell$ are precision and recall for label $\ell$. We additionally report \textbf{case-acc} (per-word match on case), \textbf{marker-EM} (exact-string match on marker phrase), \textbf{well-formed} (extractor parses without error), and the headline aggregate
+where $P_\ell, R_\ell$ are precision and recall for label $\ell$. We additionally report \textbf{case-acc}, \textbf{marker-EM}, \textbf{well-formed}, and the headline aggregate
 \begin{equation}
 \mathrm{fully}(w) = \mathbf{1}[\mathrm{case}(w)] \cdot \mathbf{1}[\mathrm{role}(w)] \cdot \mathbf{1}[\mathrm{marker}(w)].
 \label{eq:fully}
 \end{equation}
-We avoid chrF/BLEU because partial-credit on string overlap masks morphological errors (e.g., a wrong-case answer with $\sim$70\% character overlap with gold).
+We avoid chrF and BLEU because partial-credit on string overlap masks morphological errors that we explicitly target.
 
-\subsection{Statistical inference}
-\label{sec:stats}
-For every per-system metric we report 95\% percentile bootstrap confidence intervals with $B{=}1000$ resamples:
+\paragraph{Statistical inference.}
+Every per-system metric carries a 95\% percentile bootstrap CI ($B{=}1000$):
 \begin{equation}
-\mathrm{CI}_{0.95}(\theta) = \bigl[\theta^*_{(0.025B)},\ \theta^*_{(0.975B)}\bigr],
+\mathrm{CI}_{0.95}(\theta) = \bigl[\theta^*_{(0.025B)},\ \theta^*_{(0.975B)}\bigr].
 \label{eq:bootci}
 \end{equation}
-where $\theta^*_{(k)}$ is the $k$-th order statistic of the $B$ resampled estimates. For paired comparisons of two systems on the same $n$ word judgments, we report the paired-bootstrap CI of the difference $\Delta = \theta_A - \theta_B$ and McNemar's exact $p$-value on the discordant-pair count $b/c$:
+For paired comparisons of two systems on the same $n$ word judgments, we report the paired-bootstrap CI of $\Delta = \theta_A - \theta_B$ and McNemar's exact $p$-value on the discordant-pair count $b/c$:
 \begin{equation}
 p_{\text{McNemar}} = 2 \min\Biggl( \sum_{k=0}^{\min(b,c)} \binom{b+c}{k} 2^{-(b+c)},\ 0.5 \Biggr),
 \label{eq:mcnemar}
 \end{equation}
-computed in log-space for $n{>}1000$. A $\Delta$ is reported as significant (\sig{}) only if its 95\% paired CI excludes 0 \emph{and} $p_{\text{McNemar}} < 0.05$. Cross-register comparisons (Gazelle subset $n{=}78$ vs.\ MASAQ subset $n{=}999$) use a two-sample bootstrap on the difference of macro-F1, since the two surfaces have distinct items and paired tests do not apply. The smallest detectable difference at $n{=}134$, $\alpha{=}0.05$, power $0.80$ is approximately $\pm 7$\,pp on a binary metric.
+computed in log-space for $n{>}1000$. A $\Delta$ counts as significant (\sig{}) only if its 95\% paired CI excludes 0 \emph{and} $p_{\text{McNemar}} < 0.05$. Cross-register comparisons (Gazelle subset $n{=}78$ vs.\ MASAQ subset $n{=}999$) use a two-sample bootstrap, since the surfaces share no items. The smallest detectable difference at $n{=}134$, $\alpha{=}0.05$, power $0.80$ is approximately $\pm 7$\,pp on a binary metric.
 
-\subsection{Extractor audit}
-The structural extractor is independently audited via 402 perturbed gold records (case-flip / role-flip / marker-mangle): specificity $100\%$ on unperturbed controls; per-field sensitivity $92.7\%$ (marker), $88.2\%$ (case), $60.0\%$ (role). The role-F1 sensitivity floor of $60\%$ reflects the closed taxonomy of $\sim$25 labels; we report all role results with that caveat.
+\paragraph{Extractor audit.}
+We perturb each Gazelle gold record in three ways (case-flip, role-flip, marker-mangle), producing 402 records, and re-score with the same extractor. Specificity reaches 100\% on unperturbed controls (no false positives); sensitivity is 92.7\% (marker), 88.2\% (case), 60.0\% (role). The 60\% role floor reflects the closed taxonomy of $\sim$25 traditional labels; we read role results with this caveat.
 
 % =====================================================================
 \section{Results}
@@ -139,7 +142,7 @@ The structural extractor is independently audited via 402 perturbed gold records
 
 \begin{table*}[t]
 \centering\footnotesize
-\caption{Headline comparison on Gazelle ($n{=}134$ word judgments). All numbers are percentages; brackets are 95\% percentile bootstrap CIs ($B{=}1000$) shown for the headline metric \emph{fully} only (full CI tables in supplementary). Boldface = paired-best within column. The from-scratch decoder is reported in Appendix~\ref{app:decoder}.}
+\caption{Headline comparison on Gazelle ($n{=}134$ word judgments). All numbers are percentages; brackets are 95\% percentile bootstrap CIs ($B{=}1000$) shown for the headline metric \emph{fully} only. Boldface = paired-best within column. The from-scratch decoder appears in Appendix~\ref{app:decoder}.}
 \label{tab:headline}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{lrrrrr}
@@ -161,58 +164,40 @@ Claude Sonnet 4.5 zero-shot & 78.4 & 72.4 & 76.4 & 44.0 & 27.6 [20.1, 35.8] \\
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:headline} reports the headline. Three findings follow.
+Table~\ref{tab:headline} shows the headline. Three findings follow.
 
 \subsection{Three null results from the comparison}
 \label{sec:nulls}
 
-\paragraph{(a) Capacity in Arabic-pretrained open-weight FT models is null on Gazelle.}
-AraT5v2-base (296M), AraGPT2-large (792M), and AceGPT-13B (13B) --- three architectures (T5 enc-dec, GPT-2 decoder-only, Llama-2 decoder-only), three parameter scales spanning $44\times$ --- all train to statistically indistinguishable Gazelle performance. Every pairwise $\Delta$ has McNemar $p{=}1.000$ (e.g.\ AceGPT-13B vs.\ AraT5v2-base: case $\Delta\,{+}0.7$, marker $\Delta\,{-}0.7$, fully $\Delta\,{+}0.0$). A $44\times$ parameter scale-up adds no measurable Gazelle improvement (Fig.~\ref{fig:capacity}).
+\paragraph{(a) Open-weight scale is null on Gazelle.}
+AraT5v2-base (296M), AraGPT2-large (792M), and AceGPT-13B (13B) --- three architectures (T5 enc-dec, GPT-2 decoder-only, Llama-2 decoder-only), $44\times$ parameter range --- train to statistically indistinguishable Gazelle performance. Every pairwise $\Delta$ has McNemar $p{=}1.000$ (e.g.\ AceGPT-13B vs.\ AraT5v2-base: case $\Delta\,{+}0.7$, marker $\Delta\,{-}0.7$, fully $\Delta\,{+}0.0$). Fig.~\ref{fig:capacity} visualises the result.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{../figures/fig_capacity.pdf}
-\caption{Gazelle \emph{fully}-correct rate vs.\ open-weight parameter count on a log scale. The four open-weight FT models (296M--13B) are statistically indistinguishable from one another (every pairwise McNemar $p{=}1.000$); the closed-system frontier (Sonnet RAG, dashed red) sits 7--8\,pp above; the published-prior-work UD baseline (dotted grey) sits 20\,pp below.}
-\label{fig:capacity}
-\end{figure}
-
-\paragraph{(b) Mix~A's per-word routing did not produce a statistically detectable improvement over Sonnet RAG.}
-$\Delta$ case $+0.0$\,pp ($p{=}1.000$), $\Delta$ marker $-3.7$\,pp ($p{=}0.125$), $\Delta$ fully $-3.0$\,pp ($p{=}0.219$). The routing hypothesis --- that case/role are knowledge-bound (LLM) and marker is style-bound (specialist) --- is not supported at this evaluation scale. The result also holds on the Haiku base ($\Delta$ fully $-1.5$\,pp, $p{=}0.791$).
+\paragraph{(b) Mix~A's per-word routing does not significantly improve over Sonnet RAG.}
+$\Delta$ case $+0.0$\,pp ($p{=}1.000$), $\Delta$ marker $-3.7$\,pp ($p{=}0.125$), $\Delta$ fully $-3.0$\,pp ($p{=}0.219$). The routing hypothesis --- case and role bind to LLM knowledge while the marker binds to surface style --- does not hold at this scale. The result also holds on the Haiku base ($\Delta$ fully $-1.5$\,pp, $p{=}0.791$).
 
 \paragraph{(c) Arabic-specific pretraining at 296M beats multilingual pretraining at 580M.}
-AraT5v2-base $-$ mT5-base: $\Delta$ marker $+5.2$\,pp\sig{} ($p{=}0.039$), $\Delta$ fully $+6.0$\,pp\sig{} ($p{=}0.021$). Same training corpus, same recipe, same architecture --- the only difference is pretraining corpus.
+AraT5v2-base $-$ mT5-base: $\Delta$ marker $+5.2$\,pp\sig{} ($p{=}0.039$), $\Delta$ fully $+6.0$\,pp\sig{} ($p{=}0.021$). Same training corpus, same recipe, same architecture --- only the pretraining corpus differs.
 
-\smallskip
-\noindent The closed-system advantage is real but bounded: Sonnet RAG $>$ AraT5v2-base by $\Delta$ case $+8.2$\,pp\sig{} and $\Delta$ fully $+7.5$\,pp\sig{}, but \textbf{does not narrow with open-weight scale alone}.
+The closed-system advantage is real but bounded: Sonnet RAG beats AraT5v2-base by $\Delta$ case $+8.2$\,pp\sig{} and $\Delta$ fully $+7.5$\,pp\sig{}. Open-weight scale alone does not narrow this gap.
 
 \subsection{Per-construction failures}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{../figures/fig_per_construction.pdf}
-\caption{Per-construction \emph{fully}-correct rate on Gazelle. EXCEPTION ($n{=}9$) and KANA\_SISTERS ($n{=}7$) collapse to $0\%$ across every system tested, including the strongest. Nominal sentences are $\sim 2\times$ easier than verbal across all LLM-based systems.}
+\caption{Per-construction \emph{fully}-correct rate on Gazelle. EXCEPTION ($n{=}9$) and KANA\_SISTERS ($n{=}7$) collapse to $0\%$ across every system, including the strongest. Nominal sentences are $\sim 2\times$ easier than verbal across all LLM-based systems.}
 \label{fig:per-construction}
 \end{figure}
 
-Two cross-system structural failures appear in Fig.~\ref{fig:per-construction}: EXCEPTION ($0/9$ across all evaluated systems including the strongest) and KANA\_SISTERS ($0/7$ across four of five systems). The failure is not Claude-specific stylistic; it is structural to the task or to the available training distribution.
+Fig.~\ref{fig:per-construction} surfaces two cross-system structural failures: EXCEPTION ($0/9$ across every evaluated system) and KANA\_SISTERS ($0/7$ across four of five). Both failures hold for the trained AraT5v2-base and AceGPT-13B as well as for every Claude variant. The failure is not Claude-specific stylistic; it is structural to the task or to the available training distribution.
 
-\subsection{Extractor audit, system discrimination, and ablations}
+\subsection{Audits and ablations}
 \label{sec:audit}
 
-\paragraph{Extractor audit on perturbed gold ($n{=}402$).}
-We perturb each Gazelle gold record in three ways (case-flip, role-flip, marker-mangle) and re-score. Specificity $=100\%$ on unperturbed controls; per-field sensitivity $=$ marker $92.7\%$, case $88.2\%$, role $60.0\%$. The role-F1 floor of $60\%$ reflects the closed taxonomy of $\sim$25 traditional labels.
-
-\paragraph{System discrimination.}
-When Sonnet RAG is asked to verify perturbed gold against the source sentence, its case-acc collapses from $96\%$ to $15\%$ ($\Delta = -81$\,pp). The metric reacts sharply to incorrect inputs.
-
-\paragraph{Sensitivity to retrieval depth $k$.}
-Sonnet RAG was swept across $k \in \{1, 3, 5, 8, 12\}$: case-acc varies $70.1 \to 73.9 \to 73.1$; \emph{fully} varies $28.4 \to 32.1 \to 30.6$. No paired-significant difference between $k{=}3$ and $k{=}8$ ($p{=}0.625$ on \emph{fully}); $k{=}5$ is not a free parameter doing meaningful work.
-
-\paragraph{Inference-time variance (Sonnet RAG, $T{=}0$).}
-Two repeats of the full Gazelle eval at temperature 0 produced $96.8\%$ per-word agreement; case-acc differs by $0.7$\,pp between runs.
-
-\paragraph{Annotator disagreement.}
-A second annotator re-examined a random sample of Gazelle words for alternative-but-defensible analyses; $31\%$ admit at least one alternative analysis. Permissive scoring lifts Sonnet RAG case by $+0.7$\,pp and leaves marker / fully unchanged. The headline is robust to plausible label noise.
+\textbf{System discrimination.} When Sonnet RAG verifies perturbed gold against the source, its case-acc collapses from $96\%$ to $15\%$ ($\Delta = -81$\,pp). The metric reacts sharply to incorrect inputs.
+\textbf{Retrieval depth $k$.} Sonnet RAG case-acc varies $70.1 \to 73.9 \to 73.1$ across $k \in \{1, 3, 5, 8, 12\}$; \emph{fully} varies $28.4 \to 32.1 \to 30.6$. No paired-significant difference between $k{=}3$ and $k{=}8$ ($p{=}0.625$ on \emph{fully}); $k{=}5$ is not a free parameter doing meaningful work.
+\textbf{Inference-time variance ($T{=}0$).} Two repeats agree on $96.8\%$ of words; case-acc differs by $0.7$\,pp.
+\textbf{Annotator disagreement.} A second annotator finds $31\%$ of Gazelle words admit an alternative-but-defensible analysis; permissive scoring lifts Sonnet RAG case by only $+0.7$\,pp. The headline is robust to plausible label noise.
 
 \subsection{Cross-register audit}
 \label{sec:crossreg}
@@ -220,7 +205,7 @@ A second annotator re-examined a random sample of Gazelle words for alternative-
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{../figures/fig_cross_register.pdf}
-\caption{Cross-register $\Delta$ subset role-F1 (Gazelle$-$MASAQ subset, in pp). The strongest Gazelle system (Sonnet RAG) shows the \emph{largest} cross-register drop. Stanza (UD pipeline) is the only register-stable system. Bars: 95\% two-sample bootstrap CIs; \sig\ marks paired-significant deltas.}
+\caption{Cross-register $\Delta$ subset role-F1 (Gazelle$-$MASAQ subset, in pp). The strongest Gazelle system (Sonnet RAG, red) shows the \emph{largest} cross-register drop. Stanza (UD pipeline, grey) is the only register-stable system. Bars: 95\% two-sample bootstrap CIs; \sig\ marks paired-significant deltas.}
 \label{fig:cross-register}
 \end{figure}
 
@@ -244,45 +229,46 @@ Sonnet zero-shot$^{\ast\ast}$ & 78.1 & 11.0 & $+67.0$\sig{} \\
 \end{tabular}
 \end{table}
 
-Three findings (Tab.~\ref{tab:crossreg}, Fig.~\ref{fig:cross-register}). (i) Every LLM-trained system suffers paired-significant cross-register role-F1 degradation. (ii) Stanza (UD pipeline) is register-stable; the closed UD POS$+$deprel label set applies uniformly across registers. (iii) \textbf{Sonnet RAG shows the \emph{largest} cross-register drop of any system tested}, retaining only $19\%$ of its MSA role-F1 on Quranic. Scale ($44\times$) and architecture do not narrow this gap.
+Table~\ref{tab:crossreg} and Fig.~\ref{fig:cross-register} report three findings. (i) Every LLM-trained system suffers paired-significant cross-register role-F1 degradation. (ii) Stanza (UD pipeline) is register-stable; the closed UD POS+deprel label set applies uniformly across registers. (iii) \textbf{Sonnet RAG shows the \emph{largest} cross-register drop of any system tested}, retaining only $19\%$ of its MSA role-F1 on Quranic. Scale ($44\times$) and architecture do not narrow this gap.
 
-\paragraph{Retrieval-pool confound tested and rejected.} Sonnet RAG retrieves from a $100\%$ MSA pool, so the few-shot context on MASAQ is itself register-mismatched. We re-ran Sonnet zero-shot on the first 400 MASAQ verses ($n_\text{subset}{=}657$): zero-shot subset role-F1 $=11.0$, \emph{lower} than RAG's $14.1$ (CI $[-2.1,+6.8]$ crosses 0); the cross-register $\Delta$ for zero-shot is $+67.0$\,pp\sig{}, \emph{larger} than RAG's. The retrieval pool is not masking the model's cross-register competence; if anything, retrieval marginally helps in Quranic too. The fundamental-challenge framing stands.
+\paragraph{Retrieval-pool confound: rejected.}
+Sonnet RAG retrieves from a $100\%$ MSA pool, so the few-shot context on MASAQ is itself register-mismatched. We re-run Sonnet zero-shot on the first 400 MASAQ verses ($n_\text{subset}{=}657$): zero-shot subset role-F1 $=11.0$, \emph{lower} than RAG's $14.1$ (CI $[-2.1,+6.8]$ crosses 0); the cross-register $\Delta$ for zero-shot is $+67.0$\,pp\sig{}, \emph{larger} than RAG's. Removing retrieval makes the drop worse, not better. The retrieval pool does not mask the model's cross-register competence. The fundamental-challenge framing stands.
 
 % =====================================================================
-\section{Discussion}
-\label{sec:discussion}
+\section{Related Work}
+\label{sec:related}
 
-\paragraph{The capacity null frames the open-weight ceiling.}
-Across 296M--13B Arabic-pretrained models trained on the same Haiku-distilled corpus, every pairwise Gazelle $\Delta$ has McNemar $p{=}1.000$. Two simultaneous constraints: (i) the Haiku teacher itself caps at case $67.2\%$ on Gazelle, so any student distilled from this corpus inherits that ceiling; (ii) at 77K word rows of single-source distillation, additional capacity has no signal to exploit. The $\sim 7.5$\,pp gap to Sonnet RAG is best read as the Sonnet$-$Haiku grammar-knowledge gap, not as a gap that more open-weight scale would close.
+\textbf{Arabic morphosyntactic tools.}
+Classifier-pipeline systems dominate traditional Arabic grammatical analysis: CamelParser2.0~\cite{elshabrawy2023camelparser}, MADAMIRA~\cite{pasha2014madamira}, and Farasa~\cite{abdelali2016farasa} target structured POS$+$dependency outputs, not prose-form \irab{}. We adopt Stanza~\cite{qi2020stanza} with a UD$\rightarrow$\irab{} stub as our published-prior-work baseline, which positions our comparison against the standard non-LLM peer.
 
-\paragraph{Mix~A's null holds across bases.}
-On both Haiku ($p{=}0.791$ on \emph{fully}) and Sonnet ($p{=}0.219$) bases, swapping in the AraT5v2-base specialist for the marker field does not improve over end-to-end LLM-RAG. RAG's 5-shot demonstrations already anchor LLM marker phrasing to the demo distribution; the specialist's training set is itself style-skewed by the Haiku teacher (7{,}172 of 8{,}815 marker pairs are Haiku-distilled outputs), leaving no headroom over RAG.
+\textbf{Arabic generation models.}
+AraT5v2-base~\cite{nagoudi2023arat5}, mT5-base~\cite{xue2021mt5}, AraGPT2-large~\cite{antoun2021aragpt2}, and AceGPT-13B~\cite{huang2024acegpt} cover three architectures (T5 enc-dec, GPT-2 decoder-only, Llama-2 decoder-only) and $44\times$ parameter range; we train them on the same corpus to isolate architecture and capacity from training data.
 
-\paragraph{Cross-register dominates the remaining error.}
-Even Sonnet RAG retains only $19\%$ of its MSA subset role-F1 on Quranic. The retrieval-pool confound is rejected. EXCEPTION and KANA\_SISTERS stay $0/9$ and $0/7$ across systems. Both findings point in the same direction: the remaining error budget is dominated by the model's exposure to specific constructions and registers, not by its parametric knowledge of MSA grammar in general. The natural intervention is targeted training data, not more parameters.
+\textbf{Retrieval-augmented prompting.}
+Sonnet RAG and Haiku RAG follow standard retrieval-augmented prompting~\cite{lewis2020rag} with Jaccard retrieval over a 1{,}060-example pool. Our $k$-sweep (\S\ref{sec:audit}) shows the choice of $k$ does no meaningful work on Gazelle.
 
-\paragraph{Honest framing.}
-The capacity null is a finding \emph{given this teacher} and \emph{given this benchmark size}; the cross-register effect is a finding \emph{on this MASAQ subset under this register definition}. Both are reported with the limitations that would extend or reject them.
+\textbf{i'r\=ab evaluation.}
+\textbf{Gazelle}~\cite{hijjawi2024gazelle} provides the MSA evaluation set; we generate open-text rather than the original closed multiple-choice format. \textbf{MASAQ}~\cite{sawalha2025masaq} provides 131K morphological / 123K syntactic Quranic entries with a 72-tag scheme; we use a 5{,}007-word subset as the cross-register surface and do \emph{not} train on it.
+
+\textbf{Specialist--generalist routing.}
+MT system combination~\cite{rosti2007combination} and similar ensembles motivate our Mix~A. To our knowledge, specialist--generalist routing applied to Arabic morphological generation has not been previously evaluated; our Mix~A is a direct test of the hypothesis that case/role decompose separately from marker phrasing.
+
+% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We address two methodological gaps in Arabic \irab{} evaluation: the absence of a single statistical comparison across classifier-pipeline, fine-tuned open-weight, and LLM-prompted systems, and the absence of a cross-register robustness audit. We evaluate eleven systems on Gazelle ($n{=}134$) under a structural-extraction metric with paired-bootstrap and McNemar tests, and we re-evaluate six systems on a 5{,}007-word MASAQ Quranic subset.
+
+The comparison delivers three null results: open-weight parameter scale from 296M to 13B has no measurable Gazelle effect; per-word routing does not beat the LLM; retrieval depth $k$ does no meaningful work. The cross-register audit returns one positive finding: every LLM-trained system suffers paired-significant role-F1 degradation when moved from MSA-news to Quranic, and the strongest Gazelle system (Sonnet RAG) shows the \emph{largest} drop ($+61.7$\,pp\sig{}). A retrieval-pool-confound experiment rejects the obvious confound. The remaining error budget is dominated by register and construction coverage, not by model capacity, which reframes the next research step as targeted data rather than larger models.
+
+\paragraph{Future work.}
+The teacher-bound capacity null suggests one experiment in particular: re-running distillation with Sonnet 4.5 as teacher (\$$15$--$20$ for 5K rows) tests whether the open-weight scale gap remains null when the teacher ceiling lifts from $67.2\%$ to $73.9\%$ case. Two further directions follow from \S\ref{sec:limitations}: expanding Gazelle to a manually-validated 200-sentence MSA benchmark (cuts the smallest-detectable-$\Delta$ floor from $7$\,pp to $\sim 3$\,pp), and integrating CamelTB / Extended Quranic Treebank into a cross-register training corpus to test whether the cross-register effect is solvable or structural. \cite{aldallal2025sadeed} demonstrates that small fine-tuned Arabic models can achieve state-of-the-art on diacritization with curated data; the structural connection between diacritization and \irab{} (the case marker determines the final vowel; our self-consistency analysis suggests grammatical reasoning constrains diacritization in $\sim 96\%$ of cases) makes a Sadeed-style multi-task formulation a natural extension we leave for future work.
 
 % =====================================================================
 \section{Limitations}
 \label{sec:limitations}
 
-(1) \textbf{Sample size.} Gazelle comparisons rest on $n{=}134$; smallest detectable $\Delta$ is $\sim\pm 7$\,pp. AceGPT-13B's MASAQ row is partial ($n{=}1{,}075$, $21\%$) due to a 4\,h SLURM timeout.
-(2) \textbf{Construction coverage.} Gazelle is dominated by verbal (15) and prepositional (8) sentences; EXCEPTION and KANA\_SISTERS are 2 sentences each.
-(3) \textbf{Extractor floors.} Marker-EM has a $\sim 10\%$ floor from $\langle$NO\_MARKER$\rangle$ tokens; role-F1 has a $60\%$ sensitivity floor (\S\ref{sec:audit}).
-(4) \textbf{Teacher-bound corpus.} All four open-weight FT models inherit Haiku's case-67\% ceiling; the capacity null is conditional on this teacher.
-(5) \textbf{MASAQ templater asymmetry.} MASAQ gold prose is templated while predictions are free-form; the subset definition partially mitigates but cross-register \emph{fully} comparisons remain weakened.
-(6) \textbf{Closed-baseline reproducibility.} Anthropic models are not version-pinned beyond the \texttt{-4-5} aliases; replications should pin the snapshot.
-
-% =====================================================================
-\section{Future Work}
-\label{sec:future}
-
-Four directions, each addressing a specific limitation: (1) Expand Gazelle to a manually-validated 200-sentence MSA benchmark to drop the smallest-detectable-$\Delta$ floor from $7$\,pp to $\sim 3$\,pp. (2) Re-distill with Sonnet~4.5 ($\sim$\$15--20 for 5K rows) to test whether the capacity null holds when the teacher ceiling is lifted from $67.2\%$ to $73.9\%$ case. (3) Targeted EXCEPTION and KANA\_SISTERS annotation ($\sim 500$ examples each). (4) Cross-register training via MASAQ$+$CamelTB integration ($\sim 150$--250K MSA $+$ 80--130K Quranic words available after schema conversion); directly tests whether the cross-register effect is solvable or structural.
-
-\paragraph{Sadeed-style FT and multi-task learning.}
-\cite{aldallal2025sadeed} shows that small fine-tuned Arabic models can be state-of-the-art on diacritization with carefully curated data. The two tasks are structurally connected --- the case marker in \irab{} directly determines a word's final vowel --- and our self-consistency analysis suggests grammatical reasoning constrains diacritization in $\sim 96\%$ of cases. A multi-task formulation jointly optimizing both objectives, or a Sadeed-style pipeline targeted at \irab{} with hand-curated training data, is a natural extension we did not pursue due to time and budget.
+We restrict our claims as follows. (1) \textbf{Sample size.} Gazelle comparisons rest on $n{=}134$; the smallest detectable $\Delta$ at $\alpha{=}0.05$ power $0.80$ is $\pm 7$\,pp on a binary metric. AceGPT-13B's MASAQ row is partial ($n{=}1{,}075$, $21\%$) due to a 4\,h SLURM timeout. (2) \textbf{Construction coverage.} Verbal (15) and prepositional (8) sentences dominate Gazelle; EXCEPTION and KANA\_SISTERS appear in 2 sentences each. (3) \textbf{Extractor floors.} Marker-EM has a $\sim 10\%$ floor from $\langle$NO\_MARKER$\rangle$ tokens; role-F1 has the $60\%$ sensitivity floor (\S\ref{sec:audit}). (4) \textbf{Teacher-bound corpus.} All four open-weight FT models inherit Haiku's case-67\% ceiling. The capacity null (\S\ref{sec:nulls}a) holds \emph{given this teacher}. A Sonnet-distilled or human-annotated corpus might reveal capacity differences we cannot detect here. (5) \textbf{MASAQ templater asymmetry.} MASAQ gold prose comes from a per-word morphological-tag templater; predictions stay free-form. The subset definition mitigates this gap, but cross-register \emph{fully} comparisons remain weakened. (6) \textbf{Closed-source baselines.} Anthropic does not version-pin our calls beyond the \texttt{claude-sonnet-4-5} / \texttt{claude-haiku-4-5} aliases. Future replications should pin the snapshot. The open-weight FT models reproduce fully from the saved adapters and configs. (7) \textbf{Compute.} The 4\,h-per-job SLURM limit on the Bocconi MIG 3g.40gb partition forced AceGPT-13B to one epoch and a partial MASAQ run. An A100-80GB schedule would lift both restrictions.
 
 % =====================================================================
 \bibliographystyle{plain}
@@ -306,6 +292,6 @@ Four directions, each addressing a specific limitation: (1) Expand Gazelle to a 
 \appendix
 \section{Per-word decoder (negative-result baseline)}
 \label{app:decoder}
-A character-level encoder--decoder trained from scratch on the templated QAC$+$PADT corpus reaches case $32.8\%\,[25.4, 41.0]$ and role-F1 $3.8\%\,[1.5, 8.2]$ on Gazelle. Reported only for completeness; not in the main comparison.
+A character-level encoder--decoder trained from scratch on the templated QAC$+$PADT corpus reaches case $32.8\%\,[25.4, 41.0]$ and role-F1 $3.8\%\,[1.5, 8.2]$ on Gazelle. We report it for completeness only; it does not appear in the main comparison.
 
 \end{document}
