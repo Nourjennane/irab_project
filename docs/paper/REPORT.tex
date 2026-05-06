@@ -29,7 +29,7 @@
 
 \title{\textbf{Per-Word Arabic \textit{I'r\=ab} Generation:\\
 A Comparison Study with a Cross-Register Audit}}
-\author{Hatem Saadallah\\Bocconi University\\\texttt{saadallah.r.hatem@gmail.com}}
+\author{Hatem Saadallah \and Nour Jennane\\Bocconi University\\\texttt{saadallah.r.hatem@gmail.com}}
 \date{May 2026}
 
 \begin{document}
@@ -75,7 +75,7 @@ We use three categories of \irab{} data, distinguished by their level of human a
 \emph{Gazelle}~\cite{hijjawi2024gazelle}: 30 hand-written MSA sentences ($n{=}134$ word judgments). \emph{MASAQ}~\cite{sawalha2025masaq}: 624 Quranic verses ($n{=}5{,}007$ word judgments); the 999-word subset where the gold contains an extractable role label provides a matched cross-register surface. \emph{Yarob} (linuxscout/yarob, GPL): 459 MSA \irab{} sentences in classical-grammar prose; we use these as the retrieval pool, not as evaluation.
 
 \paragraph{LLM-distilled training corpus.}
-We use Claude Haiku 4.5 as a teacher to generate per-word \irab{} for 5{,}000 PADT MSA news sentences via the Anthropic Messages Batches API ($\sim$\$30 actual). After JSON-schema validation, we obtain \textbf{77{,}534 (word, sentence, irab) rows}. This is the training corpus for every open-weight FT model below; no model trains on Gazelle or MASAQ.
+We use Claude Haiku 4.5 as a teacher to generate per-word \irab{} for 5{,}000 PADT MSA news sentences via the Anthropic Messages Batches API. After JSON-schema validation, we obtain \textbf{77{,}534 (word, sentence, irab) rows}. This is the training corpus for every open-weight FT model below; no model trains on Gazelle or MASAQ.
 
 \paragraph{Construction coverage.}
 A regex over each Gazelle gold prose tags the dominant construction(s) per sentence using 11 traditional categories. The 30-sentence eval is dominated by short verbal sentences ($n{=}15$) and prepositional phrases ($n{=}8$); exception (\emph{isti\textsuperscript{th}n\=a$\,$\textsuperscript{}$\,$}) and \emph{k\=ana} sisters appear in 2 sentences each ($n{=}9$ and $n{=}7$ words). Generalization claims are limited to these construction frequencies.
@@ -262,7 +262,7 @@ We address two methodological gaps in Arabic \irab{} evaluation: the absence of 
 The comparison delivers three null results: open-weight parameter scale from 296M to 13B has no measurable Gazelle effect; per-word routing does not beat the LLM; retrieval depth $k$ does no meaningful work. The cross-register audit returns one positive finding: every LLM-trained system suffers paired-significant role-F1 degradation when moved from MSA-news to Quranic, and the strongest Gazelle system (Sonnet RAG) shows the \emph{largest} drop ($+61.7$\,pp\sig{}). A retrieval-pool-confound experiment rejects the obvious confound. The remaining error budget is dominated by register and construction coverage, not by model capacity, which reframes the next research step as targeted data rather than larger models.
 
 \paragraph{Future work.}
-The teacher-bound capacity null suggests one experiment in particular: re-running distillation with Sonnet 4.5 as teacher (\$$15$--$20$ for 5K rows) tests whether the open-weight scale gap remains null when the teacher ceiling lifts from $67.2\%$ to $73.9\%$ case. Two further directions follow from \S\ref{sec:limitations}: expanding Gazelle to a manually-validated 200-sentence MSA benchmark (cuts the smallest-detectable-$\Delta$ floor from $7$\,pp to $\sim 3$\,pp), and integrating CamelTB / Extended Quranic Treebank into a cross-register training corpus to test whether the cross-register effect is solvable or structural. \cite{aldallal2025sadeed} demonstrates that small fine-tuned Arabic models can achieve state-of-the-art on diacritization with curated data; the structural connection between diacritization and \irab{} (the case marker determines the final vowel; our self-consistency analysis suggests grammatical reasoning constrains diacritization in $\sim 96\%$ of cases) makes a Sadeed-style multi-task formulation a natural extension we leave for future work.
+The teacher-bound capacity null suggests one experiment in particular: re-running distillation with Sonnet 4.5 as teacher tests whether the open-weight scale gap remains null when the teacher ceiling lifts from $67.2\%$ to $73.9\%$ case. Two further directions follow from \S\ref{sec:limitations}: expanding Gazelle to a manually-validated 200-sentence MSA benchmark (cuts the smallest-detectable-$\Delta$ floor from $7$\,pp to $\sim 3$\,pp), and integrating CamelTB / Extended Quranic Treebank into a cross-register training corpus to test whether the cross-register effect is solvable or structural. \cite{aldallal2025sadeed} demonstrates that small fine-tuned Arabic models can achieve state-of-the-art on diacritization with curated data; the structural connection between diacritization and \irab{} (the case marker determines the final vowel; our self-consistency analysis suggests grammatical reasoning constrains diacritization in $\sim 96\%$ of cases) makes a Sadeed-style multi-task formulation a natural extension we leave for future work.
 
 % =====================================================================
 \section{Limitations}
