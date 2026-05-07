@@ -92,21 +92,56 @@ def evaluate_baseline(
     predict_fn,
     out_dir: Path,
     apply_constrain: bool = True,
+    resume: bool = False,
 ) -> Dict:
-    """Run predict_fn on each sentence, score against gold, save predictions."""
+    """Run predict_fn on each sentence, score against gold, save predictions.
+
+    If `resume=True` and the predictions file already exists, the loader
+    reads completed (sentence, pred) rows from it, replays them through
+    the metrics, and only calls `predict_fn` on sentences that haven't
+    been scored yet. New rows are appended.
+    """
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     metrics = StructuralMetrics()
     metrics_constrained = StructuralMetrics()
 
     pred_path = out_dir / f"{name}.predictions.jsonl"
-    n_ok = 0
-    with open(pred_path, "w", encoding="utf-8") as fpred:
+
+    # ----- resume: replay existing predictions, identify the suffix to skip
+    done_sentences: Dict[str, List[Dict]] = {}
+    if resume and pred_path.exists():
+        with open(pred_path, encoding="utf-8") as f:
+            for line in f:
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                done_sentences[row["sentence"]] = row.get("pred", [])
+        # replay metrics for completed rows
+        gold_by_sent = {s: gp for s, gp in zip(sentences, gold_word_irabs)}
+        for sent, pred_dicts in done_sentences.items():
+            if sent not in gold_by_sent:
+                continue
+            gold_pairs = gold_by_sent[sent]
+            gold_words = [w for w, _ in gold_pairs]
+            aligned = _align_pred(gold_words, pred_dicts)
+            for (gw, gi), pi in zip(gold_pairs, aligned):
+                metrics.update(gi, pi)
+                if apply_constrain:
+                    metrics_constrained.update(gi, constrain(pi) if pi else "")
+        print(f"  [{name}] resume: replayed {len(done_sentences)} already-scored sentences", flush=True)
+
+    open_mode = "a" if (resume and pred_path.exists()) else "w"
+    n_ok = len(done_sentences)
+    with open(pred_path, open_mode, encoding="utf-8") as fpred:
         for sentence, gold_pairs in zip(sentences, gold_word_irabs):
+            if sentence in done_sentences:
+                continue
             try:
                 pred_items = predict_fn(sentence)
             except Exception as e:
-                print(f"  [{name}] error on '{sentence[:40]}…': {e}")
+                print(f"  [{name}] error on '{sentence[:40]}…': {e}", flush=True)
                 continue
             pred_dicts = [p.to_dict() if hasattr(p, "to_dict") else dict(p) for p in pred_items]
             gold_words = [w for w, _ in gold_pairs]
@@ -122,8 +157,9 @@ def evaluate_baseline(
                 "gold": [{"word": w, "irab": i} for w, i in gold_pairs],
                 "pred": pred_dicts,
             }, ensure_ascii=False) + "\n")
+            fpred.flush()  # so partial progress survives a SLURM kill
             n_ok += 1
-    print(f"  [{name}] scored {n_ok} sentences")
+    print(f"  [{name}] scored {n_ok} sentences", flush=True)
 
     report = {
         "baseline": name,
@@ -183,6 +219,10 @@ def main():
                    help="add templated MASAQ (Quranic) examples to the RAG pool")
     p.add_argument("--masaq_max_verses", type=int, default=1500)
     p.add_argument("--out", type=Path, default=Path("runs/baseline_eval"))
+    p.add_argument("--resume", action="store_true",
+                   help="If predictions JSONL already exists, replay its rows "
+                        "through the scorer and skip already-evaluated sentences. "
+                        "New rows are appended. Useful for chaining 4h SLURM jobs.")
     args = p.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
@@ -296,6 +336,7 @@ def main():
                 "acegpt_irab", sentences, gold_pairs,
                 predict_fn=pred.predict,
                 out_dir=args.out,
+                resume=args.resume,
             )
             reports.append(rep)
 

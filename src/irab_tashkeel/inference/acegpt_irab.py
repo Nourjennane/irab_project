@@ -49,7 +49,10 @@ class AceGPTIrabPredictor:
     model_path: str                       # PEFT adapter dir
     base_model_id: Optional[str] = None   # base Llama-2 path / hub id (auto-resolved from adapter_config.json if None)
     max_input_length: int = 320
-    max_new_tokens: int = 192
+    # 192 was wasteful: measured p95 of MASAQ output is ~29 whitespace words
+    # ≈ 60 subword tokens. 96 leaves ~40% headroom and saves ~30% wall time
+    # on EOS-failure cases.
+    max_new_tokens: int = 96
     device: Optional[str] = None
     load_in_4bit: bool = True             # match QLoRA training; loads weights in 4-bit NF4
 
