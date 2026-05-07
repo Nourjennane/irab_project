@@ -1,6 +1,6 @@
 # Project Status Snapshot
 
-Last updated: 2026-05-03 (auto-mode session). This is the single source of truth across runs while user is asleep / between sessions.
+Last updated: 2026-05-06. Single source of truth across runs / sessions / machines. For cross-machine resumption see `docs/MACHINE_HANDOFF.md`.
 
 ---
 
@@ -104,17 +104,10 @@ These hold for the trained AraT5v2-base too → failure is structural, not Claud
 
 ## 6. Currently running jobs
 
-| Job | Where | Status | ETA |
-|---|---|---|---|
-| AraGPT2-large smoke (487441) | HPC | RUNNING since ~04:55 | ~3-5 min |
-| mT5-base on MASAQ | local 4060 | RUNNING (~3/624 verses) | ~50 min |
+None as of 2026-05-06. SLURM queue is empty; no local background jobs. The chained AceGPT-13B MASAQ resume is staged in code (`scripts/slurm/48b_eval_acegpt13b_masaq_resume.sbatch`) but **not submitted** — user paused submission on 2026-05-06 to assess timing.
 
-**On deck after AraGPT2 smoke passes:**
-- Submit AraGPT2-large full sbatch (use `46_train_irab_jais_full.sbatch` — points to same config)
-- After AraGPT2 full finishes (~5-7h): rsync + Gazelle + MASAQ eval
-
-**Resumed after mT5 MASAQ finishes:**
-- Restart Qwen on MASAQ (was at 111/624 = 18% before being paused)
+**Pending background work (parked, code ready):**
+- AceGPT-13B MASAQ chained resume — `acegpt_irab.py` `max_new_tokens` lowered to 96; `evaluate_baseline(resume=True)` adds skip-if-already-scored logic. 4h sbatch to be resubmitted ~3× to clear remaining 495 verses (3,932 words). Target: replace partial-21% row with full $n{=}5{,}007$ row, drop the partial-MASAQ caveat from Limitations.
 
 ---
 
@@ -122,9 +115,10 @@ These hold for the trained AraT5v2-base too → failure is structural, not Claud
 
 | Model | Path | Status |
 |---|---|---|
-| AraT5v2-base FT (Phase 2.1) | `runs/irab_arat5v2_distill_v2_487235/final/` (1.4 GB local) | ✅ done, evaluated |
-| mT5-base FT (Phase 2.3) | `runs/irab_mt5_base_distill_v2_487432/final/` (2.2 GB local) | ✅ done, Gazelle ✓ MASAQ pending |
-| AraGPT2-large FT (Phase 2.4) | smoke ✓ at 487441; full job 487443 PENDING in HPC `stud` queue | queued (user opted to wait); ETA ~6h to start, ~3.5h training+eval after |
+| AraT5v2-base FT (Phase 2.1) | `runs/irab_arat5v2_distill_v2_487235/final/` (deleted from HPC after rsync; local + git) | ✅ done, evaluated Gazelle + MASAQ |
+| mT5-base FT (Phase 2.3) | `runs/irab_mt5_base_distill_v2_487432/final/` (deleted from HPC after rsync; local + git) | ✅ done, evaluated Gazelle + MASAQ |
+| AraGPT2-large LoRA (Phase 2.4) | `runs/irab_aragpt2_distill_v2_487443/final/` (200 MB; local + git) | ✅ done, evaluated Gazelle + MASAQ (full) |
+| AceGPT-13B QLoRA (Phase 2.5) | `runs/irab_acegpt13b_distill_v2_487888/final/` (200 MB; local + git; HPC base at `/home/3415496/acegpt13b/`) | ✅ trained 16h13m / 1 epoch / eval_loss 0.059. Gazelle eval ✓; MASAQ eval **partial 21%**. |
 
 ---
 
@@ -133,8 +127,8 @@ These hold for the trained AraT5v2-base too → failure is structural, not Claud
 | Asked for | Substituted with | Reason |
 |---|---|---|
 | AraT5v2-large (1.2B) | AraT5-base v1 (~296M, FAILED smoke) → mT5-base (580M) | UBC-NLP doesn't release AraT5 large; v1 base is same size as v2 base; mT5-base is closest non-Arabic-specific T5 intermediate |
-| Jais-family-1p3b (1.3B) | AraGPT2-large (~792M) | Jais is gated on HF (401 unauthorized); AraGPT2 is non-gated and same GPT-2 architecture so SFT script works unchanged |
-| 5K Sonnet RAG eval on MASAQ ($3.56) | (deferred) | Spend-discipline guard blocked auto-spend; needs explicit user re-confirmation on wake |
+| Jais-family-1p3b (1.3B) | AraGPT2-large (~792M) | Jais 1.3B gated on HF (401); AraGPT2 non-gated and same GPT-2 architecture so SFT script works unchanged |
+| Jais-13B | AceGPT-13B (FreedomIntelligence/AceGPT-13B, Llama-2 base) | All 4 Jais-13B repos returned 403; AceGPT-13B is non-gated and Arabic-extended |
 
 ---
 
@@ -180,6 +174,6 @@ Allowed remaining (per spend-discipline memory): ambiguity rerun ~$3, Mix A re-t
 
 ## 12. Open questions / decisions waiting on user
 
-1. **Sonnet RAG on MASAQ ($3.56)**: blocked by spend-discipline guard. Need explicit user re-confirmation to spend. Without it, MASAQ table has no Sonnet number — can still claim Sonnet RAG headline on Gazelle, but no cross-register Sonnet check.
-2. **Jais auth**: if user wants Jais 1.3B specifically, they need to log into HF on HPC. Otherwise AraGPT2-large is the substitute.
-3. **Qwen MASAQ resume**: was at 17% when paused. Restart will lose progress. Worth it if user wants Qwen MASAQ row populated.
+1. **Submit AceGPT-13B chained MASAQ resume?** Code is committed (`ae50374`); awaits user go-ahead. Would clear the partial-21% caveat in the paper at ~12h compute split across 3–4 four-hour SLURM jobs.
+2. **Reddit r/learn_arabic scrape.** WebFetch is blocked from this Claude Code instance for reddit.com. Try from new machine (browser, `curl`, or different agent).
+3. **Presentation slides.** Not started; Hovy's deck rules in `~/Downloads/12_writing_presenting.pdf` (10 slides @ 1/min, 30 pt min, dark background, glass-shape structure).
