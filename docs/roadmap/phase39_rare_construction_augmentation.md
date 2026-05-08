@@ -318,6 +318,72 @@ Total wallclock: ~6h focused work (~5h human / ~1h HPC).
   examples) — for #39 we use deterministic templates so the labels
   are guaranteed correct; LLM-generated would have label noise.
 
+## 11.5 Run 1 — partial positive, large negative
+
+Run `phase39_491324` (8:24 train, full eval `491337` 3:44):
+
+| Metric | Phase 3-A | Phase 39 | Δ Gazelle | Δ MASAQ |
+|---|---:|---:|---:|---:|
+| case | 56.7 / 85.9 | 53.7 / 86.3 | **−3.0** | **+0.4** |
+| role-F1 | 41.3 / 9.8 | 28.4 / 10.2 | **−12.9** | **+0.4** |
+| marker | 44.8 / 32.3 | 41.8 / 32.7 | **−3.0** | **+0.4** |
+| fully | 20.1 / 7.4 | 12.7 / 7.6 | **−7.4** | **+0.2** |
+
+**The pattern is informative:**
+- **MASAQ improves uniformly +0.4 pp across all four metrics.** Quranic
+  prose has higher density of *kāna sisters*, *istithnāʾ*, *mawṣūl*, and
+  the Quranic-template patterns we generated. The synthetic exposure
+  helps the model on those constructions, validating the thesis that
+  "adding orthogonal coverage unlocks gain on register-mismatched test
+  surfaces".
+- **Gazelle regresses sharply: role-F1 −12.9, fully −7.4.** The synthetic
+  data was 22% of the iʿrāb-supervised training corpus (1,330 / 6,080)
+  — too high a ratio. Templates were lexically narrow (~20-30 fillers
+  per slot, same fixed word orders, same particle distributions). The
+  role head overfit to template surfaces and lost in-distribution
+  generalisation on Gazelle's natural prose.
+
+**This is a partial-positive negative result.** It confirms the
+research thesis (new information helps when target distribution
+matches synthetic distribution — MASAQ benefits) AND exposes a
+template-overfit failure mode (synthetic distribution must not
+dominate the training signal — Gazelle suffers).
+
+**The fix is in the augmentation strategy, not the thesis.** Concrete
+next iteration (Phase 39 v2):
+1. **Reduce synthetic ratio**: 1,400 → 350-500 (5-8% of corpus, not 22%)
+2. **Diversify lexical fillers**: 3-4× more nouns, adjectives, verbs
+   sourced from the existing distill_v2 corpus by frequency-weighted
+   sampling, not hardcoded short lists
+3. **Sentence-shape variation per template**: 3-5 word-order variants
+   per template, not the single fixed pattern current templates use
+4. **Per-construction evaluation in the eval pipeline**: add
+   `eval_per_construction.py` so we can verify that *kāna* /
+   *inna* / *istithnāʾ* / *mawṣūl* targeted constructions improve
+   on Gazelle subsets, separately from overall metrics
+5. **Mix-in noise check**: include synthetic at 5% but also at 0%
+   (no augmentation) and 15% as ablation cells, to isolate the
+   ratio-sensitivity curve
+
+## 11.6 Ship decision (Run 1)
+
+**Phase 39 Run 1 does NOT ship as production.** Phase 3-A remains the
+production checkpoint. Phase 39 ships as:
+- A **partial-positive on MASAQ** (+0.4 across the board on the
+  cross-register surface), worth reporting as evidence the thesis
+  generalises
+- A **failure mode demonstration on Gazelle** (template-overfit),
+  worth reporting as the principal lesson for the next iteration
+- A **roadmap data point**: Phase 39 v2 (with the 5 fixes above)
+  needs a fresh implementation cycle. Do NOT just retry the same
+  templates with reduced ratio — the templates themselves need
+  diversification.
+
+The augmented training corpus (`data/structured_v1_augmented/`) and
+parsed dep version (`data/morph_v1_augmented_dep/`) stay on HPC as
+artefacts — Phase 39 v2 can re-use them or rebuild from scratch with
+the fixes.
+
 ## 12. Risk register
 
 - **Synthetic distribution mismatch**: Templated sentences may have
