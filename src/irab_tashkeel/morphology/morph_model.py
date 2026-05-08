@@ -30,6 +30,7 @@ import torch.nn.functional as F
 
 from ..structured.dataset import IGNORE
 from ..structured.model import StructuredIrabModel
+from .conditioning import MORPH_CONCAT_ORDER, MORPH_TOTAL_DIM, build_conditioning
 from .schema import (
     MORPH_FEATURES, N_GENDER, N_NUMBER, N_DEFINITE, N_PERSON,
     N_ASPECT, N_MOOD, N_VOICE,
@@ -61,6 +62,8 @@ class MorphAugmentedStructuredModel(StructuredIrabModel):
         enable_morph_heads: bool = False,
         morph_heads_enabled: Optional[Set[str]] = None,
         morph_loss_weights: Optional[Dict[str, float]] = None,
+        conditioning_mechanism: Optional[str] = None,
+        conditioning_detached: bool = False,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -83,6 +86,31 @@ class MorphAugmentedStructuredModel(StructuredIrabModel):
         for f in MORPH_FEATURES:
             if f in active:
                 self.morph_heads[f] = nn.Linear(self.hidden_size, _MORPH_HEAD_SIZES[f])
+
+        # Phase 2: optional soft morphology conditioning. Requires the full
+        # seven-head set (the concat-order assumption baked into MORPH_CONCAT_ORDER).
+        self.conditioning_mechanism: Optional[str] = (
+            conditioning_mechanism.lower() if conditioning_mechanism else None
+        )
+        self.conditioning_detached: bool = bool(conditioning_detached)
+        self.conditioning: Optional[nn.Module] = None
+        if self.conditioning_mechanism and self.conditioning_mechanism != "none":
+            if not self.enable_morph_heads:
+                raise ValueError(
+                    "conditioning_mechanism requires enable_morph_heads=True"
+                )
+            missing = set(MORPH_CONCAT_ORDER) - active
+            if missing:
+                raise ValueError(
+                    f"conditioning_mechanism={self.conditioning_mechanism!r} requires "
+                    f"all 7 morph heads active; missing: {sorted(missing)}"
+                )
+            self.conditioning = build_conditioning(
+                self.conditioning_mechanism,
+                hidden_size=self.hidden_size,
+                morph_dim=MORPH_TOTAL_DIM,
+                detached=self.conditioning_detached,
+            )
 
     # -- helper: pool encoder hidden states (delegate to parent) --
     def _encode_and_pool(
@@ -146,14 +174,26 @@ class MorphAugmentedStructuredModel(StructuredIrabModel):
 
         from ..structured.schema import N_CASE, N_ROLE, N_MARKER, N_POS
 
-        case_logits   = self.case_head(pooled)
-        role_logits   = self.role_head(pooled)
-        marker_logits = self.marker_head(pooled)
-        pos_logits    = self.pos_head(pooled)
-
+        # Phase 2: compute morph logits FIRST so they can feed conditioning.
         morph_logits: Dict[str, torch.Tensor] = {}
         for f in self.morph_heads_enabled:
             morph_logits[f] = self.morph_heads[f](pooled)
+
+        # Build per-word soft conditioning signal m and let the conditioning
+        # module produce h' for the iʿrāb decoders. POS stays unconditioned.
+        if self.conditioning is not None:
+            morph_probs_list = [
+                F.softmax(morph_logits[f], dim=-1) for f in MORPH_CONCAT_ORDER
+            ]
+            morph_probs = torch.cat(morph_probs_list, dim=-1)
+            pooled_irab = self.conditioning(pooled, morph_probs, word_mask)
+        else:
+            pooled_irab = pooled
+
+        case_logits   = self.case_head(pooled_irab)
+        role_logits   = self.role_head(pooled_irab)
+        marker_logits = self.marker_head(pooled_irab)
+        pos_logits    = self.pos_head(pooled)
 
         out: Dict[str, torch.Tensor] = {
             "case_logits":   case_logits,

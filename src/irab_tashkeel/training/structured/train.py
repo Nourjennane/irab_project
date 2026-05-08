@@ -96,6 +96,14 @@ class StructuredConfig:
     # ---- Phase 4a — taxonomy version (v3 = rev 2 / Phase 1 default; v4 = 34 labels) ----
     taxonomy: str = "v3"
 
+    # ---- Phase 2 — soft morphology conditioning (opt-in; requires enable_morph_heads=True) ----
+    # Mechanism ∈ {None, "none", "film", "additive", "concat_embed"}.
+    # None / "none" = Phase 1 path (no conditioning, byte-identical).
+    conditioning_mechanism: Optional[str] = None
+    # When True, ``m`` is detached before entering the conditioning module so
+    # gradients do NOT flow back through the morph heads. Reported as an ablation.
+    conditioning_detached: bool = False
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -303,10 +311,16 @@ def main():
             enable_morph_heads=True,
             morph_heads_enabled=morph_heads_enabled,
             morph_loss_weights=cfg.morph_loss_weights,
+            conditioning_mechanism=cfg.conditioning_mechanism,
+            conditioning_detached=cfg.conditioning_detached,
             **n_role_kw,
         )
         print(f"[train] morph heads enabled: {sorted(model.morph_heads_enabled)}")
         print(f"[train] morph loss weights: { {k: model.morph_loss_weights[k] for k in sorted(model.morph_heads_enabled)} }")
+        if model.conditioning is not None:
+            print(f"[train] conditioning: mechanism={model.conditioning_mechanism} "
+                  f"detached={model.conditioning_detached} "
+                  f"params={sum(p.numel() for p in model.conditioning.parameters())}")
     else:
         # Default rev-2 path — byte-identical to before Phase 1 / Phase 4a
         # when taxonomy=v3. With taxonomy=v4 it's the granularity-only branch.

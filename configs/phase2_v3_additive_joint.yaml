@@ -1,0 +1,52 @@
+# Phase 2 Run 2 — v3 + additive bias + soft + joint.
+# Mechanism ablation: is FiLM's gain from interaction or just from m's information?
+
+encoder_name: UBC-NLP/AraT5v2-base-1024
+train_path: data/structured_v1/train.jsonl
+val_path:   data/structured_v1/val.jsonl
+
+max_subwords: 320
+max_words: 64
+head_dropout: 0.1
+loss_weights: [1.0, 1.5, 1.0, 0.5]
+
+label_smoothing: 0.1
+role_class_weighting: sqrt_inv_freq
+pooling_strategy: first
+use_crf_role: false
+crf_init_from_bigrams: true
+
+learning_rate: 5.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.06
+num_train_epochs: 6
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 4
+logging_steps: 50
+eval_steps: 500
+save_total_limit: 1
+seed: 42
+bf16: true
+gradient_checkpointing: false
+optim: adamw_torch
+
+load_best_at_end: true
+metric_for_best: fully
+greater_is_better: true
+
+enable_morph_heads: true
+morph_train_path: data/morph_v1/train.jsonl
+morph_val_path:   data/morph_v1/val.jsonl
+morph_loss_weights:
+  gender:   0.3
+  number:   0.3
+  definite: 0.3
+  person:   0.3
+  aspect:   0.3
+  mood:     0.3
+  voice:    0.3
+morph_heads_enabled: null
+
+conditioning_mechanism: additive
+conditioning_detached: false

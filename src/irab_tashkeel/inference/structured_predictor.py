@@ -81,13 +81,21 @@ class StructuredPredictor:
             self.tokenizer = AutoTokenizer.from_pretrained(encoder_name)
 
         # Build model and load state-dict.  Reconstruct CRF flag + taxonomy
-        # from the saved structured_config.json if present.
+        # + Phase 1 morph + Phase 2 conditioning from structured_config.json.
         use_crf = False
         taxonomy = "v3"
+        enable_morph_heads = False
+        morph_heads_enabled_cfg: Optional[List[str]] = None
+        conditioning_mechanism: Optional[str] = None
+        conditioning_detached = False
         if tcfg_path.exists():
             tcfg = json.loads(tcfg_path.read_text())
             use_crf = bool(tcfg.get("use_crf_role", False))
             taxonomy = tcfg.get("taxonomy", "v3")
+            enable_morph_heads = bool(tcfg.get("enable_morph_heads", False))
+            morph_heads_enabled_cfg = tcfg.get("morph_heads_enabled")
+            conditioning_mechanism = tcfg.get("conditioning_mechanism")
+            conditioning_detached = bool(tcfg.get("conditioning_detached", False))
 
         # Phase 4a: taxonomy switch picks the right ID_TO_ROLE map at predict-time.
         if taxonomy == "v4":
@@ -98,12 +106,35 @@ class StructuredPredictor:
             n_role_kw = {}
         self.taxonomy = taxonomy
 
-        self.model = StructuredIrabModel(
-            encoder_name=encoder_name,
-            use_crf_role=use_crf,
-            output_attentions=self.cfg.return_attention,
-            **n_role_kw,
+        # If conditioning was used at training time we MUST instantiate the
+        # morph-augmented model — the iʿrāb heads were trained to consume
+        # the conditioned representation, not raw pooled features.
+        needs_morph_class = (
+            enable_morph_heads
+            or (conditioning_mechanism and conditioning_mechanism != "none")
         )
+        if needs_morph_class:
+            from ..morphology.morph_model import MorphAugmentedStructuredModel
+            morph_set = set(morph_heads_enabled_cfg) if morph_heads_enabled_cfg else None
+            self.model = MorphAugmentedStructuredModel(
+                encoder_name=encoder_name,
+                use_crf_role=use_crf,
+                output_attentions=self.cfg.return_attention,
+                enable_morph_heads=True,
+                morph_heads_enabled=morph_set,
+                conditioning_mechanism=conditioning_mechanism,
+                conditioning_detached=conditioning_detached,
+                **n_role_kw,
+            )
+            self.has_morph_path = True
+        else:
+            self.model = StructuredIrabModel(
+                encoder_name=encoder_name,
+                use_crf_role=use_crf,
+                output_attentions=self.cfg.return_attention,
+                **n_role_kw,
+            )
+            self.has_morph_path = False
         sd_path = self.model_dir / "pytorch_model.bin"
         sd = torch.load(sd_path, map_location="cpu", weights_only=True)
         missing, unexpected = self.model.load_state_dict(sd, strict=False)
