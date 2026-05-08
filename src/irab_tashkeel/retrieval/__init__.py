@@ -11,5 +11,13 @@ predictor.
 """
 
 from .jaccard_retriever import JaccardRetriever, RetrievedExample
+from .grammar_memory import (
+    GrammarMemory, GrammarExample,
+    detect_constructions, CONSTRUCTION_TAGS,
+)
 
-__all__ = ["JaccardRetriever", "RetrievedExample"]
+__all__ = [
+    "JaccardRetriever", "RetrievedExample",
+    "GrammarMemory", "GrammarExample",
+    "detect_constructions", "CONSTRUCTION_TAGS",
+]

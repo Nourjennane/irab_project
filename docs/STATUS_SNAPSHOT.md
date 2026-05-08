@@ -1,6 +1,6 @@
 # Project Status Snapshot
 
-Last updated: 2026-05-06. Single source of truth across runs / sessions / machines. For cross-machine resumption see `docs/MACHINE_HANDOFF.md`.
+Last updated: 2026-05-08 (Phase 3 v1 rebuild rev 2 landed — see §13 below). Single source of truth across runs / sessions / machines. For cross-machine resumption see `docs/MACHINE_HANDOFF.md`.
 
 ---
 
@@ -177,3 +177,47 @@ Allowed remaining (per spend-discipline memory): ambiguity rerun ~$3, Mix A re-t
 1. **Submit AceGPT-13B chained MASAQ resume?** Code is committed (`ae50374`); awaits user go-ahead. Would clear the partial-21% caveat in the paper at ~12h compute split across 3–4 four-hour SLURM jobs.
 2. **Reddit r/learn_arabic scrape.** WebFetch is blocked from this Claude Code instance for reddit.com. Try from new machine (browser, `curl`, or different agent).
 3. **Presentation slides.** Not started; Hovy's deck rules in `~/Downloads/12_writing_presenting.pdf` (10 slides @ 1/min, 30 pt min, dark background, glass-shape structure).
+
+---
+
+## 13. Phase 3 — Interpretable structured-prediction baseline (v1 rebuild)
+
+Landed 2026-05-08. Replaces the original char-decoder Appendix A baseline with a credible interpretable system. See REPORT.md §5.6 / REPORT.tex \subsection{Interpretable structured-prediction baseline}.
+
+**Architecture:**
+- Encoder: AraT5v2-base **encoder half** (296M, T5EncoderModel.from_pretrained — drops the cyclic-ref decoder)
+- 4 classification heads: case (5) / role (25) / marker (18) / POS (6)
+- 4 soft logit-bias symbolic constraint families: prep→jarr, inna sisters, kāna sisters, iḍāfa stub
+- Deterministic Arabic-prose template renderer (canonical-tuple → prose)
+- Quranic grammar-memory retriever (`retrieval/grammar_memory.py`): construction-aware Jaccard over MASAQ (624 verses; tag distribution PREP 345 / RELATIVE 301 / IDAFA 170 / INNA 141 / COORD 72 / EXCEPTION 71 / KANA 66 / VOCATIVE 41)
+- Gradio demo (`app/structured_demo.py`): per-word table + prose + grammar-memory panel
+
+**Training:** 6 epochs, label_smoothing=0.1, sqrt-inv-freq role class weights, first-subtoken pooling, best-checkpoint retention. ~4 min wall-clock on the stud MIG slice.
+
+**Numbers (Gazelle, n=134):**
+| System | well | case | role-F1 | marker | fully |
+|---|---:|---:|---:|---:|---:|
+| Original v1 (char dec) | 70.9 | 32.8 | 3.8 | 13.4 | 2.2 |
+| Rebuild rev 1 (3 ep, mean pool) | 79.9 | 56.0 | 28.4 | 41.0 | 14.2 |
+| **Rebuild rev 2** (ls + cw + first + 6 ep) | 79.9 | 55.2 | **36.9** | 41.0 | 17.9 |
+| **Rebuild rev 2 + 4 constraints** | 79.9 | 55.2 | **36.9** | 41.0 | **18.7** |
+| Reference: AraT5v2-base FT seq2seq | 79.9 | 65.7 | 54.8 | 44.0 | 24.6 |
+| Reference: Sonnet RAG headline | 79.9 | 73.9 | 74.7 | 50.0 | 32.1 |
+
+**Numbers (MASAQ, n=5,007):**
+- Rebuild rev 2 + constraints: case 84.3% / role-F1 10.9% / marker-EM 30.6% / fully 7.9%
+- Cross-register cost of MSA-frequency role weighting: rev 2 lifts MASAQ case (+2.2 pp) but lowers MASAQ role-F1 (−5.9 pp vs rev 1); reported transparently as a register-aware-weighting future-work lever.
+
+**Files:**
+- `src/irab_tashkeel/structured/{schema,word_irab,model,dataset}.py` — schema + dataclass + multi-head model + dataset
+- `src/irab_tashkeel/training/structured/train.py` — HF Trainer wrapper with role-weight + label-smoothing + first-pool
+- `src/irab_tashkeel/inference/{structured_predictor,symbolic_constraints,template_renderer,qualitative_trace}.py` — inference layer
+- `src/irab_tashkeel/retrieval/{jaccard_retriever,grammar_memory}.py` — Jaccard + Quranic grammar memory
+- `app/structured_demo.py` — Gradio demo
+- `configs/structured_v1_rebuild.yaml` — single-source config
+- `scripts/slurm/{49_smoke,50_train,51_eval}_structured_v1.sbatch` — HPC drivers
+- `scripts/structured/{build_structured_corpus,eval_structured_v1}.{py,sh}` — corpus + eval
+- `data/structured_v1/{train,val}.jsonl` — 4747+250 sentences, 77K words (canonical labels)
+- `runs/structured_v1_rebuild_490894/final/` — final adapter (HPC + local)
+- `runs/structured_v1_eval_490894/{gazelle,masaq}/` — eval predictions + summaries
+- `docs/figures/qualitative_v1_rebuild.md` — 3-sentence qualitative trace
