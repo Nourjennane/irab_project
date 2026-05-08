@@ -123,7 +123,12 @@
       "Bash(scp -q scripts/structured/eval_structured_v1.sh 3415496@10.35.5.3:~/irab_project/scripts/structured/eval_structured_v1.sh)",
       "Bash(scp -q scripts/slurm/51_eval_structured_v1.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/51_eval_structured_v1.sbatch)",
       "Bash(scp -q src/irab_tashkeel/retrieval/__init__.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/retrieval/__init__.py)",
-      "Bash(scp -q src/irab_tashkeel/retrieval/jaccard_retriever.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/retrieval/jaccard_retriever.py)"
+      "Bash(scp -q src/irab_tashkeel/retrieval/jaccard_retriever.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/retrieval/jaccard_retriever.py)",
+      "Bash(rsync -avz '3415496@10.35.5.3:~/irab_project/runs/structured_v1_rebuild_490876/final/' /Users/nourjennane/Desktop/irab_project/runs/structured_v1_rebuild_490876/final/)",
+      "Bash(xelatex --version)",
+      "Bash(rsync -avz '3415496@10.35.5.3:~/irab_project/runs/structured_v1_eval_490876/' /Users/nourjennane/Desktop/irab_project/runs/structured_v1_eval_490876/)",
+      "Bash(USE_TF=0 TRANSFORMERS_NO_ADVISORY_WARNINGS=1 python3 *)",
+      "Bash(scp -q configs/structured_v1_rebuild.yaml 3415496@10.35.5.3:~/irab_project/configs/structured_v1_rebuild.yaml)"
     ]
   }
 }

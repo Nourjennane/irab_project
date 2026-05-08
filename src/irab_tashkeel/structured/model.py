@@ -57,6 +57,26 @@ def _word_mean_pool(hidden: torch.Tensor, starts: torch.Tensor, ends: torch.Tens
     return pooled
 
 
+def _word_first_pool(hidden: torch.Tensor, starts: torch.Tensor,
+                     word_mask: torch.Tensor) -> torch.Tensor:
+    """Pick the first-subword hidden state for each word (BERT-style).
+
+    Token classification literature consistently finds first-subword pooling
+    works at least as well as mean over Latin-script tokenizers; for Arabic
+    SentencePiece (where the first subword usually corresponds to the stem),
+    the first-subword vector preserves a cleaner morphological signal.
+    """
+    bsz, T, H = hidden.shape
+    W = starts.size(1)
+    # Gather hidden[batch, starts[batch, word]] for each (batch, word).
+    # starts is (B, W); we need indices clamped to T-1 to avoid OOB on padded slots.
+    safe_starts = starts.clamp(min=0, max=T - 1)
+    pooled = torch.gather(hidden, dim=1,
+                          index=safe_starts.unsqueeze(-1).expand(bsz, W, H))
+    pooled = pooled * word_mask.unsqueeze(-1).to(hidden.dtype)
+    return pooled
+
+
 @dataclass
 class StructuredOutput:
     case_logits: torch.Tensor          # (B, W, N_CASE)
@@ -88,6 +108,9 @@ class StructuredIrabModel(nn.Module):
         encoder_name: str = "UBC-NLP/AraT5v2-base-1024",
         head_dropout: float = 0.1,
         loss_weights: tuple[float, float, float, float] = (1.0, 1.0, 1.0, 0.5),
+        label_smoothing: float = 0.0,
+        role_class_weights: Optional[torch.Tensor] = None,
+        pooling_strategy: str = "mean",
     ):
         super().__init__()
         # Prefer T5EncoderModel for T5-family checkpoints: it loads ONLY the
@@ -113,6 +136,21 @@ class StructuredIrabModel(nn.Module):
         self.pos_head = nn.Linear(self.hidden_size, N_POS)
         self.loss_weights = loss_weights
         self.encoder_name = encoder_name
+        self.label_smoothing = float(label_smoothing)
+        if pooling_strategy not in ("mean", "first"):
+            raise ValueError(f"pooling_strategy must be 'mean' or 'first', got {pooling_strategy}")
+        self.pooling_strategy = pooling_strategy
+
+        # Role class weights are saved as a non-trainable buffer so they
+        # travel with the model checkpoint and the device move.
+        if role_class_weights is None:
+            self.register_buffer("role_class_weights", torch.ones(N_ROLE))
+            self._has_role_weights = False
+        else:
+            w = role_class_weights.detach().to(torch.float32).clone()
+            assert w.shape == (N_ROLE,), f"role_class_weights must be shape ({N_ROLE},), got {tuple(w.shape)}"
+            self.register_buffer("role_class_weights", w)
+            self._has_role_weights = True
 
     def gradient_checkpointing_enable(self, **kwargs):
         if hasattr(self.encoder, "gradient_checkpointing_enable"):
@@ -136,7 +174,10 @@ class StructuredIrabModel(nn.Module):
         # ignore harmlessly.
         enc_out = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
         hidden = enc_out.last_hidden_state                                   # (B, T, H)
-        pooled = _word_mean_pool(hidden, word_starts, word_ends, word_mask)  # (B, W, H)
+        if self.pooling_strategy == "first":
+            pooled = _word_first_pool(hidden, word_starts, word_mask)
+        else:
+            pooled = _word_mean_pool(hidden, word_starts, word_ends, word_mask)
         pooled = self.dropout(pooled)
 
         case_logits = self.case_head(pooled)
@@ -154,17 +195,23 @@ class StructuredIrabModel(nn.Module):
 
         if case_labels is not None:
             wc, wr, wm, wp = self.loss_weights
+            ls = self.label_smoothing
             loss_case = F.cross_entropy(
-                case_logits.reshape(-1, N_CASE), case_labels.reshape(-1), ignore_index=IGNORE
+                case_logits.reshape(-1, N_CASE), case_labels.reshape(-1),
+                ignore_index=IGNORE, label_smoothing=ls,
             )
+            role_weight = self.role_class_weights if self._has_role_weights else None
             loss_role = F.cross_entropy(
-                role_logits.reshape(-1, N_ROLE), role_labels.reshape(-1), ignore_index=IGNORE
+                role_logits.reshape(-1, N_ROLE), role_labels.reshape(-1),
+                ignore_index=IGNORE, label_smoothing=ls, weight=role_weight,
             )
             loss_marker = F.cross_entropy(
-                marker_logits.reshape(-1, N_MARKER), marker_labels.reshape(-1), ignore_index=IGNORE
+                marker_logits.reshape(-1, N_MARKER), marker_labels.reshape(-1),
+                ignore_index=IGNORE, label_smoothing=ls,
             )
             loss_pos = F.cross_entropy(
-                pos_logits.reshape(-1, N_POS), pos_labels.reshape(-1), ignore_index=IGNORE
+                pos_logits.reshape(-1, N_POS), pos_labels.reshape(-1),
+                ignore_index=IGNORE, label_smoothing=ls,
             )
             out.case_loss = loss_case
             out.role_loss = loss_role

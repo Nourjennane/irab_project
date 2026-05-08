@@ -56,6 +56,10 @@ class StructuredConfig:
     head_dropout: float = 0.1
     loss_weights: tuple = (1.0, 1.0, 1.0, 0.5)
 
+    label_smoothing: float = 0.0
+    role_class_weighting: str = "none"          # "none" | "sqrt_inv_freq" | "inv_freq"
+    pooling_strategy: str = "mean"               # "mean" | "first"
+
     learning_rate: float = 5.0e-5
     weight_decay: float = 0.01
     warmup_ratio: float = 0.06
@@ -71,12 +75,54 @@ class StructuredConfig:
     gradient_checkpointing: bool = False
     optim: str = "adamw_torch"
 
+    # Best-checkpoint retention
+    load_best_at_end: bool = True
+    metric_for_best: str = "fully"               # one of compute_metrics keys
+    greater_is_better: bool = True
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
         if isinstance(d.get("loss_weights"), list):
             d["loss_weights"] = tuple(d["loss_weights"])
         return cls(**d)
+
+
+def _compute_role_class_weights(jsonl_path: str, mode: str) -> Optional[torch.Tensor]:
+    """Compute per-class weights for the role head from the training corpus.
+
+    Modes:
+      - "none":            no weighting (returns None)
+      - "sqrt_inv_freq":   w_i = sqrt(1 / (count_i + 1)), then mean-normalised
+      - "inv_freq":        w_i = 1 / (count_i + 1), then mean-normalised
+    """
+    if mode == "none":
+        return None
+    import json
+    from collections import Counter
+    from irab_tashkeel.structured.schema import N_ROLE, ROLE_LABELS, ROLE_TO_ID
+    cnt = Counter()
+    with open(jsonl_path) as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            for it in rec.get("items", []):
+                r = it.get("role")
+                if r in ROLE_TO_ID:
+                    cnt[r] += 1
+    weights = torch.zeros(N_ROLE, dtype=torch.float32)
+    for label, idx in ROLE_TO_ID.items():
+        c = cnt.get(label, 0)
+        if mode == "sqrt_inv_freq":
+            weights[idx] = (1.0 / (c + 1)) ** 0.5
+        elif mode == "inv_freq":
+            weights[idx] = 1.0 / (c + 1)
+        else:
+            raise ValueError(f"Unknown role_class_weighting: {mode}")
+    weights = weights / weights.mean().clamp(min=1e-8)
+    return weights
 
 
 # ---------------------------------------------------------------------------
@@ -180,10 +226,18 @@ def main():
 
     print(f"[train] loading tokenizer + encoder from {cfg.encoder_name}")
     tokenizer = AutoTokenizer.from_pretrained(cfg.encoder_name)
+    role_weights = _compute_role_class_weights(cfg.train_path, cfg.role_class_weighting)
+    if role_weights is not None:
+        print(f"[train] role_class_weighting={cfg.role_class_weighting}  "
+              f"min={role_weights.min().item():.3f}  max={role_weights.max().item():.3f}")
+    print(f"[train] label_smoothing={cfg.label_smoothing}  pooling={cfg.pooling_strategy}")
     model = StructuredIrabModel(
         encoder_name=cfg.encoder_name,
         head_dropout=cfg.head_dropout,
         loss_weights=tuple(cfg.loss_weights),
+        label_smoothing=cfg.label_smoothing,
+        role_class_weights=role_weights,
+        pooling_strategy=cfg.pooling_strategy,
     )
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
@@ -221,7 +275,11 @@ def main():
         optim=cfg.optim,
         report_to="none",
         save_strategy="epoch",
-        load_best_model_at_end=False,
+        # If load_best_at_end, save_strategy and eval_strategy must match.
+        # We always evaluate at epoch boundaries when load_best is on.
+        load_best_model_at_end=cfg.load_best_at_end,
+        metric_for_best_model=cfg.metric_for_best if cfg.load_best_at_end else None,
+        greater_is_better=cfg.greater_is_better if cfg.load_best_at_end else None,
         remove_unused_columns=False,
         label_names=["case_labels", "role_labels", "marker_labels", "pos_labels"],
         # T5EncoderModel keeps a shared input embedding (encoder.shared aliases
@@ -230,10 +288,12 @@ def main():
         save_safetensors=False,
     )
     # transformers >=4.30 renamed evaluation_strategy -> eval_strategy
+    eval_strat = "epoch" if cfg.load_best_at_end else "steps"
+    extra = {} if eval_strat == "epoch" else {"eval_steps": cfg.eval_steps}
     try:
-        train_args = TrainingArguments(eval_strategy="steps", eval_steps=cfg.eval_steps, **train_args_dict)
+        train_args = TrainingArguments(eval_strategy=eval_strat, **extra, **train_args_dict)
     except TypeError:
-        train_args = TrainingArguments(evaluation_strategy="steps", eval_steps=cfg.eval_steps, **train_args_dict)
+        train_args = TrainingArguments(evaluation_strategy=eval_strat, **extra, **train_args_dict)
 
     trainer = StructuredTrainer(
         model=model,
