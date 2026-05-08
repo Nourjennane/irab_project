@@ -157,6 +157,13 @@ def main():
     ap.add_argument("--model", required=True, help="path to trained model dir (e.g. runs/phase3a_491240/final)")
     ap.add_argument("--eval", choices=["gazelle", "masaq"], required=True)
     ap.add_argument("--out_dir", required=True)
+    ap.add_argument("--use_retrieval", action="store_true",
+                    help="apply Phase R retrieval bias on logits at inference")
+    ap.add_argument("--retrieval_memory", default="data/grammar_memory/",
+                    help="root dir of grammar memory (per-family JSONL + FAISS)")
+    ap.add_argument("--retrieval_lambda", type=float, default=0.3,
+                    help="bias multiplier on log(prior); 0 reproduces baseline")
+    ap.add_argument("--retrieval_k", type=int, default=5)
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -252,8 +259,24 @@ def main():
         render_prose=True,
         device="auto",
     )
-    pred = StructuredPredictor(args.model, cfg=cfg)
-    print(f"  taxonomy={pred.taxonomy}")
+    base_pred = StructuredPredictor(args.model, cfg=cfg)
+    print(f"  taxonomy={base_pred.taxonomy}")
+
+    # Optional Phase R retrieval wrapper
+    if args.use_retrieval:
+        from irab_tashkeel.grammar_memory.memory import GrammarMemory
+        from irab_tashkeel.grammar_memory.retrieval_predictor import RetrievalAugmentedPredictor
+        memory = GrammarMemory(Path(args.retrieval_memory))
+        pred_retrieval = RetrievalAugmentedPredictor(
+            base_predictor=base_pred,
+            memory=memory,
+            lambda_=args.retrieval_lambda,
+            k=args.retrieval_k,
+        )
+        print(f"  retrieval ENABLED: lambda={args.retrieval_lambda}, k={args.retrieval_k}")
+    else:
+        pred_retrieval = None
+    pred = base_pred
 
     # Per-construction tracking
     # construction -> list of (case_correct, role_correct, marker_correct, fully_correct,
@@ -284,8 +307,12 @@ def main():
             construction_sentence_count[c] += 1
         construction_sentence_count["overall"] += 1
 
-        # Predict
-        result = pred.predict_sentence(sent)
+        # Predict (with optional retrieval bias)
+        if pred_retrieval is not None:
+            result, retrieval_trace = pred_retrieval.predict_sentence(sent)
+        else:
+            result = pred.predict_sentence(sent)
+            retrieval_trace = None
         # Align preds to gold by surface match (with normalisation fallback)
         pred_dicts = []
         for w in result.items:
