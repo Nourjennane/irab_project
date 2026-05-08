@@ -33,6 +33,7 @@ from .dep_schema import (
     DEPREL_EMB_DIM, GOV_POS_EMB_DIM, HEAD_DIR_EMB_DIM, HEAD_DIST_EMB_DIM,
     DEP_FEATURE_DIM_TOTAL, N_DEPREL, N_HEAD_DIR, N_HEAD_DIST,
 )
+from .relational_reasoning import RelationAwareSelfAttention
 from .morph_model import MorphAugmentedStructuredModel
 from .schema import MORPH_FEATURES
 from ..structured.dataset import IGNORE
@@ -93,6 +94,8 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         # Phase 6: hierarchical marker decoder (output-side; conditions marker on case + role).
         enable_marker_hierarchy: bool = False,
         marker_hierarchy_detached: bool = False,
+        # Phase 3.1: relational reasoning expansion. None = Phase 3-A baseline; "attn" = §3.1.
+        enable_relational_reasoning: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -131,6 +134,24 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             )
             with torch.no_grad():
                 self.role_to_case_bias.weight.zero_()
+
+        # Phase 3.1: relational reasoning. Operates between dep_proj and the iʿrāb heads.
+        self.enable_relational_reasoning = enable_relational_reasoning
+        if self.enable_relational_reasoning:
+            if not self.enable_dep_features:
+                raise ValueError(
+                    "enable_relational_reasoning requires enable_dep_features=True. "
+                    "Phase 3.1 layers on Phase 3-A."
+                )
+            if self.enable_relational_reasoning == "attn":
+                self.relational_layer = RelationAwareSelfAttention(
+                    hidden_size=self.hidden_size,
+                )
+            else:
+                raise ValueError(
+                    f"unknown enable_relational_reasoning={self.enable_relational_reasoning!r}; "
+                    f"expected 'attn' or None"
+                )
 
         # Phase 6: optional hierarchical marker decoder.
         # softmax([case_logits; role_logits]) → small linear → marker_bias (N_marker).
@@ -187,6 +208,9 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         head_dir_ids: Optional[torch.LongTensor] = None,
         head_dist_ids: Optional[torch.LongTensor] = None,
         gov_pos_ids: Optional[torch.LongTensor] = None,
+        # Phase 3.1: raw HEAD index per word (1-based UD; 0 = root).
+        # Optional — only needed when enable_relational_reasoning is set.
+        head_indices: Optional[torch.LongTensor] = None,
         has_dep: Optional[torch.LongTensor] = None,
         has_irab: Optional[torch.LongTensor] = None,
         has_morph: Optional[torch.LongTensor] = None,
@@ -252,6 +276,20 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
                                        + self.dep_feature_encoder.gov_pos_embed.embedding_dim)
         h_aug = torch.cat([pooled, dep_emb], dim=-1)
         pooled_irab = self.dep_proj(h_aug)
+
+        # Phase 3.1: relational reasoning over the dep tree.
+        # The relational layer reads the per-sentence head_indices + deprel_ids
+        # to compute per-edge-type bias on attention; output is residual-summed
+        # to pooled_irab (zero-init out_proj keeps step 0 byte-equivalent).
+        if (self.enable_relational_reasoning is not None
+                and dep_provided
+                and head_indices is not None):
+            pooled_irab = self.relational_layer(
+                x=pooled_irab,
+                head_indices=head_indices,
+                deprel_ids=deprel_ids,
+                word_mask=word_mask,
+            )
 
         # Compute role first so the (optional) hierarchical case decoder
         # can consume role_softmax. Phase 5 layered on top of Phase 3.

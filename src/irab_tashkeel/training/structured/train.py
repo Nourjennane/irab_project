@@ -125,6 +125,13 @@ class StructuredConfig:
     enable_marker_hierarchy: bool = False
     marker_hierarchy_detached: bool = False
 
+    # ---- Phase 3.1 — relational reasoning expansion ----
+    # None / "none" = Phase 3-A baseline; "attn" = relation-aware self-attention.
+    # Requires enable_dep_features=True. Layered between dep_proj and iʿrāb heads.
+    enable_relational_reasoning: Optional[str] = None
+    # Phase 3.1 best-practice: freeze morph heads to avoid Phase 2 joint-dynamics drift.
+    freeze_morph_heads: bool = False
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -342,8 +349,20 @@ def main():
                 case_hierarchy_detached=cfg.case_hierarchy_detached,
                 enable_marker_hierarchy=cfg.enable_marker_hierarchy,
                 marker_hierarchy_detached=cfg.marker_hierarchy_detached,
+                enable_relational_reasoning=cfg.enable_relational_reasoning,
                 **n_role_kw,
             )
+            # Phase 3.1: optionally freeze morph heads (Phase 2 joint-dynamics
+            # finding makes this prudent for Phase 3.1 experiments).
+            if cfg.freeze_morph_heads and model.enable_morph_heads:
+                for f in list(model.morph_heads.keys()):
+                    for p in model.morph_heads[f].parameters():
+                        p.requires_grad_(False)
+                # Zero out the morph loss weights so morph CE doesn't add
+                # to total loss (encoder still gets gradient from iʿrāb).
+                for f in list(model.morph_loss_weights.keys()):
+                    model.morph_loss_weights[f] = 0.0
+                print(f"[train] Phase 3.1: morph heads frozen (params not optimised; loss weights zero'd)")
             print(f"[train] dep features enabled: encoder + dep_proj "
                   f"params={sum(p.numel() for p in model.dep_feature_encoder.parameters()) + sum(p.numel() for p in model.dep_proj.parameters())}")
             if cfg.enable_case_hierarchy:

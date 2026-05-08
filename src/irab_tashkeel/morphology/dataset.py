@@ -202,6 +202,10 @@ class MorphAwareStructuredIrabDataset(Dataset):
             head_indices=head_indices,
             governor_uposes=governor_uposes,
         )
+        # Phase 3.1: also emit raw head_indices for relation-aware attention.
+        # Cap at len(deprels) so out-of-range parent indices (rare; alignment
+        # artefacts) become 0 = root.
+        head_indices_for_attn = [h if 0 <= h <= len(deprels) else 0 for h in head_indices]
 
         return {
             "input_ids": torch.tensor(ids, dtype=torch.long),
@@ -223,6 +227,7 @@ class MorphAwareStructuredIrabDataset(Dataset):
             "head_dir_ids":  torch.tensor(head_dir_ids,  dtype=torch.long),
             "head_dist_ids": torch.tensor(head_dist_ids, dtype=torch.long),
             "gov_pos_ids":   torch.tensor(gov_pos_ids,   dtype=torch.long),
+            "head_indices":  torch.tensor(head_indices_for_attn, dtype=torch.long),
             "has_irab": int(has_irab),
             "has_morph": int(has_morph),
             "has_dep": int(has_dep),
@@ -288,6 +293,7 @@ class MorphAwareCollator:
             out["head_dir_ids"]  = _pad_w("head_dir_ids", 0)
             out["head_dist_ids"] = _pad_w("head_dist_ids", 0)
             out["gov_pos_ids"]   = _pad_w("gov_pos_ids", 0)
+            out["head_indices"]  = _pad_w("head_indices", 0)
             # has_dep is per-record, broadcast to per-word later in the model
             # via the (B,W,1) gate. Encode at (B,) here.
             out["has_dep"] = torch.tensor(
