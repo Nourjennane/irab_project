@@ -99,7 +99,12 @@
       "Bash(curl -sL -o masaq_all.zip \"https://data.mendeley.com/public-files/datasets/9yvrzxktmr/files/all\")",
       "Bash(pkill -f \"prepare_gold_seed\")",
       "Bash(rsync -av -e 'ssh -o ConnectTimeout=10' data/marker_pairs_yarob_only.jsonl '3415496@10.35.5.3:~/irab_project/data/')",
-      "Bash(tee /tmp/sonnet_hybrid.log)"
+      "Bash(tee /tmp/sonnet_hybrid.log)",
+      "Bash(echo \"---exit=$?---\")",
+      "Bash(timeout 5 nc -zv 10.35.5.3 22)",
+      "Bash(timeout 5 nc -zv slogin.hpc.unibocconi.it 22)",
+      "Bash(python3 *)",
+      "Bash(pip3 list *)"
     ]
   }
 }

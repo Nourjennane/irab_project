@@ -1,0 +1,29 @@
+# Phase 3: structured-prediction v1 rebuild.
+# AraT5v2-base encoder + 4 classification heads (case / role / marker / POS),
+# trained on the canonicalized 5K-sentence / 77K-word distill_v2 corpus.
+#
+# Designed for the Bocconi `stud` MIG slice (~22-40 GB).
+
+encoder_name: UBC-NLP/AraT5v2-base-1024
+train_path: data/structured_v1/train.jsonl
+val_path: data/structured_v1/val.jsonl
+
+max_subwords: 320
+max_words: 64
+head_dropout: 0.1
+loss_weights: [1.0, 1.0, 1.0, 0.5]   # case, role, marker, pos
+
+learning_rate: 5.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.06
+num_train_epochs: 3
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 4
+logging_steps: 50
+eval_steps: 500
+save_total_limit: 1
+seed: 42
+bf16: true
+gradient_checkpointing: false
+optim: adamw_torch
