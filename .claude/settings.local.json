@@ -118,7 +118,12 @@
       "Bash(scp -q src/irab_tashkeel/inference/qualitative_trace.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/inference/qualitative_trace.py)",
       "Bash(scp -q src/irab_tashkeel/training/structured/train.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/training/structured/train.py)",
       "Bash(scp -q src/irab_tashkeel/inference/structured_predictor.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/inference/structured_predictor.py)",
-      "Bash(scp -q src/irab_tashkeel/evaluation/run_baselines.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/evaluation/run_baselines.py)"
+      "Bash(scp -q src/irab_tashkeel/evaluation/run_baselines.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/evaluation/run_baselines.py)",
+      "Bash(chmod +x /Users/nourjennane/Desktop/irab_project/scripts/structured/eval_structured_v1.sh)",
+      "Bash(scp -q scripts/structured/eval_structured_v1.sh 3415496@10.35.5.3:~/irab_project/scripts/structured/eval_structured_v1.sh)",
+      "Bash(scp -q scripts/slurm/51_eval_structured_v1.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/51_eval_structured_v1.sbatch)",
+      "Bash(scp -q src/irab_tashkeel/retrieval/__init__.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/retrieval/__init__.py)",
+      "Bash(scp -q src/irab_tashkeel/retrieval/jaccard_retriever.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/retrieval/jaccard_retriever.py)"
     ]
   }
 }
