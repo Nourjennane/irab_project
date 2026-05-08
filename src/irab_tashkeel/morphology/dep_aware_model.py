@@ -186,21 +186,32 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         for f in self.morph_heads_enabled:
             morph_logits[f] = self.morph_heads[f](pooled)
 
-        # Build dep-augmented features. Words without dep info are zeroed out
-        # via has_dep (B, W), so the dep contribution to those rows is the
-        # zero vector → after dep_proj's identity init the iʿrāb input there
-        # is exactly pooled (no information loss for has_dep=False positions).
+        # Build dep-augmented features. CRITICAL: when enable_dep_features=True,
+        # we ALWAYS run dep_proj (even if no dep tensors are supplied), so the
+        # iʿrāb heads see the same transformation pipeline at inference as they
+        # did during training on has_dep=False examples. Without this, the
+        # inference path skips dep_proj entirely and the iʿrāb heads operate
+        # out-of-distribution.
+        B, W = pooled.size(0), pooled.size(1)
         if dep_provided:
             dep_emb = self.dep_feature_encoder(
                 deprel_ids=deprel_ids, head_dir_ids=head_dir_ids,
                 head_dist_ids=head_dist_ids, gov_pos_ids=gov_pos_ids,
             )
             if has_dep is not None:
-                dep_emb = dep_emb * has_dep.unsqueeze(-1).to(dep_emb.dtype)
-            h_aug = torch.cat([pooled, dep_emb], dim=-1)
-            pooled_irab = self.dep_proj(h_aug)
+                # has_dep is (B,); broadcast to (B, 1, 1) so it scales (B, W, M_dep)
+                gate = has_dep.view(-1, 1, 1).to(dep_emb.dtype)
+                dep_emb = dep_emb * gate
         else:
-            pooled_irab = pooled
+            # No dep tensors supplied → use zeros. Matches the has_dep=False
+            # training path (where dep_emb is masked to zero and dep_proj
+            # still runs).
+            dep_emb = pooled.new_zeros(B, W, self.dep_feature_encoder.deprel_embed.embedding_dim
+                                       + self.dep_feature_encoder.head_dir_embed.embedding_dim
+                                       + self.dep_feature_encoder.head_dist_embed.embedding_dim
+                                       + self.dep_feature_encoder.gov_pos_embed.embedding_dim)
+        h_aug = torch.cat([pooled, dep_emb], dim=-1)
+        pooled_irab = self.dep_proj(h_aug)
 
         case_logits   = self.case_head(pooled_irab)
         role_logits   = self.role_head(pooled_irab)
