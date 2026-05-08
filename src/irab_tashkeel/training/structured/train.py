@@ -110,6 +110,15 @@ class StructuredConfig:
     # keeps the Phase 1 / Phase 2 graph byte-identical.
     enable_dep_features: bool = False
 
+    # ---- Phase 5 — hierarchical case decoder (output-side conditioning) ----
+    # When True, role softmax is added to the case logits via a learnable
+    # role→case bias matrix (zero-init). Requires enable_dep_features=True
+    # (Phase 5 layers on Phase 3-A).
+    enable_case_hierarchy: bool = False
+    # When True, the role softmax fed to the role→case bias is detached so
+    # case loss does NOT flow back into the role head. Reported as ablation.
+    case_hierarchy_detached: bool = False
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -323,10 +332,16 @@ def main():
                 conditioning_mechanism=cfg.conditioning_mechanism,
                 conditioning_detached=cfg.conditioning_detached,
                 enable_dep_features=True,
+                enable_case_hierarchy=cfg.enable_case_hierarchy,
+                case_hierarchy_detached=cfg.case_hierarchy_detached,
                 **n_role_kw,
             )
             print(f"[train] dep features enabled: encoder + dep_proj "
                   f"params={sum(p.numel() for p in model.dep_feature_encoder.parameters()) + sum(p.numel() for p in model.dep_proj.parameters())}")
+            if cfg.enable_case_hierarchy:
+                print(f"[train] case hierarchy enabled: role→case bias "
+                      f"detached={cfg.case_hierarchy_detached} "
+                      f"params={sum(p.numel() for p in model.role_to_case_bias.parameters())}")
         else:
             from irab_tashkeel.morphology.morph_model import MorphAugmentedStructuredModel
             model = MorphAugmentedStructuredModel(

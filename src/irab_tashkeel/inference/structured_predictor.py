@@ -98,6 +98,8 @@ class StructuredPredictor:
             conditioning_mechanism = tcfg.get("conditioning_mechanism")
             conditioning_detached = bool(tcfg.get("conditioning_detached", False))
             enable_dep_features = bool(tcfg.get("enable_dep_features", False))
+            enable_case_hierarchy = bool(tcfg.get("enable_case_hierarchy", False))
+            case_hierarchy_detached = bool(tcfg.get("case_hierarchy_detached", False))
 
         # Phase 4a: taxonomy switch picks the right ID_TO_ROLE map at predict-time.
         if taxonomy == "v4":
@@ -133,6 +135,8 @@ class StructuredPredictor:
                 enable_morph_heads=True,
                 morph_heads_enabled=morph_set,
                 enable_dep_features=True,
+                enable_case_hierarchy=enable_case_hierarchy,
+                case_hierarchy_detached=case_hierarchy_detached,
                 **n_role_kw,
             )
             self.has_morph_path = True

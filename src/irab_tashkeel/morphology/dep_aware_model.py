@@ -87,6 +87,9 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         self,
         *args,
         enable_dep_features: bool = False,
+        # Phase 5: hierarchical case decoder (output-side conditioning).
+        enable_case_hierarchy: bool = False,
+        case_hierarchy_detached: bool = False,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -107,6 +110,24 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             in_dim = self.hidden_size + DEP_FEATURE_DIM_TOTAL
             self.dep_proj = nn.Linear(in_dim, self.hidden_size, bias=True)
             self._identity_init_dep_proj()
+
+        # Phase 5: optional hierarchical case decoder. role_softmax (N_role)
+        # → small linear → case_bias (N_case). Initialised to zero so step 0
+        # is byte-equivalent to the no-hierarchy path.
+        self.enable_case_hierarchy = bool(enable_case_hierarchy)
+        self.case_hierarchy_detached = bool(case_hierarchy_detached)
+        if self.enable_case_hierarchy:
+            if not self.enable_dep_features:
+                raise ValueError(
+                    "enable_case_hierarchy=True requires enable_dep_features=True. "
+                    "Phase 5 is designed to layer on top of Phase 3-A (the current "
+                    "production checkpoint), not on Phase 1 alone."
+                )
+            self.role_to_case_bias = nn.Linear(
+                self._n_role, self.case_head.out_features, bias=False,
+            )
+            with torch.no_grad():
+                self.role_to_case_bias.weight.zero_()
 
     def _identity_init_dep_proj(self) -> None:
         """Initialise dep_proj so that, with random near-zero dep embeddings,
@@ -213,11 +234,19 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         h_aug = torch.cat([pooled, dep_emb], dim=-1)
         pooled_irab = self.dep_proj(h_aug)
 
-        case_logits   = self.case_head(pooled_irab)
+        # Compute role first so the (optional) hierarchical case decoder
+        # can consume role_softmax. Phase 5 layered on top of Phase 3.
         role_logits   = self.role_head(pooled_irab)
         marker_logits = self.marker_head(pooled_irab)
         # POS stays unconditioned — it is encoder-level (parallel auxiliary), not iʿrāb-level.
         pos_logits    = self.pos_head(pooled)
+
+        case_logits = self.case_head(pooled_irab)
+        if self.enable_case_hierarchy:
+            role_softmax = F.softmax(role_logits, dim=-1)
+            if self.case_hierarchy_detached:
+                role_softmax = role_softmax.detach()
+            case_logits = case_logits + self.role_to_case_bias(role_softmax)
 
         out: Dict[str, torch.Tensor] = {
             "case_logits":   case_logits,
