@@ -29,6 +29,9 @@ from ..structured.schema import (
     CASE_LABELS, ROLE_LABELS, MARKER_LABELS, POS_LABELS,
     ID_TO_CASE, ID_TO_ROLE, ID_TO_MARKER, ID_TO_POS,
 )
+from ..structured.taxonomy_v4 import (
+    ID_TO_ROLE_V4, N_ROLE_V4,
+)
 from ..structured.word_irab import SentenceIrab, WordIrab
 from .symbolic_constraints import apply_constraints, apply_hierarchical, ConstraintTrace
 from .template_renderer import render_word
@@ -77,17 +80,29 @@ class StructuredPredictor:
         except Exception:
             self.tokenizer = AutoTokenizer.from_pretrained(encoder_name)
 
-        # Build model and load state-dict.  Reconstruct CRF flag from the
-        # saved structured_config.json if present (so a CRF-trained checkpoint
-        # loads with use_crf_role=True automatically).
+        # Build model and load state-dict.  Reconstruct CRF flag + taxonomy
+        # from the saved structured_config.json if present.
         use_crf = False
+        taxonomy = "v3"
         if tcfg_path.exists():
             tcfg = json.loads(tcfg_path.read_text())
             use_crf = bool(tcfg.get("use_crf_role", False))
+            taxonomy = tcfg.get("taxonomy", "v3")
+
+        # Phase 4a: taxonomy switch picks the right ID_TO_ROLE map at predict-time.
+        if taxonomy == "v4":
+            self.id_to_role = ID_TO_ROLE_V4
+            n_role_kw = {"n_role": N_ROLE_V4}
+        else:
+            self.id_to_role = ID_TO_ROLE
+            n_role_kw = {}
+        self.taxonomy = taxonomy
+
         self.model = StructuredIrabModel(
             encoder_name=encoder_name,
             use_crf_role=use_crf,
             output_attentions=self.cfg.return_attention,
+            **n_role_kw,
         )
         sd_path = self.model_dir / "pytorch_model.bin"
         sd = torch.load(sd_path, map_location="cpu", weights_only=True)
@@ -239,7 +254,7 @@ class StructuredPredictor:
             wi = WordIrab(
                 word=w,
                 case=ID_TO_CASE.get(ci),
-                role=ID_TO_ROLE.get(ri),
+                role=self.id_to_role.get(ri),
                 marker=ID_TO_MARKER.get(mi),
                 pos=ID_TO_POS.get(pi),
                 case_conf=float(case_conf[i].item()),

@@ -417,6 +417,16 @@ ARABIC_ROLE_FORMS = {
     "munada":      "منادى",
     "punctuation": "علامة ترقيم",
     "other":       "",
+    # ── Phase 4a (taxonomy v4) additions — additive; v3 entries unchanged ──
+    "dharf_zaman":   "ظرف زمان",
+    "dharf_makan":   "ظرف مكان",
+    "fil_madi":      "فعل ماضٍ",
+    "fil_mudari":    "فعل مضارع",
+    "fil_naqis":     "فعل ناقص",
+    "harf_nafy":     "حرف نفي",
+    "harf_nasb":     "حرف ناصب",
+    "harf_tahqiq":   "حرف تحقيق",
+    "mafoul_mutlaq": "مفعول مطلق",
 }
 
 ARABIC_MARKER_FORMS = {

@@ -72,12 +72,15 @@ class MorphAwareStructuredIrabDataset(Dataset):
         max_subwords: int = 320,
         max_words: int = 64,
         skip_long: bool = True,
+        role_to_id: Optional[Dict[str, int]] = None,
     ):
         self.path = Path(path)
         self.tokenizer = tokenizer
         self.max_subwords = max_subwords
         self.max_words = max_words
         self.eos_id = tokenizer.eos_token_id if tokenizer.eos_token_id is not None else tokenizer.sep_token_id
+        # Phase 4a: parametrised role_to_id (v3 default = rev 2 / Phase 1 path).
+        self._role_to_id = ROLE_TO_ID if role_to_id is None else role_to_id
 
         self._records: List[Dict] = []
         n_skipped_long = 0
@@ -143,7 +146,7 @@ class MorphAwareStructuredIrabDataset(Dataset):
             # i'rāb labels: use values when has_irab else IGNORE
             if has_irab:
                 case_lbl.append(CASE_TO_ID.get(w.get("case"), IGNORE))
-                role_lbl.append(ROLE_TO_ID.get(w.get("role"), IGNORE))
+                role_lbl.append(self._role_to_id.get(w.get("role"), IGNORE))
                 marker_lbl.append(MARKER_TO_ID.get(w.get("marker"), IGNORE))
                 # POS source for has_irab examples is the iʿrāb "pos" field.
                 pos_lbl.append(POS_TO_ID.get(w.get("pos"), IGNORE))

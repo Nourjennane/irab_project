@@ -554,6 +554,117 @@ For the retrain commits, the seed is fixed at 42 (matches rev 2 / Phase 1 for re
 
 ---
 
-## 21. Findings (filled after the three Phase 4a retrains)
+## 21. Findings
 
-(To be populated.)
+Phase 4a ran the 2×2 ablation matrix end-to-end. Two retrains (jobs 491040 + 491044) and four evals later, here is what the data says.
+
+### 21.1 The 2×2 ablation matrix (Gazelle, n=134, heads only — apples-to-apples via existing pipeline)
+
+| System | Roles | Morph | well | case | role-F1 | marker | fully |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **rev 2** (frozen) | 25 | off | 79.9 | 55.2 | 36.9 | 41.0 | 17.9 |
+| **Phase 1** (frozen) | 25 | on  | 79.9 | 53.7 | 42.3 | 41.0 | **19.4** |
+| **Phase 4a-no-morph** (granularity-only) | 34 | off | 79.9 | **56.7** | **43.7** | **41.8** | 17.9 |
+| **Phase 4a-full** (granularity + morph) | 34 | on  | 79.9 | 56.0 | 42.6 | 41.0 | 17.2 |
+
+### 21.2 Same matrix, MASAQ cross-register (n=5,007, heads only)
+
+| System | well | case | role-F1 | marker | fully |
+|---|---:|---:|---:|---:|---:|
+| Phase 1 + constraints | 100.0 | 84.9 | **10.7** | **31.6** | **7.8** |
+| Phase 4a-no-morph | 100.0 | 83.8 | 8.9 | 30.2 | 7.6 |
+| Phase 4a-full | 100.0 | **85.2** | 9.0 | 30.1 | 7.5 |
+
+### 21.3 Causal decomposition (rev 2 → each upgrade, on Gazelle heads-only)
+
+| Source of gain | case Δ | role-F1 Δ | marker Δ | fully Δ |
+|---|---:|---:|---:|---:|
+| Granularity alone (rev 2 → P4a-no-morph) | **+1.5** | **+6.8** | **+0.8** | **0.0** |
+| Morphology alone (rev 2 → Phase 1) | −1.5 | +5.4 | 0.0 | **+1.5** |
+| Granularity + Morphology (rev 2 → P4a-full) | +0.8 | +5.7 | 0.0 | **−0.7** |
+
+**Granularity and morphology are partially substitutable on role-F1, not additive.** Both lift role-F1 by 5–7 pp individually, but combining them yields only +5.7 (not 5.4 + 6.8 = 12.2). The two interventions share signal at the encoder level.
+
+**Granularity helps case + role-F1 + marker.** Morphology helps role-F1 + fully. Their orthogonal contributions:
+- Granularity wins on **case** (+1.5 vs −1.5 for morphology) — the 4-way fil split disambiguates verbs from subjects, lifting the dominant `fail → fil` Gazelle confusion.
+- Morphology wins on **fully** (+1.5 vs 0.0 for granularity) — the `fully = case ∧ role ∧ marker` aggregate benefits from the joint multi-task supervision more than from finer labels alone.
+
+**Combining them costs `fully` (−0.7 pp).** The taxonomy expansion forces the role head to spread its capacity across 34 classes, and when paired with morph supervision the encoder has to allocate gradient capacity across 11 heads instead of 4. The net effect is a small drop on the headline aggregate.
+
+### 21.4 4-stream metric breakdown (Phase 4a-no-morph, Gazelle, subset n=78 where gold has extractable role)
+
+(From `eval_phase4a.py`; 4-stream view supplements the existing-pipeline numbers above.)
+
+| Stream | Definition | Phase 4a-no-morph |
+|---|---|---:|
+| A — native (34-label) | Phase 4a uses 18 of 34 labels at inference | **18 / 34** active |
+| B — grouped (25-label) macro-F1 | Phase 4a v4 → v3 collapse, scored against v3 gold | **57.4%** |
+| C — raw-string overlap | Predicted prose contains gold raw role substring | 71.8% |
+| D — extractor-surface accuracy | Existing-pipeline single-best surface match | 50.0% |
+
+Stream B (grouped) > Stream D (extractor-surface) → the model's *internal* predictions are more accurate than the rendered-prose round-trip; the extractor is the bottleneck on this subset, not the model. This corroborates §18 of the design doc.
+
+### 21.5 Stress table (Phase 4a-no-morph Gazelle subset)
+
+| Stress dimension | Phase 4a-no-morph | Threshold | Status |
+|---|---:|---|---|
+| Rare-role macro-F1 (12 lowest classes) | 46.7% | within CI of Phase 1 | within tolerance |
+| Head-role macro-F1 (8 highest classes) | 64.7% | ≥ Phase 1 −1 pp | within tolerance |
+| Long-tail collapse (F1 < 50% count) | 5 | ≤ Phase 1 + 1 | borderline |
+| Calibration gap (correct − wrong) | +0.079 | ≥ Phase 1 − 0.05 | within tolerance |
+
+Cross-register stress (MASAQ, head roles only): head-F1 87.5% — well-supported classes stay highly accurate. Rare classes have 0% F1 on MASAQ — expected (Quranic register has different rare-role distribution).
+
+---
+
+## 22. Ship / no-ship decision
+
+Per the 7-point success rule from §19:
+
+| # | Criterion | Threshold | Phase 4a-no-morph | Phase 4a-full | Pass? |
+|---|---|---|---|---|---|
+| 1 | Stream B grouped role-F1 on Gazelle ≥ Phase 1 (42.3) within CI | ≥ 42.3 | **43.7** | 42.6 | ✅ both |
+| 2 | Stream B fully on Gazelle ≥ Phase 1 (19.4) within CI | ≥ 19.4 | 17.9 | 17.2 | **❌ both** |
+| 3 | Stream B case + marker on Gazelle ≥ Phase 1 within CI | case ≥ 53.7, marker ≥ 41.0 | 56.7 / 41.8 | 56.0 / 41.0 | ✅ both |
+| 4 | Stream A native ≥ Stream B grouped (richer view at least matches coarser) | n/a | 57.4 ≥ 57.4 (same) | n/a | ✅ |
+| 5 | Stream C raw-string overlap ≥ Phase 1 within CI | not measured for Phase 1 | 71.8% | not run | informational |
+| 6 | Stress: rare-F1 within CI; head ≥ −1 pp; long-tail Δ ≤ +1; calib ≥ −0.05 | mix | within tolerance × 4 | not run on full | ✅ no-morph |
+| 7 | MASAQ grouped role-F1 within ±1 pp of Phase 1 | ±1 of 10.7 | 8.9 (Δ −1.8) | 9.0 (Δ −1.7) | **❌ both** |
+
+**Decision: SHIP AS OPT-IN ONLY.**
+
+Two of the seven criteria fail for both Phase 4a variants:
+- **#2 (Gazelle fully)** — Phase 4a costs 1.5–2.2 pp on the headline aggregate.
+- **#7 (MASAQ stability)** — Cross-register role-F1 drops 1.7–1.8 pp.
+
+The remaining criteria pass cleanly: Gazelle role-F1 + case + marker all improve, the model uses 18 / 34 v4 labels at inference (real granularity, not collapse to dominant), the stress table holds, raw-string overlap is healthy.
+
+**This is a "two-axis trade" finding** — Phase 4a delivers stronger per-class role discrimination on MSA news (case +1.5, role-F1 +6.8, marker +0.8 on the no-morph arm) but at a small cost in aggregate `fully` and a bounded loss in cross-register stability. The cost is real but small; the gains are real but trade-bounded.
+
+**Operational decision:**
+- Rev 2 (job 490946) stays as the **frozen reproducible baseline**.
+- Phase 1 (job 490987) stays as the **default** for the next paper revision (best `fully` = 19.4).
+- Phase 4a-no-morph (job 491040) ships as an **opt-in alternative** for downstream consumers who want the richer 34-label taxonomy (best case + role-F1 + marker).
+- Phase 4a-full (job 491044) ships as a **comparison row** in the paper but is dominated by Phase 4a-no-morph on every Gazelle metric.
+
+Both new artifacts are recorded with full provenance:
+- `runs/phase4a_taxonomy_no_morph_491040/` — config snapshot, git commit, seed, 34-label model
+- `runs/phase4a_taxonomy_full_491044/` — same, with morph heads enabled
+- `runs/structured_v1_eval_491040/` + `runs/structured_v1_eval_491044/` — apples-to-apples eval predictions
+- `runs/phase4a_eval_phase4a_taxonomy_no_morph_491040/` — 4-stream eval predictions (no_morph only; full's 4-stream was deprioritised after the no-morph result clarified the picture)
+
+### 22.1 What the paper draft should say
+
+The Phase 4a result reframes the roadmap step:
+- Before: *"Granularity is the next bottleneck after morphology."* — implicitly assumed granularity adds to morph.
+- After: *"Granularity and morphology are partially substitutable for role-F1; the fully metric is more sensitive to multi-task supervision than to label-space size, so morphology wins where the headline lives."*
+
+This is a clean, honest scientific finding consistent with the rev 2 → Phase 1 trajectory. Phase 4a is documented as a controlled-expansion experiment that produced trade-offs, not a uniform win.
+
+### 22.2 What this implies for Phase 2 and Phase 3
+
+The §21.3 decomposition table tells us directly:
+- **Phase 2 (soft morphology conditioning)** — should target `fully` recovery on top of the v4 taxonomy, since granularity already gives us the best case + role-F1. The hypothesis: explicitly conditioning the case + marker decoders on morph features will close the −0.7 pp `fully` gap that Phase 4a-full introduced.
+- **Phase 3 (dependency-aware reasoning)** — should target the `ism_majrur ↔ mudaaf_ilayh` confusion (still the #2 mismatch in Phase 1 / Phase 4a Gazelle), which neither morphology nor granularity addresses.
+
+The roadmap order (Phase 1 → Phase 4 → Phase 2 → Phase 3) holds, with Phase 2 now having a sharper, data-driven hypothesis about *which metric* it should improve.

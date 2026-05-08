@@ -150,7 +150,23 @@
       "Bash(rsync -avz --no-perms data/morph_v1/ 3415496@10.35.5.3:~/irab_project/data/morph_v1/)",
       "Bash(scp -q scripts/slurm/59_smoke_phase1_morph.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/59_smoke_phase1_morph.sbatch)",
       "Bash(scp -q scripts/morphology/eval_morphology.py 3415496@10.35.5.3:~/irab_project/scripts/morphology/eval_morphology.py)",
-      "Bash(scp -q scripts/slurm/61_eval_phase1_morph.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/61_eval_phase1_morph.sbatch)"
+      "Bash(scp -q scripts/slurm/61_eval_phase1_morph.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/61_eval_phase1_morph.sbatch)",
+      "Bash(PYTHONPATH=src python3 -m pytest tests/test_taxonomy_v4.py -v)",
+      "Bash(PYTHONPATH=src python3 scripts/structured/build_structured_corpus_v4.py)",
+      "Bash(PYTHONPATH=src python3 -m irab_tashkeel.morphology.merge_corpora --irab_train data/structured_v1_v4/train.jsonl --irab_val data/structured_v1_v4/val.jsonl --out data/morph_v1_v4/train.jsonl)",
+      "Bash(scp -q src/irab_tashkeel/structured/taxonomy_v4.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/taxonomy_v4.py)",
+      "Bash(scp -q src/irab_tashkeel/structured/dataset.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/dataset.py)",
+      "Bash(scp -q src/irab_tashkeel/morphology/dataset.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/morphology/dataset.py)",
+      "Bash(scp -q configs/phase4a_taxonomy_no_morph.yaml 3415496@10.35.5.3:~/irab_project/configs/phase4a_taxonomy_no_morph.yaml)",
+      "Bash(scp -q configs/phase4a_taxonomy_full.yaml 3415496@10.35.5.3:~/irab_project/configs/phase4a_taxonomy_full.yaml)",
+      "Bash(rsync -avz --no-perms data/morph_v1_v4/ 3415496@10.35.5.3:~/irab_project/data/morph_v1_v4/)",
+      "Bash(PYTHONPATH=src USE_TF=0 python3 *)",
+      "Bash(scp -q src/irab_tashkeel/structured/schema.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/schema.py)",
+      "Bash(scp -q scripts/structured/eval_phase4a.py 3415496@10.35.5.3:~/irab_project/scripts/structured/eval_phase4a.py)",
+      "Bash(scp -q scripts/slurm/63_eval_phase4a.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/63_eval_phase4a.sbatch)",
+      "Bash(rsync -avz 3415496@10.35.5.3:~/irab_project/runs/structured_v1_eval_491040/ /Users/nourjennane/Desktop/irab_project/runs/structured_v1_eval_491040/)",
+      "Bash(rsync -avz 3415496@10.35.5.3:~/irab_project/runs/structured_v1_eval_491044/ /Users/nourjennane/Desktop/irab_project/runs/structured_v1_eval_491044/)",
+      "Bash(rsync -avz 3415496@10.35.5.3:~/irab_project/runs/phase4a_eval_phase4a_taxonomy_full_491044/ /Users/nourjennane/Desktop/irab_project/runs/phase4a_eval_phase4a_taxonomy_full_491044/)"
     ]
   }
 }

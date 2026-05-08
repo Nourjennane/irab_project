@@ -83,8 +83,9 @@ def render_word(item: WordIrab) -> str:
     marker_long = ARABIC_MARKER_FORMS.get(marker or "none", "")
     marker_short = _MARKER_SHORT.get(marker or "none", "")
 
-    # ---- particles (harf jarr / atf / other) ----
-    if role in ("harf_jarr", "harf_atf", "harf_other"):
+    # ---- particles (harf jarr / atf / other + Phase 4a sub-types) ----
+    if role in ("harf_jarr", "harf_atf", "harf_other",
+                "harf_nafy", "harf_nasb", "harf_tahqiq"):
         sk = marker_short or "السكون"
         return f"{role_form} مبني على {sk} {_NO_LOC}".strip()
 
@@ -97,21 +98,25 @@ def render_word(item: WordIrab) -> str:
         sk = marker_short or "السكون"
         # use a sensible في محل label
         loc_case = {"raf": "رفع", "nasb": "نصب", "jarr": "جر", "jazm": "جزم"}.get(role, "")
-        if role == "fil":
-            return f"فعل ماضٍ مبني على {sk} {_NO_LOC}".strip() if marker_short == "الفتح" else f"فعل مبني على {sk} {_NO_LOC}".strip()
+        if role in ("fil", "fil_madi", "fil_mudari", "fil_naqis"):
+            # v4 sub-types render with their canonical Arabic surface form
+            base = ARABIC_ROLE_FORMS.get(role, "فعل")
+            return f"{base} مبني على {sk} {_NO_LOC}".strip() if marker_short == "الفتح" or role == "fil_madi" else f"{base} مبني على {sk} {_NO_LOC}".strip()
         if role_form:
             return f"{role_form} مبني على {sk} {_NO_LOC}".strip()
         return f"مبني على {sk} {_NO_LOC}".strip()
 
     # ---- verbs (non-mabni — rare in MSA news, but exists) ----
-    if role == "fil":
+    if role in ("fil", "fil_madi", "fil_mudari", "fil_naqis"):
         case_data = ARABIC_CASE_FORMS.get(case, {})
         adj = case_data.get("adj", "")
         verb = case_data.get("verb", "")
         suffix = ""
         if marker_long:
             suffix = f" وعلامة {verb} {marker_long}"
-        return f"فعل مضارع {adj}{suffix}".strip()
+        # Use the v4 surface form when one of the verb sub-types
+        verb_base = ARABIC_ROLE_FORMS.get(role, "فعل مضارع")
+        return f"{verb_base} {adj}{suffix}".strip()
 
     # ---- standard nominal frame ----
     case_data = ARABIC_CASE_FORMS.get(case, {})

@@ -114,6 +114,7 @@ class StructuredIrabModel(nn.Module):
         pooling_strategy: str = "mean",
         use_crf_role: bool = False,
         output_attentions: bool = False,
+        n_role: Optional[int] = None,
     ):
         super().__init__()
         # Prefer T5EncoderModel for T5-family checkpoints: it loads ONLY the
@@ -132,9 +133,15 @@ class StructuredIrabModel(nn.Module):
             self.hidden_size = getattr(self.encoder.config, "d_model",
                                        getattr(self.encoder.config, "hidden_size"))
 
+        # Phase 4a — role head dim is parametrised (default = N_ROLE = 25 for
+        # the v3 / rev 2 / Phase 1 path). When n_role is provided (e.g. 34 for
+        # taxonomy_v4), the role head and the role class-weights buffer scale
+        # accordingly. All other heads are unchanged.
+        self._n_role = int(n_role) if n_role is not None else N_ROLE
+
         self.dropout = nn.Dropout(head_dropout)
         self.case_head = nn.Linear(self.hidden_size, N_CASE)
-        self.role_head = nn.Linear(self.hidden_size, N_ROLE)
+        self.role_head = nn.Linear(self.hidden_size, self._n_role)
         self.marker_head = nn.Linear(self.hidden_size, N_MARKER)
         self.pos_head = nn.Linear(self.hidden_size, N_POS)
         self.loss_weights = loss_weights
@@ -145,19 +152,22 @@ class StructuredIrabModel(nn.Module):
         self.pooling_strategy = pooling_strategy
 
         # Role class weights are saved as a non-trainable buffer so they
-        # travel with the model checkpoint and the device move.
+        # travel with the model checkpoint and the device move. Phase 4a:
+        # buffer dim follows self._n_role (so v3 → 25, v4 → 34).
         if role_class_weights is None:
-            self.register_buffer("role_class_weights", torch.ones(N_ROLE))
+            self.register_buffer("role_class_weights", torch.ones(self._n_role))
             self._has_role_weights = False
         else:
             w = role_class_weights.detach().to(torch.float32).clone()
-            assert w.shape == (N_ROLE,), f"role_class_weights must be shape ({N_ROLE},), got {tuple(w.shape)}"
+            assert w.shape == (self._n_role,), \
+                f"role_class_weights must be shape ({self._n_role},), got {tuple(w.shape)}"
             self.register_buffer("role_class_weights", w)
             self._has_role_weights = True
 
         self.use_crf_role = use_crf_role
         if use_crf_role:
-            self.role_crf = LinearChainCRF(N_ROLE)
+            # CRF taxonomy size follows self._n_role
+            self.role_crf = LinearChainCRF(self._n_role)
         else:
             self.role_crf = None
         self.output_attentions = output_attentions
@@ -223,7 +233,7 @@ class StructuredIrabModel(nn.Module):
                 loss_role = self.role_crf(role_logits, role_labels, word_mask)
             else:
                 loss_role = F.cross_entropy(
-                    role_logits.reshape(-1, N_ROLE), role_labels.reshape(-1),
+                    role_logits.reshape(-1, self._n_role), role_labels.reshape(-1),
                     ignore_index=IGNORE, label_smoothing=ls, weight=role_weight,
                 )
             loss_marker = F.cross_entropy(

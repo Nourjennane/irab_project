@@ -1,0 +1,46 @@
+# Phase 4a — granularity-only ablation (34-label v4 taxonomy, no morph heads).
+#
+# This config is the "morph OFF" arm of the 2x2 ablation matrix
+# (rev 2 / Phase 1 / Phase 4a-no-morph / Phase 4a-full). It isolates the
+# contribution of finer role granularity at the encoder level, with no
+# morphology supervision.
+#
+# Strict separation: rev 2 + Phase 1 frozen configs are NOT modified.
+
+encoder_name: UBC-NLP/AraT5v2-base-1024
+train_path: data/structured_v1_v4/train.jsonl     # v4 (34-label) i'rāb-only
+val_path: data/structured_v1_v4/val.jsonl
+
+max_subwords: 320
+max_words: 64
+head_dropout: 0.1
+loss_weights: [1.0, 1.5, 1.0, 0.5]    # case, role, marker, pos
+
+label_smoothing: 0.1
+role_class_weighting: sqrt_inv_freq    # rebalance the 34 classes
+pooling_strategy: first
+use_crf_role: false
+crf_init_from_bigrams: true
+
+learning_rate: 5.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.06
+num_train_epochs: 6
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 4
+logging_steps: 50
+eval_steps: 500
+save_total_limit: 1
+seed: 42
+bf16: true
+gradient_checkpointing: false
+optim: adamw_torch
+
+load_best_at_end: true
+metric_for_best: fully
+greater_is_better: true
+
+# ---- Phase 4a additions ----
+enable_morph_heads: false              # granularity-only arm
+taxonomy: v4                            # 34-label role taxonomy

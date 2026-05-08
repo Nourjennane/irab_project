@@ -93,6 +93,9 @@ class StructuredConfig:
     # subset of morph features to enable (None = all 7).
     morph_heads_enabled: Optional[list] = None
 
+    # ---- Phase 4a — taxonomy version (v3 = rev 2 / Phase 1 default; v4 = 34 labels) ----
+    taxonomy: str = "v3"
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -101,19 +104,29 @@ class StructuredConfig:
         return cls(**d)
 
 
-def _compute_role_class_weights(jsonl_path: str, mode: str) -> Optional[torch.Tensor]:
+def _compute_role_class_weights(jsonl_path: str, mode: str,
+                                taxonomy: str = "v3") -> Optional[torch.Tensor]:
     """Compute per-class weights for the role head from the training corpus.
 
-    Modes:
-      - "none":            no weighting (returns None)
-      - "sqrt_inv_freq":   w_i = sqrt(1 / (count_i + 1)), then mean-normalised
-      - "inv_freq":        w_i = 1 / (count_i + 1), then mean-normalised
+    Args:
+        jsonl_path: source corpus (v3 from data/structured_v1/, v4 from
+            data/structured_v1_v4/).
+        mode: "none" / "sqrt_inv_freq" / "inv_freq".
+        taxonomy: "v3" (25 labels, default — rev 2 / Phase 1) or "v4"
+            (34 labels — Phase 4a).
     """
     if mode == "none":
         return None
     import json
     from collections import Counter
-    from irab_tashkeel.structured.schema import N_ROLE, ROLE_LABELS, ROLE_TO_ID
+    if taxonomy == "v4":
+        from irab_tashkeel.structured.taxonomy_v4 import (
+            ROLE_LABELS_V4 as ROLE_LABELS,
+            ROLE_TO_ID_V4 as ROLE_TO_ID,
+            N_ROLE_V4 as N_ROLE,
+        )
+    else:
+        from irab_tashkeel.structured.schema import N_ROLE, ROLE_LABELS, ROLE_TO_ID
     cnt = Counter()
     with open(jsonl_path) as fh:
         for line in fh:
@@ -249,17 +262,32 @@ def main():
 
     print(f"[train] loading tokenizer + encoder from {cfg.encoder_name}")
     tokenizer = AutoTokenizer.from_pretrained(cfg.encoder_name)
-    # Role class weights are computed from the i'rāb corpus (Phase-1 morph
-    # branch keeps the same iʿrāb supervision; weights still come from
-    # data/structured_v1/train.jsonl which is i'rāb-only).
+    # Phase 4a: dispatch on taxonomy choice (v3 = rev 2 default; v4 = 34
+    # labels). The role taxonomy + role-class-weight source travel together.
+    if cfg.taxonomy == "v4":
+        from irab_tashkeel.structured.taxonomy_v4 import (
+            ROLE_TO_ID_V4 as ROLE_TO_ID_active,
+            N_ROLE_V4 as N_ROLE_active,
+        )
+        print(f"[train] taxonomy=v4 (34 labels)")
+    else:
+        from irab_tashkeel.structured.schema import (
+            ROLE_TO_ID as ROLE_TO_ID_active,
+            N_ROLE as N_ROLE_active,
+        )
+        print(f"[train] taxonomy=v3 (25 labels) [rev 2 / Phase 1 default]")
     role_weight_source = cfg.train_path
-    role_weights = _compute_role_class_weights(role_weight_source, cfg.role_class_weighting)
+    role_weights = _compute_role_class_weights(role_weight_source,
+                                                cfg.role_class_weighting,
+                                                taxonomy=cfg.taxonomy)
     if role_weights is not None:
         print(f"[train] role_class_weighting={cfg.role_class_weighting}  "
               f"min={role_weights.min().item():.3f}  max={role_weights.max().item():.3f}")
     print(f"[train] label_smoothing={cfg.label_smoothing}  pooling={cfg.pooling_strategy}  "
           f"use_crf_role={cfg.use_crf_role}  enable_morph_heads={cfg.enable_morph_heads}")
 
+    # n_role passes through to the model so v4 (34) overrides the default v3 (25).
+    n_role_kw = {"n_role": N_ROLE_active} if cfg.taxonomy == "v4" else {}
     if cfg.enable_morph_heads:
         # Phase 1 path — morph-augmented model + masked multi-task dataset.
         from irab_tashkeel.morphology.morph_model import MorphAugmentedStructuredModel
@@ -275,11 +303,13 @@ def main():
             enable_morph_heads=True,
             morph_heads_enabled=morph_heads_enabled,
             morph_loss_weights=cfg.morph_loss_weights,
+            **n_role_kw,
         )
         print(f"[train] morph heads enabled: {sorted(model.morph_heads_enabled)}")
         print(f"[train] morph loss weights: { {k: model.morph_loss_weights[k] for k in sorted(model.morph_heads_enabled)} }")
     else:
-        # Default rev-2 path — byte-identical to before Phase 1.
+        # Default rev-2 path — byte-identical to before Phase 1 / Phase 4a
+        # when taxonomy=v3. With taxonomy=v4 it's the granularity-only branch.
         model = StructuredIrabModel(
             encoder_name=cfg.encoder_name,
             head_dropout=cfg.head_dropout,
@@ -288,6 +318,7 @@ def main():
             role_class_weights=role_weights,
             pooling_strategy=cfg.pooling_strategy,
             use_crf_role=cfg.use_crf_role,
+            **n_role_kw,
         )
 
     if cfg.use_crf_role and cfg.crf_init_from_bigrams:
@@ -301,19 +332,26 @@ def main():
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
 
+    role_to_id_kw = {"role_to_id": ROLE_TO_ID_active} if cfg.taxonomy == "v4" else {}
     if cfg.enable_morph_heads:
         from irab_tashkeel.morphology.dataset import (
             MorphAwareStructuredIrabDataset, MorphAwareCollator,
         )
         print(f"[train] datasets (Phase 1, merged): train={cfg.morph_train_path}  val={cfg.morph_val_path}")
         train_ds = MorphAwareStructuredIrabDataset(cfg.morph_train_path, tokenizer,
-                                                    max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+                                                    max_subwords=cfg.max_subwords, max_words=cfg.max_words,
+                                                    **role_to_id_kw)
         val_ds = MorphAwareStructuredIrabDataset(cfg.morph_val_path, tokenizer,
-                                                  max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+                                                  max_subwords=cfg.max_subwords, max_words=cfg.max_words,
+                                                  **role_to_id_kw)
     else:
         print(f"[train] datasets: train={cfg.train_path}  val={cfg.val_path}")
-        train_ds = StructuredIrabDataset(cfg.train_path, tokenizer, max_subwords=cfg.max_subwords, max_words=cfg.max_words)
-        val_ds = StructuredIrabDataset(cfg.val_path, tokenizer, max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+        train_ds = StructuredIrabDataset(cfg.train_path, tokenizer,
+                                          max_subwords=cfg.max_subwords, max_words=cfg.max_words,
+                                          **role_to_id_kw)
+        val_ds = StructuredIrabDataset(cfg.val_path, tokenizer,
+                                        max_subwords=cfg.max_subwords, max_words=cfg.max_words,
+                                        **role_to_id_kw)
 
     if args.smoke:
         # Subsample to smoke_n sentences for a fast sanity run.

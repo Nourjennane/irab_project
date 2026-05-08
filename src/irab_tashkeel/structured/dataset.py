@@ -61,6 +61,7 @@ class StructuredIrabDataset(Dataset):
         max_subwords: int = 320,
         max_words: int = 64,
         skip_long: bool = True,
+        role_to_id: Optional[Dict[str, int]] = None,
     ):
         self.path = Path(path)
         self.tokenizer = tokenizer
@@ -68,6 +69,10 @@ class StructuredIrabDataset(Dataset):
         self.max_words = max_words
         self.skip_long = skip_long
         self.eos_id = tokenizer.eos_token_id if tokenizer.eos_token_id is not None else tokenizer.sep_token_id
+        # Phase 4a: role_to_id is parametrised so v3 (rev 2 / Phase 1) and v4
+        # (Phase 4a) can share this dataset class. Default = v3 ROLE_TO_ID,
+        # which preserves the rev 2 + Phase 1 path byte-identical.
+        self._role_to_id = ROLE_TO_ID if role_to_id is None else role_to_id
 
         self._records: List[Dict] = []
         n_skipped_long = 0
@@ -115,7 +120,7 @@ class StructuredIrabDataset(Dataset):
             word_ends.append(len(ids))
             words.append(w.word)
             case_lbl.append(CASE_TO_ID[w.case] if w.case in CASE_TO_ID else IGNORE)
-            role_lbl.append(ROLE_TO_ID[w.role] if w.role in ROLE_TO_ID else IGNORE)
+            role_lbl.append(self._role_to_id[w.role] if w.role in self._role_to_id else IGNORE)
             marker_lbl.append(MARKER_TO_ID[w.marker] if w.marker in MARKER_TO_ID else IGNORE)
             pos_lbl.append(POS_TO_ID[w.pos] if w.pos in POS_TO_ID else IGNORE)
 
