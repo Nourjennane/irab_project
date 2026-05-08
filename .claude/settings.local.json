@@ -128,7 +128,12 @@
       "Bash(xelatex --version)",
       "Bash(rsync -avz '3415496@10.35.5.3:~/irab_project/runs/structured_v1_eval_490876/' /Users/nourjennane/Desktop/irab_project/runs/structured_v1_eval_490876/)",
       "Bash(USE_TF=0 TRANSFORMERS_NO_ADVISORY_WARNINGS=1 python3 *)",
-      "Bash(scp -q configs/structured_v1_rebuild.yaml 3415496@10.35.5.3:~/irab_project/configs/structured_v1_rebuild.yaml)"
+      "Bash(scp -q configs/structured_v1_rebuild.yaml 3415496@10.35.5.3:~/irab_project/configs/structured_v1_rebuild.yaml)",
+      "Bash(rsync -avz '3415496@10.35.5.3:~/irab_project/runs/structured_v1_eval_490894/' /Users/nourjennane/Desktop/irab_project/runs/structured_v1_eval_490894/)",
+      "Bash(scp -q docs/paper/REPORT.tex 3415496@10.35.5.3:~/irab_project/docs/paper/REPORT.tex)",
+      "Bash(scp -q -r docs/figures 3415496@10.35.5.3:~/irab_project/docs/)",
+      "Bash(scp -q docs/paper/generate_figures.py 3415496@10.35.5.3:~/irab_project/docs/paper/generate_figures.py)",
+      "Bash(scp -q 3415496@10.35.5.3:~/irab_project/docs/paper/REPORT.pdf docs/paper/REPORT.pdf)"
     ]
   }
 }
