@@ -175,6 +175,48 @@ def main():
         ROLE_LABELS, canonicalize_role,
     )
 
+    # The extractor returns case as transliterations and marker as Arabic
+    # surface — normalize to the canonical English labels the predictor uses.
+    CASE_NORM = {
+        "marfu": "raf",
+        "mansub": "nasb",
+        "majrur": "jarr",
+        "majzum": "jazm",
+        "mabni": "mabni",
+        "raf": "raf", "nasb": "nasb", "jarr": "jarr", "jazm": "jazm",
+    }
+    MARKER_NORM = {
+        "الضمة الظاهرة": "damma_visible",
+        "الضمة المقدرة": "damma_hidden",
+        "الفتحة الظاهرة": "fatha_visible",
+        "الفتحة المقدرة": "fatha_hidden",
+        "الكسرة الظاهرة": "kasra_visible",
+        "الكسرة المقدرة": "kasra_hidden",
+        "تنوين الضم": "tanween_damm",
+        "تنوين الفتح": "tanween_fath",
+        "تنوين الكسر": "tanween_kasr",
+        "السكون": "sukun",
+        "السكون المقدر": "sukun_hidden",
+        "الياء": "ya",
+        "الواو": "waw",
+        "الألف": "alif",
+        "النون": "nun",
+        "الفتح": "fath_short",
+    }
+    def norm_case(c):
+        return CASE_NORM.get((c or "").strip(), c)
+    def norm_marker(m):
+        if not m:
+            return m
+        m = m.strip()
+        # Try exact match first, then strip common prefixes
+        if m in MARKER_NORM:
+            return MARKER_NORM[m]
+        for k, v in MARKER_NORM.items():
+            if k in m:
+                return v
+        return m
+
     # Load eval set
     if args.eval == "gazelle":
         from irab_tashkeel.data.gazelle import load_gazelle_iraab
@@ -268,11 +310,13 @@ def main():
             if ext is None:
                 continue
 
-            # Per-word correctness
-            case_correct = (p["case"] == ext.case) if ext.case is not None else False
+            # Per-word correctness — normalize extractor output to canonical labels
+            gold_case = norm_case(ext.case)
+            gold_marker = norm_marker(ext.marker)
+            case_correct = (p["case"] == gold_case) if gold_case is not None else False
             role_correct = (gold_item["role"] is not None
                             and p["role"] == gold_item["role"])
-            marker_correct = (p["marker"] == ext.marker) if ext.marker is not None else False
+            marker_correct = (p["marker"] == gold_marker) if gold_marker is not None else False
             # POS isn't always reliably extracted; require all three structural for "fully"
             fully_correct = case_correct and role_correct and marker_correct
 
