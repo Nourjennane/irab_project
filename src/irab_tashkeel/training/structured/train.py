@@ -84,6 +84,15 @@ class StructuredConfig:
     metric_for_best: str = "fully"               # one of compute_metrics keys
     greater_is_better: bool = True
 
+    # ---- Phase 1 — morphology heads (opt-in; default OFF preserves rev 2 path) ----
+    enable_morph_heads: bool = False
+    morph_train_path: str = "data/morph_v1/train.jsonl"
+    morph_val_path: str = "data/morph_v1/val.jsonl"
+    # per-feature loss weights; default uniform 0.3 for every feature.
+    morph_loss_weights: Optional[dict] = None
+    # subset of morph features to enable (None = all 7).
+    morph_heads_enabled: Optional[list] = None
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -240,21 +249,46 @@ def main():
 
     print(f"[train] loading tokenizer + encoder from {cfg.encoder_name}")
     tokenizer = AutoTokenizer.from_pretrained(cfg.encoder_name)
-    role_weights = _compute_role_class_weights(cfg.train_path, cfg.role_class_weighting)
+    # Role class weights are computed from the i'rāb corpus (Phase-1 morph
+    # branch keeps the same iʿrāb supervision; weights still come from
+    # data/structured_v1/train.jsonl which is i'rāb-only).
+    role_weight_source = cfg.train_path
+    role_weights = _compute_role_class_weights(role_weight_source, cfg.role_class_weighting)
     if role_weights is not None:
         print(f"[train] role_class_weighting={cfg.role_class_weighting}  "
               f"min={role_weights.min().item():.3f}  max={role_weights.max().item():.3f}")
     print(f"[train] label_smoothing={cfg.label_smoothing}  pooling={cfg.pooling_strategy}  "
-          f"use_crf_role={cfg.use_crf_role}")
-    model = StructuredIrabModel(
-        encoder_name=cfg.encoder_name,
-        head_dropout=cfg.head_dropout,
-        loss_weights=tuple(cfg.loss_weights),
-        label_smoothing=cfg.label_smoothing,
-        role_class_weights=role_weights,
-        pooling_strategy=cfg.pooling_strategy,
-        use_crf_role=cfg.use_crf_role,
-    )
+          f"use_crf_role={cfg.use_crf_role}  enable_morph_heads={cfg.enable_morph_heads}")
+
+    if cfg.enable_morph_heads:
+        # Phase 1 path — morph-augmented model + masked multi-task dataset.
+        from irab_tashkeel.morphology.morph_model import MorphAugmentedStructuredModel
+        morph_heads_enabled = set(cfg.morph_heads_enabled) if cfg.morph_heads_enabled else None
+        model = MorphAugmentedStructuredModel(
+            encoder_name=cfg.encoder_name,
+            head_dropout=cfg.head_dropout,
+            loss_weights=tuple(cfg.loss_weights),
+            label_smoothing=cfg.label_smoothing,
+            role_class_weights=role_weights,
+            pooling_strategy=cfg.pooling_strategy,
+            use_crf_role=cfg.use_crf_role,
+            enable_morph_heads=True,
+            morph_heads_enabled=morph_heads_enabled,
+            morph_loss_weights=cfg.morph_loss_weights,
+        )
+        print(f"[train] morph heads enabled: {sorted(model.morph_heads_enabled)}")
+        print(f"[train] morph loss weights: { {k: model.morph_loss_weights[k] for k in sorted(model.morph_heads_enabled)} }")
+    else:
+        # Default rev-2 path — byte-identical to before Phase 1.
+        model = StructuredIrabModel(
+            encoder_name=cfg.encoder_name,
+            head_dropout=cfg.head_dropout,
+            loss_weights=tuple(cfg.loss_weights),
+            label_smoothing=cfg.label_smoothing,
+            role_class_weights=role_weights,
+            pooling_strategy=cfg.pooling_strategy,
+            use_crf_role=cfg.use_crf_role,
+        )
 
     if cfg.use_crf_role and cfg.crf_init_from_bigrams:
         from irab_tashkeel.structured.crf import compute_role_bigrams
@@ -267,9 +301,19 @@ def main():
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
 
-    print(f"[train] datasets: train={cfg.train_path}  val={cfg.val_path}")
-    train_ds = StructuredIrabDataset(cfg.train_path, tokenizer, max_subwords=cfg.max_subwords, max_words=cfg.max_words)
-    val_ds = StructuredIrabDataset(cfg.val_path, tokenizer, max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+    if cfg.enable_morph_heads:
+        from irab_tashkeel.morphology.dataset import (
+            MorphAwareStructuredIrabDataset, MorphAwareCollator,
+        )
+        print(f"[train] datasets (Phase 1, merged): train={cfg.morph_train_path}  val={cfg.morph_val_path}")
+        train_ds = MorphAwareStructuredIrabDataset(cfg.morph_train_path, tokenizer,
+                                                    max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+        val_ds = MorphAwareStructuredIrabDataset(cfg.morph_val_path, tokenizer,
+                                                  max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+    else:
+        print(f"[train] datasets: train={cfg.train_path}  val={cfg.val_path}")
+        train_ds = StructuredIrabDataset(cfg.train_path, tokenizer, max_subwords=cfg.max_subwords, max_words=cfg.max_words)
+        val_ds = StructuredIrabDataset(cfg.val_path, tokenizer, max_subwords=cfg.max_subwords, max_words=cfg.max_words)
 
     if args.smoke:
         # Subsample to smoke_n sentences for a fast sanity run.
@@ -281,7 +325,11 @@ def main():
 
     print(f"[train] n_train_sents={len(train_ds)}  n_val_sents={len(val_ds)}")
 
-    collator = StructuredCollator(pad_token_id=tokenizer.pad_token_id or 0)
+    if cfg.enable_morph_heads:
+        from irab_tashkeel.morphology.dataset import MorphAwareCollator
+        collator = MorphAwareCollator(pad_token_id=tokenizer.pad_token_id or 0)
+    else:
+        collator = StructuredCollator(pad_token_id=tokenizer.pad_token_id or 0)
 
     # eval_strategy was renamed in newer transformers; support both keys.
     train_args_dict = dict(
@@ -306,7 +354,12 @@ def main():
         metric_for_best_model=cfg.metric_for_best if cfg.load_best_at_end else None,
         greater_is_better=cfg.greater_is_better if cfg.load_best_at_end else None,
         remove_unused_columns=False,
-        label_names=["case_labels", "role_labels", "marker_labels", "pos_labels"],
+        label_names=(
+            ["case_labels", "role_labels", "marker_labels", "pos_labels"]
+            + (["gender_labels", "number_labels", "definite_labels", "person_labels",
+                "aspect_labels", "mood_labels", "voice_labels"]
+               if cfg.enable_morph_heads else [])
+        ),
         # T5EncoderModel keeps a shared input embedding (encoder.shared aliases
         # encoder.embed_tokens.weight); safetensors refuses to save tied tensors.
         # Use the regular torch pickle save which handles shared tensors fine.

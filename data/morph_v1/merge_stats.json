@@ -1,0 +1,18 @@
+{
+  "n_sentences_total": 11984,
+  "n_train": 11385,
+  "n_val": 599,
+  "n_ud_total": 6984,
+  "n_irab_total": 5000,
+  "n_words_total": 295389,
+  "train_by_source": {
+    "distill_v2": 4764,
+    "UD-PADT": 6621
+  },
+  "val_by_source": {
+    "distill_v2": 236,
+    "UD-PADT": 363
+  },
+  "train_path": "data/morph_v1/train.jsonl",
+  "val_path": "data/morph_v1/val.jsonl"
+}

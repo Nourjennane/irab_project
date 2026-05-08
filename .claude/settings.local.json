@@ -138,7 +138,19 @@
       "Bash(USE_TF=0 python3 *)",
       "Bash(scp -q src/irab_tashkeel/structured/crf.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/crf.py)",
       "Bash(scp -q scripts/slurm/50_train_structured_v1.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/50_train_structured_v1.sbatch)",
-      "Bash(rsync -avz --no-perms runs/structured_v1_rebuild_490894/final/ 3415496@10.35.5.3:~/irab_project/runs/structured_v1_rebuild_490894/final/)"
+      "Bash(rsync -avz --no-perms runs/structured_v1_rebuild_490894/final/ 3415496@10.35.5.3:~/irab_project/runs/structured_v1_rebuild_490894/final/)",
+      "Bash(rsync -avz --no-perms --partial --timeout=60 runs/structured_v1_rebuild_490894/final/ '3415496@10.35.5.3:~/irab_project/runs/structured_v1_rebuild_490894/final/')",
+      "Bash(rsync -avz --no-perms --partial '3415496@10.35.5.3:~/irab_project/runs/structured_v1_rebuild_490946/final/' /Users/nourjennane/Desktop/irab_project/runs/structured_v1_rebuild_490946/final/)",
+      "Bash(PYTHONPATH=src python3 -m irab_tashkeel.morphology.merge_corpora)",
+      "Bash(USE_TF=0 PYTHONPATH=src python3 *)",
+      "Bash(scp -q -r src/irab_tashkeel/morphology 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/)",
+      "Bash(scp -q configs/phase1_morphology.yaml 3415496@10.35.5.3:~/irab_project/configs/phase1_morphology.yaml)",
+      "Bash(scp -q scripts/slurm/60_train_phase1_morph.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/60_train_phase1_morph.sbatch)",
+      "Bash(rsync -avz --no-perms data/ud_padt/ar_padt-ud-train.conllu data/ud_padt/ar_padt-ud-dev.conllu data/ud_padt/ar_padt-ud-test.conllu 3415496@10.35.5.3:~/irab_project/data/ud_padt/)",
+      "Bash(rsync -avz --no-perms data/morph_v1/ 3415496@10.35.5.3:~/irab_project/data/morph_v1/)",
+      "Bash(scp -q scripts/slurm/59_smoke_phase1_morph.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/59_smoke_phase1_morph.sbatch)",
+      "Bash(scp -q scripts/morphology/eval_morphology.py 3415496@10.35.5.3:~/irab_project/scripts/morphology/eval_morphology.py)",
+      "Bash(scp -q scripts/slurm/61_eval_phase1_morph.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/61_eval_phase1_morph.sbatch)"
     ]
   }
 }

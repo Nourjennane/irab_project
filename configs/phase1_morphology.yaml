@@ -1,0 +1,58 @@
+# Phase 1 — morphology module (opt-in, EXPERIMENTAL).
+#
+# IMPORTANT: this config is SEPARATE from configs/structured_v1_rebuild.yaml
+# (which stays as the frozen rev-2 config). Phase 1's only divergences from
+# rev 2 are the four trailing keys (enable_morph_heads + morph paths +
+# per-feature loss weights). All other settings (encoder, learning rate,
+# pooling, role weights, label smoothing, epochs, best-checkpoint retention)
+# are identical so any rev 2 ↔ Phase 1 ablation is apples-to-apples.
+
+encoder_name: UBC-NLP/AraT5v2-base-1024
+train_path: data/structured_v1/train.jsonl    # i'rāb-only (used for role-class-weight stats)
+val_path: data/structured_v1/val.jsonl
+
+max_subwords: 320
+max_words: 64
+head_dropout: 0.1
+loss_weights: [1.0, 1.5, 1.0, 0.5]   # case, role, marker, pos (rev-2-identical)
+
+label_smoothing: 0.1
+role_class_weighting: sqrt_inv_freq
+pooling_strategy: first
+use_crf_role: false
+crf_init_from_bigrams: true
+
+learning_rate: 5.0e-5
+weight_decay: 0.01
+warmup_ratio: 0.06
+num_train_epochs: 6
+per_device_train_batch_size: 8
+per_device_eval_batch_size: 16
+gradient_accumulation_steps: 4
+logging_steps: 50
+eval_steps: 500
+save_total_limit: 1
+seed: 42
+bf16: true
+gradient_checkpointing: false
+optim: adamw_torch
+
+load_best_at_end: true
+metric_for_best: fully
+greater_is_better: true
+
+# ---- Phase 1 additions ----
+enable_morph_heads: true
+morph_train_path: data/morph_v1/train.jsonl    # merged UD-PADT + distill_v2 with per-head presence flags
+morph_val_path:   data/morph_v1/val.jsonl
+# Per-feature loss weight 0.3 (uniform, per Phase 1 spec). Tweakable.
+morph_loss_weights:
+  gender:   0.3
+  number:   0.3
+  definite: 0.3
+  person:   0.3
+  aspect:   0.3
+  mood:     0.3
+  voice:    0.3
+# null = enable all 7 morph heads
+morph_heads_enabled: null
