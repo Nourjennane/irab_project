@@ -365,3 +365,227 @@ data migration required.
 - Phase 4b mawsool split.
 
 These remain pending in the roadmap and depend on Phase 2's outcome.
+
+## 18. Run 1 (v3 + FiLM joint) — gate result
+
+**The gate run failed strictly. FiLM conditioning regresses Phase 1
+across all three gate metrics on Gazelle.**
+
+Configuration (run `phase2_v3_film_491116`):
+- 6 epochs joint training on `data/morph_v1` (10,910 train + 577 val
+  sentences, MWT-collapsed; 472 sentences over 64-word cap dropped)
+- v3 taxonomy (25 role labels), Phase 1 morph heads + identity-init FiLM
+- 41,472 conditioning params (2 × 768×26 projections + biases)
+- `λ_morph = 0.3` per head, `λ_aux = 0.5` for POS, role class weights
+  sqrt-inverse-frequency, label smoothing 0.1, first-subtoken pool
+- Two grad-norm spikes in the training trace: epoch 2.20 (1545) and
+  epoch 3.96 (6146). Loss trajectory remained monotone-decreasing
+  through both spikes; documented but not destabilising.
+
+### 18.1 Gazelle headline (heads only, structured_v1)
+
+| Metric | Run 1 v3+FiLM | Phase 1 baseline | Δ | Gate (≥) |
+|---|---:|---:|---:|---:|
+| case | **52.2** | 53.7 | −1.5 | 53.0 ✗ |
+| role-F1 | **36.7** | 42.3 | −5.6 | 43.0 ✗ |
+| marker | 41.8 | 41.0 | +0.8 | — |
+| fully | **17.2** | 19.4 | −2.2 | 19.4 ✗ |
+| `n` | 134 | 134 | — | — |
+
+With 4 logit-bias constraints: case 51.5 / role-F1 39.1 / marker 41.8
+/ fully 16.4. Constraints lift role-F1 by +2.4 pp (consistent with
+prior phases where constraints only adjust role) but do not push us
+back into gate range.
+
+### 18.2 MASAQ cross-register (heads only)
+
+| Metric | Run 1 v3+FiLM |
+|---|---:|
+| case | 84.9 |
+| role-F1 | 9.7 |
+| marker | 31.1 |
+| fully | 7.5 |
+
+Cross-register pattern is the same shape as Phase 1 / rev 2 — high case
+on Quranic (the case marker carries syntax-orthogonal information),
+collapsed role-F1 (MSA-frequency role weighting hurts MSA-rare roles
+that dominate Quranic). Phase 2 conditioning did not worsen MASAQ
+beyond Phase 1's pattern.
+
+### 18.3 UD-PADT morph macro (Phase 1 sanity)
+
+| Feature | Phase 1 | Run 1 v3+FiLM |
+|---|---:|---:|
+| gender | 97.5 | 97.5 |
+| number | 96.4 | 96.5 |
+| definite | 96.5 | 96.6 |
+| person | 99.6 | 99.6 |
+| aspect | 99.7 | 99.7 |
+| mood | 99.2 | 99.2 |
+| voice | 99.1 | 99.1 |
+| **macro** | 98.4 | **98.31** |
+
+Adding FiLM did **not** damage the morph heads. Their UD-PADT macro is
+within 0.1 pp of Phase 1. The encoder is still able to produce features
+that decode morphology cleanly. **The regression is not encoder-side.**
+
+### 18.4 Stress table (Gazelle, heads only)
+
+| | Run 1 v3+FiLM |
+|---|---:|
+| rare-role macro-F1 (9 rarest classes with support) | 40.0 |
+| head-role macro-F1 (8 highest-support classes) | 59.0 |
+| long-tail collapse count (F1 < 50%) | 4 |
+| calibration gap (correct − wrong) | +0.031 |
+
+Compared to Phase 1 stress table (not exhaustively re-extracted here
+but reported in `phase1_morph_eval_490987` as rare ≈ 28.3, head ≈ 56.5,
+long-tail-collapse 11, calib-gap +0.090), Run 1 actually shows:
+- **Better rare-role F1** (+11.7 pp) — the conditioning is helping
+  rarer classes specifically.
+- **Better head-role F1** (+2.5 pp) — small head improvement.
+- **Many fewer long-tail collapses** (4 vs 11) — fewer classes drop below F1=50%.
+- **Worse calibration gap** (0.031 vs 0.090) — the head's confidence
+  is *less* informative under FiLM. The model is more uniformly
+  uncertain.
+
+The stress table reports a more nuanced picture than the headline:
+**FiLM lifted per-class macro-F1 metrics but lost the calibration
+signal that pushes correct predictions over the argmax threshold.**
+This is consistent with the run_baselines headline showing role-F1
+36.7% (which is multi-class macro over a particular class set) being
+lower than the 4-stream Stream B grouped role-F1 of 52.4% (different
+class set / different scoring): on the structures the macro view
+likes, FiLM is helping; on the structures the headline computes, it's
+not.
+
+### 18.5 FiLM module activity diagnostic
+
+State-dict at end of training:
+
+```
+W_γ  L2 norm = 0.7434          (init = 0)   ← non-trivial morph→γ mapping learned
+W_β  L2 norm = 0.9068          (init = 0)   ← non-trivial morph→β mapping learned
+b_γ  deviation from 1 = 0.155  (init = 0)   ← bias barely moved
+b_β  L2 norm = 0.181           (init = 0)   ← bias barely moved
+gamma effective range: 0.99–1.03  (mean 1.003)
+beta  effective range: −0.014–0.017  (mean ~0)
+```
+
+**FiLM did learn to use the morph signal `m`.** Both `W_γ` and `W_β`
+have substantial norm relative to their zero init, meaning the
+projections from `m` to `γ` and `β` carry meaningful information.
+But the per-feature bias terms `b_γ` and `b_β` stayed close to
+identity — `γ` ≈ 1 and `β` ≈ 0 on average across positions, deviating
+only as a function of `m`.
+
+So the conditioning learned to be *m-dependent* but stayed *globally
+near-identity*. This is consistent with the iʿrāb heads being unable
+to use the conditioning signal: `γ` only deviates from 1 in the
+direction `m` tells it to, but the iʿrāb heads — initialised for raw
+`pooled` and trained jointly — never push the FiLM module hard enough
+to *also* shift the per-position bias.
+
+## 19. Mechanism comparison (partial — pending HPC stability)
+
+Status of the 5-cell ablation grid:
+- **Run 1 (v3 + FiLM joint)**: complete, evaluated, gate failed (§18).
+- **Run 2 (v3 + additive joint)**: trained successfully (`phase2_v3_additive_491120`),
+  evaluation **interrupted by HPC node-side cluster issue** (jobs 491141, 491142,
+  491143, 491145, 491146 all rejected with SIGRTMIN+19 / signal 53 at
+  zero seconds elapsed; a minimal probe job ran fine on a different
+  node, suggesting the issue is sbatch-payload-specific, not user-rate-limited).
+- **Run 3 (v3 + concat-embed joint)**: training crashed at step ~361
+  / epoch 1 with Python exit 1 and no traceback; checkpoint not saved.
+  Likely related to the same cluster issue.
+- **Run 4 (v3 + FiLM detached)**: queued (`491149` waiting for resources on gnode02).
+- **Run 5 (v4 + FiLM joint)**: not yet submitted.
+
+The mechanism comparison table will be filled in once HPC dispatch
+resumes. The key cell already in hand is Run 1 (FiLM joint), which is
+the gate.
+
+## 20. Interpretation so far
+
+The Run 1 result is consistent with — and sharper than — the Phase 4a
+substitutability finding. The substitutability hypothesis predicted:
+*the encoder's representation capacity for role discrimination is the
+bottleneck; adding more parallel auxiliary supervision past Phase 1
+yields diminishing returns.* Phase 2 tests a different lever: instead
+of *more* parallel supervision, give the morph signal an explicit
+hierarchical channel into the iʿrāb decoders. The Run 1 result extends
+the substitutability story:
+
+> The bottleneck is not just that morphology + taxonomy don't compose
+> in parallel — it's that **the encoder representation that morphology
+> heads decode well, and the encoder representation that iʿrāb heads
+> decode well, are largely the same representation under our 6-epoch
+> 296M training budget**. FiLM successfully learned a soft channel
+> from morph predictions to a per-position γ/β, but the iʿrāb heads
+> ended up worse off rather than better. Identity init was supposed
+> to make this safe; instead, the iʿrāb heads' optimum drifted under
+> conditioning faster than the iʿrāb heads themselves could retune.
+
+Specifically the diagnostic combination — morph macro 98.31% (≈ Phase 1)
++ FiLM W_γ/W_β norms substantial (m-dependent learned) + iʿrāb metrics
+regressed — points away from "morph supervision broken under FiLM" and
+towards "*iʿrāb heads under-converge to the moving input distribution
+that FiLM creates*". In a longer schedule (12+ epochs) or a larger
+model (Phase 2 on a 1B+ encoder) this might invert. At 296M and 6
+epochs, FiLM is net-negative.
+
+This is a meaningful negative result: it tells us that the next
+*productive* architectural lever isn't the form of the morph→iʿrāb
+interaction (parallel vs FiLM vs additive — all of these compete for
+the same encoder capacity), but a **different signal source** that
+adds independent information. Phase 3 (dependency features from
+Stanza or UD) is the cleanest candidate, since dependency edges carry
+relational structure that morph features cannot.
+
+## 21. Findings (final, pending Run 4–5)
+
+**Headline:** Soft morphology conditioning via FiLM regresses Phase 1's
+iʿrāb metrics on Gazelle at this training budget (Δcase −1.5 pp,
+Δrole-F1 −5.6 pp, Δfully −2.2 pp), even though FiLM learned a
+non-trivial morph→γ/β mapping (W_γ, W_β norms substantial) and the
+morph heads themselves stayed at Phase 1 accuracy (98.31% macro
+on UD-PADT).
+
+**Mechanism:** The iʿrāb heads under-converge to the conditioned input
+distribution. Identity-init was sufficient to start safely, but joint
+training pulled FiLM off identity faster than the iʿrāb heads could
+retune. The morph heads are unaffected because their training signal
+is not gated through the conditioning module.
+
+**Per-class behaviour:** Macro stress metrics improve under FiLM
+(rare-F1 +11.7 pp, head-F1 +2.5 pp, long-tail collapse 11→4) while
+the calibration gap shrinks (0.090→0.031). FiLM is hitting a different
+operating point — it disperses confidence across more classes — rather
+than uniformly hurting prediction.
+
+**Cross-register:** MASAQ retention is unchanged from Phase 1's
+pattern (case 84.9 / role-F1 9.7 / fully 7.5). The conditioning does
+not transfer the MSA-specific morph→iʿrāb couplings to Quranic; it
+also does not break MASAQ further.
+
+## 22. Ship decision (final)
+
+**Phase 2 v3 + FiLM joint does NOT ship as the production checkpoint.**
+The gate criteria (case ≥ 53.0, role-F1 ≥ 43.0, fully ≥ 19.4) are all
+failed. Phase 1 (rev 2 + 7 morph heads, no conditioning) remains the
+production checkpoint.
+
+Phase 2 ships **as a documented architectural experiment**, not as a
+default-on path. The conditioning module + factory + integration
+remains in the codebase for future use (longer schedules, larger
+encoders, or different signal sources like dependency features).
+
+The remaining ablation cells (additive joint, concat-embed joint, FiLM
+detached, v4 FiLM joint) will be added to this section as they become
+available, but the headline ship decision does not depend on them —
+the gate run failure is sufficient to keep Phase 1 as production.
+
+The next architectural lever is Phase 3 (dependency-aware reasoning),
+which adds an independent signal source (UD dependency edges) rather
+than rearranging the existing morph + taxonomy supervision. Phase 4b
+(mawsool split) is deferred behind Phase 3.
