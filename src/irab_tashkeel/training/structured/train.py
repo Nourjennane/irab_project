@@ -60,6 +60,10 @@ class StructuredConfig:
     role_class_weighting: str = "none"          # "none" | "sqrt_inv_freq" | "inv_freq"
     pooling_strategy: str = "mean"               # "mean" | "first"
 
+    # Phase 4 — CRF on the role head
+    use_crf_role: bool = False
+    crf_init_from_bigrams: bool = True           # init transitions from training corpus
+
     learning_rate: float = 5.0e-5
     weight_decay: float = 0.01
     warmup_ratio: float = 0.06
@@ -148,10 +152,20 @@ class StructuredTrainer(Trainer):
             loss = out.get("loss")
         if prediction_loss_only:
             return (loss, None, None)
-        # Stack per-head argmax preds + labels for compute_metrics.
+        # Stack per-head preds + labels for compute_metrics.
+        # Role uses Viterbi when CRF is on, argmax otherwise.
+        if getattr(model, "use_crf_role", False) and getattr(model, "role_crf", None) is not None:
+            paths = model.role_crf.decode(out["role_logits"], inputs["word_mask"])
+            B, W, _ = out["role_logits"].shape
+            role_pred = torch.zeros((B, W), dtype=torch.long, device=out["role_logits"].device)
+            for b, p in enumerate(paths):
+                for j, t in enumerate(p):
+                    role_pred[b, j] = t
+        else:
+            role_pred = out["role_logits"].argmax(dim=-1)
         preds = {
             "case": out["case_logits"].argmax(dim=-1),
-            "role": out["role_logits"].argmax(dim=-1),
+            "role": role_pred,
             "marker": out["marker_logits"].argmax(dim=-1),
             "pos": out["pos_logits"].argmax(dim=-1),
             "word_mask": inputs["word_mask"],
@@ -230,7 +244,8 @@ def main():
     if role_weights is not None:
         print(f"[train] role_class_weighting={cfg.role_class_weighting}  "
               f"min={role_weights.min().item():.3f}  max={role_weights.max().item():.3f}")
-    print(f"[train] label_smoothing={cfg.label_smoothing}  pooling={cfg.pooling_strategy}")
+    print(f"[train] label_smoothing={cfg.label_smoothing}  pooling={cfg.pooling_strategy}  "
+          f"use_crf_role={cfg.use_crf_role}")
     model = StructuredIrabModel(
         encoder_name=cfg.encoder_name,
         head_dropout=cfg.head_dropout,
@@ -238,7 +253,17 @@ def main():
         label_smoothing=cfg.label_smoothing,
         role_class_weights=role_weights,
         pooling_strategy=cfg.pooling_strategy,
+        use_crf_role=cfg.use_crf_role,
     )
+
+    if cfg.use_crf_role and cfg.crf_init_from_bigrams:
+        from irab_tashkeel.structured.crf import compute_role_bigrams
+        from irab_tashkeel.structured.schema import ROLE_TO_ID
+        print("[train] computing role bigrams for CRF init ...")
+        trans, start, end = compute_role_bigrams(cfg.train_path, ROLE_TO_ID)
+        model.role_crf.init_from_bigrams(trans, start, end)
+        print(f"[train] CRF init: trans range [{trans.min().item():.2f}, {trans.max().item():.2f}]; "
+              f"start range [{start.min().item():.2f}, {start.max().item():.2f}]")
     if cfg.gradient_checkpointing:
         model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
 

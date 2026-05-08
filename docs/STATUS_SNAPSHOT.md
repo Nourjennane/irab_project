@@ -209,15 +209,55 @@ Landed 2026-05-08. Replaces the original char-decoder Appendix A baseline with a
 - Cross-register cost of MSA-frequency role weighting: rev 2 lifts MASAQ case (+2.2 pp) but lowers MASAQ role-F1 (−5.9 pp vs rev 1); reported transparently as a register-aware-weighting future-work lever.
 
 **Files:**
-- `src/irab_tashkeel/structured/{schema,word_irab,model,dataset}.py` — schema + dataclass + multi-head model + dataset
-- `src/irab_tashkeel/training/structured/train.py` — HF Trainer wrapper with role-weight + label-smoothing + first-pool
-- `src/irab_tashkeel/inference/{structured_predictor,symbolic_constraints,template_renderer,qualitative_trace}.py` — inference layer
+- `src/irab_tashkeel/structured/{schema,word_irab,model,dataset,crf}.py` — schema + dataclass + multi-head model + dataset + linear-chain CRF (built but disabled in default config; see Phase 4 below)
+- `src/irab_tashkeel/training/structured/train.py` — HF Trainer wrapper with role-weight + label-smoothing + first-pool + CRF init
+- `src/irab_tashkeel/inference/{structured_predictor,symbolic_constraints,template_renderer,qualitative_trace}.py` — inference layer (9 constraint families implemented; rev 2 uses 4)
 - `src/irab_tashkeel/retrieval/{jaccard_retriever,grammar_memory}.py` — Jaccard + Quranic grammar memory
-- `app/structured_demo.py` — Gradio demo
-- `configs/structured_v1_rebuild.yaml` — single-source config
-- `scripts/slurm/{49_smoke,50_train,51_eval}_structured_v1.sbatch` — HPC drivers
-- `scripts/structured/{build_structured_corpus,eval_structured_v1}.{py,sh}` — corpus + eval
+- `app/structured_demo.py` — Gradio demo with attention heatmap + grammar-memory panel + reasoning trace
+- `configs/structured_v1_rebuild.yaml` — single-source config (use_crf_role: false by default)
+- `scripts/slurm/{49_smoke,50_train,51_eval}_structured_v1.sbatch` — HPC drivers (HF_HUB_OFFLINE=1 set for compute nodes)
+- `scripts/structured/{build_structured_corpus,eval_structured_v1,generate_rare_construction_aug}.{py,sh}` — corpus + eval + augmentation script (needs ANTHROPIC_API_KEY to run)
 - `data/structured_v1/{train,val}.jsonl` — 4747+250 sentences, 77K words (canonical labels)
-- `runs/structured_v1_rebuild_490894/final/` — final adapter (HPC + local)
-- `runs/structured_v1_eval_490894/{gazelle,masaq}/` — eval predictions + summaries
-- `docs/figures/qualitative_v1_rebuild.md` — 3-sentence qualitative trace
+- `runs/structured_v1_rebuild_490894/final/` — frozen rev 2 adapter (HPC + local)
+- `runs/structured_v1_eval_490894/{gazelle,masaq}/` — frozen rev 2 eval predictions + summaries
+- `runs/structured_v1_rebuild_490933/final/` — Phase 4 adapter (HPC; tested-and-rejected)
+- `runs/structured_v1_eval_490933/{gazelle,masaq}/` — Phase 4 eval (regression vs rev 2)
+- `docs/figures/qualitative_v1_rebuild.md` — 3-sentence qualitative trace from rev 2
+
+---
+
+## 14. Phase 4 — tested architectural upgrades (NEGATIVE RESULT)
+
+Landed 2026-05-08, after rev 2. **Documented as an honest negative result; rev 2 stays as the frozen architecture.**
+
+**What was added (all toggleable, all in code):**
+1. Linear-chain CRF over the role head, empirical-bigram-initialised (`structured/crf.py`)
+2. Five additional symbolic-constraint families (adjective agreement, coordination case-share, iḍāfa chain, naat propagation, vocative→nasb) — total now 9 (`inference/symbolic_constraints.py`)
+3. Hierarchical role→case post-processing bias (`inference/symbolic_constraints.py::apply_hierarchical`)
+4. Encoder attention extraction (`structured/model.py` with `output_attentions=True`)
+5. Targeted rare-construction augmentation script (needs API key, not run)
+6. Polished Gradio demo with attention heatmap + reasoning trace + grammar-memory panel
+7. (One stable retrain, jobid 490933)
+
+**Numbers (Gazelle, n=134):**
+
+| Config | well | case | role-F1 | marker | fully |
+|---|---:|---:|---:|---:|---:|
+| Phase 4 heads only (CRF, hierarchical OFF, no extra constraints) | 79.1 | 50.0 | 37.9 | 31.3 | 11.9 |
+| Phase 4 + 9 constraints + hierarchical | 79.9 | 49.3 | 30.9 | 32.1 | 11.9 |
+| **Frozen rev 2 + 4 constraints (still best)** | 79.9 | **55.2** | **36.9** | **41.0** | **18.7** |
+
+**Why it regressed:**
+- CRF NLL plateaued at ~14 vs rev 2's CE at ~2 over the same 6 epochs → insufficient training of the structured loss at this scale
+- The 9-constraint + hierarchical combination over-corrected role-F1 (37.9 → 30.9 within Phase 4) by stacking too many same-direction biases on the same per-word logit
+
+**MASAQ (n=5,007):**
+- Phase 4 + constraints: case 79.2 / role-F1 10.2 / fully 8.2  vs  rev 2 + 4 constraints: case 84.3 / role-F1 10.9 / fully 7.9
+- Same regression pattern, slightly bigger gap on case (~5 pp).
+
+**Default config restored to rev 2:** `configs/structured_v1_rebuild.yaml` has `use_crf_role: false`. The CRF + 5 extra constraints + hierarchical code remains in the repo (toggle to re-attempt with longer training); it's not on by default.
+
+**Future-work levers from this iteration:**
+- CRF-only retrain with more epochs (12+) and no class-weight interaction
+- Per-constraint ablation to isolate net-helpful vs net-hurtful members of the larger constraint set
+- Run the rare-construction augmentation (`scripts/structured/generate_rare_construction_aug.py`, needs API key)

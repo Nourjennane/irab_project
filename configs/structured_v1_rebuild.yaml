@@ -18,6 +18,20 @@ label_smoothing: 0.1
 role_class_weighting: sqrt_inv_freq    # rebalance long-tail role classes
 pooling_strategy: first                # first-subtoken pooling for token classification
 
+# Phase 4 (TESTED, REGRESSED — disabled by default).
+# Linear-chain CRF on the role head (replaces independent CE), initialised
+# from training-corpus role bigram log-probabilities. The CRF code lives in
+# src/irab_tashkeel/structured/crf.py and is fully wired (model.py +
+# train.py + structured_predictor.py); set use_crf_role: true to retrain
+# with it. Phase 4 retrain (jobid 490933): Gazelle case 50.0, role-F1 37.9,
+# fully 11.9 — regression vs rev 2 (case 55.2, role-F1 36.9, fully 18.7).
+# Hypothesis why: CRF NLL stayed high (~14) at end of 6 epochs vs rev 2's
+# ~2; with role class weighting + label smoothing already regularising the
+# head, the CRF's transition prior added noise rather than signal at this
+# scale. Reported as honest negative result in §5.6 (Phase 4 paragraph).
+use_crf_role: false
+crf_init_from_bigrams: true
+
 learning_rate: 5.0e-5
 weight_decay: 0.01
 warmup_ratio: 0.06

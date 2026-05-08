@@ -51,27 +51,76 @@ EXAMPLES = [
 def build_predictor(model_dir: str, *, apply_constraints: bool, retriever: JaccardRetriever | None):
     cfg = StructuredPredictorConfig(
         apply_constraints=apply_constraints,
+        apply_hierarchical=apply_constraints,   # tied; turning constraints off also turns hierarchical off
+        return_attention=True,                   # for the demo heatmap
         render_prose=True,
         device="auto",
     )
     return StructuredPredictor(model_dir, cfg=cfg, retriever=retriever)
 
 
+def _heatmap_html(words: list[str], influence: list[list[float]]) -> str:
+    """Render per-word attention as a small HTML heatmap table."""
+    if not influence:
+        return ""
+    n = len(words)
+    # Color palette: white (0) -> dark blue (1)
+    def cell(v: float) -> str:
+        v = max(0.0, min(1.0, v))
+        # blue: rgb(255,255,255) -> rgb(20, 50, 200) at v=1
+        r = int(255 - (255 - 20) * v)
+        g = int(255 - (255 - 50) * v)
+        b = int(255 - (255 - 200) * v)
+        text_color = "white" if v > 0.45 else "black"
+        return f'<td style="background:rgb({r},{g},{b}); color:{text_color}; padding:2px 6px; text-align:center;">{v:.2f}</td>'
+    out = ['<div style="direction:ltr; font-family:monospace; font-size:11px; overflow-x:auto;">']
+    out.append("<table style='border-collapse:collapse;'><tr><th></th>")
+    for w in words:
+        out.append(f'<th style="padding:2px 4px; max-width:60px; overflow:hidden;">{w}</th>')
+    out.append("</tr>")
+    for i, w in enumerate(words):
+        out.append(f"<tr><th style='text-align:right; padding:2px 4px;'>{w}</th>")
+        for j in range(n):
+            out.append(cell(influence[i][j]))
+        out.append("</tr>")
+    out.append("</table></div>")
+    return "\n".join(out)
+
+
+def _reasoning_trace(sent) -> str:
+    """Compose a short narrative of which constraints fired per word."""
+    lines = []
+    for i, w in enumerate(sent.items):
+        if not w.constraints_fired:
+            continue
+        rule_descriptions = []
+        for r in w.constraints_fired:
+            if r.startswith("hierarchical_role_to_case"):
+                rule_descriptions.append(f"hierarchical role→case bias")
+            else:
+                rule_descriptions.append(r)
+        rules = "; ".join(rule_descriptions)
+        lines.append(f"- **{w.word}** ({w.role}/{w.case}/{w.marker}): {rules}")
+    if not lines:
+        return "_(no symbolic constraints fired)_"
+    return "### Symbolic-reasoning trace\n\n" + "\n".join(lines)
+
+
 def predict_handler(predictor_no_c, predictor_c, jaccard_retriever, grammar_memory):
     def _run(sentence: str, use_constraints: bool, show_retrieved: bool,
-             show_grammar_memory: bool) -> tuple[str, str, str]:
+             show_grammar_memory: bool, show_attention: bool):
         sentence = (sentence or "").strip()
         if not sentence:
-            return "_(empty input)_", "", ""
+            return "_(empty input)_", "", "", "", ""
 
         pred = predictor_c if use_constraints else predictor_no_c
         result: SentenceIrab = pred.predict_sentence(sentence)
         if not result.items:
-            return "_(no tokens)_", "", ""
+            return "_(no tokens)_", "", "", "", ""
 
-        # Markdown table
+        # Markdown structured-prediction table
         table_md = render_markdown(result, show_confidence=True, show_constraints=True,
-                                   title=f"Structured prediction ({'+ constraints' if use_constraints else 'heads only'})")
+                                   title=f"Structured prediction ({'+ constraints + hierarchical' if use_constraints else 'heads only'})")
 
         # Aggregate per-line prose
         prose_lines = []
@@ -82,11 +131,9 @@ def predict_handler(predictor_no_c, predictor_c, jaccard_retriever, grammar_memo
 
         # Retrieval panel
         retr_lines = []
-        # construction tags for the query
         q_tags = detect_constructions(sentence)
         if q_tags:
             retr_lines.append(f"**Detected constructions:** `{', '.join(sorted(q_tags))}`")
-
         if show_grammar_memory and grammar_memory is not None:
             hits = grammar_memory.retrieve(sentence, k=4, prefer_shared_constructions=True)
             if hits:
@@ -101,7 +148,21 @@ def predict_handler(predictor_no_c, predictor_c, jaccard_retriever, grammar_memo
                 retr_lines.append("\n### Similar parsed sentences (training-corpus retrieval)")
                 for h in hits:
                     retr_lines.append(f"- score `{h.score:.3f}` — {h.sentence}")
-        return table_md, prose_md, "\n".join(retr_lines) if retr_lines else ""
+        retr_md = "\n".join(retr_lines) if retr_lines else ""
+
+        # Reasoning trace (which constraints fired and on which word)
+        trace_md = _reasoning_trace(result)
+
+        # Attention heatmap (HTML)
+        heat_html = ""
+        if show_attention:
+            inf = getattr(result, "influence", None)
+            if inf is not None:
+                words = [w.word for w in result.items]
+                heat_html = "### Encoder attention (last layer, mean over heads)\n\n" + \
+                            _heatmap_html(words, inf)
+
+        return table_md, prose_md, retr_md, trace_md, heat_html
     return _run
 
 
@@ -142,34 +203,38 @@ def main():
 
     with gr.Blocks(title="Arabic i'rāb — interpretable structured prediction") as demo:
         gr.Markdown(
-            "# Arabic *i'rāb* — interpretable structured prediction\n\n"
-            "AraT5v2-base encoder + four classification heads (case / role / marker / POS) "
-            "+ four soft symbolic-constraint reranking families (preposition→jarr, *inna* sisters, "
-            "*kāna* sisters, *iḍāfa*) + deterministic Arabic-prose template renderer "
-            "+ optional Quranic grammar-memory retrieval (construction-aware Jaccard over MASAQ). "
-            "Type or pick a sentence below.\n"
+            "# Arabic *i'rāb* — interpretable neural-symbolic grammar engine\n\n"
+            "**Stack:** AraT5v2-base encoder · 4 classification heads (case / role / marker / POS) · "
+            "linear-chain CRF over role transitions · 9 soft symbolic-constraint reranking families "
+            "(preposition→jarr, *inna* sisters, *kāna* sisters, *iḍāfa* stub & chain, adjective agreement, "
+            "coordination-share-case, *naat* propagation, vocative→nasb) · hierarchical role→case bias · "
+            "deterministic prose template renderer · construction-aware Quranic grammar memory · "
+            "encoder-attention interpretability surface.\n"
         )
         with gr.Row():
             with gr.Column(scale=3):
                 inp = gr.Textbox(label="Arabic sentence", lines=2,
                                  placeholder="مثال: ذهب الطالب إلى المدرسة")
                 with gr.Row():
-                    use_c = gr.Checkbox(label="apply 4 symbolic constraints", value=True)
+                    use_c = gr.Checkbox(label="symbolic + hierarchical layer", value=True)
                     show_g = gr.Checkbox(label="similar Quranic constructions",
                                          value=grammar_memory is not None,
                                          interactive=grammar_memory is not None)
+                with gr.Row():
+                    show_a = gr.Checkbox(label="encoder attention heatmap", value=True)
                     show_r = gr.Checkbox(label="similar training sentences", value=False)
                 run_btn = gr.Button("Predict", variant="primary")
                 gr.Examples(examples=EXAMPLES, inputs=[inp])
             with gr.Column(scale=4):
                 table_out = gr.Markdown(label="Per-word structured prediction")
                 prose_out = gr.Markdown(label="Rendered Arabic i'rāb prose")
+                trace_out = gr.Markdown(label="Symbolic-reasoning trace")
+                heat_out = gr.HTML(label="Encoder attention heatmap")
                 retr_out = gr.Markdown(label="Retrieval / grammar memory")
 
-        run_btn.click(handler, inputs=[inp, use_c, show_r, show_g],
-                      outputs=[table_out, prose_out, retr_out])
-        inp.submit(handler, inputs=[inp, use_c, show_r, show_g],
-                   outputs=[table_out, prose_out, retr_out])
+        outputs = [table_out, prose_out, retr_out, trace_out, heat_out]
+        run_btn.click(handler, inputs=[inp, use_c, show_r, show_g, show_a], outputs=outputs)
+        inp.submit(handler, inputs=[inp, use_c, show_r, show_g, show_a], outputs=outputs)
 
     demo.queue().launch(server_port=args.port, share=args.share)
 

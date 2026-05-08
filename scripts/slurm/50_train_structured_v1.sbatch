@@ -22,6 +22,11 @@ module load miniconda3
 module load cuda/12.4 || true
 source activate irab
 
+# Compute nodes have no internet; the HF cache is already populated. Force
+# offline mode to avoid hangs on huggingface.co lookups.
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+
 echo "=== env check ==="
 python -c "import torch, transformers, irab_tashkeel; \
 print('torch', torch.__version__, 'cuda', torch.cuda.is_available(), \

@@ -30,7 +30,7 @@ from ..structured.schema import (
     ID_TO_CASE, ID_TO_ROLE, ID_TO_MARKER, ID_TO_POS,
 )
 from ..structured.word_irab import SentenceIrab, WordIrab
-from .symbolic_constraints import apply_constraints, ConstraintTrace
+from .symbolic_constraints import apply_constraints, apply_hierarchical, ConstraintTrace
 from .template_renderer import render_word
 
 
@@ -39,7 +39,10 @@ class StructuredPredictorConfig:
     apply_constraints: bool = True
     constraint_lambda_case: float = 1.5
     constraint_lambda_role: float = 0.8
-    enabled_constraints: Optional[set] = None       # None -> all four
+    enabled_constraints: Optional[set] = None       # None -> all 9
+    apply_hierarchical: bool = True                  # role -> case biasing after argmax
+    hierarchical_lambda: float = 1.0
+    return_attention: bool = False                   # surface last-layer attention weights
     render_prose: bool = True
     retriever_k: int = 0                             # 0 disables retrieval
     device: str = "auto"
@@ -74,13 +77,27 @@ class StructuredPredictor:
         except Exception:
             self.tokenizer = AutoTokenizer.from_pretrained(encoder_name)
 
-        # Build model and load state-dict
-        self.model = StructuredIrabModel(encoder_name=encoder_name)
+        # Build model and load state-dict.  Reconstruct CRF flag from the
+        # saved structured_config.json if present (so a CRF-trained checkpoint
+        # loads with use_crf_role=True automatically).
+        use_crf = False
+        if tcfg_path.exists():
+            tcfg = json.loads(tcfg_path.read_text())
+            use_crf = bool(tcfg.get("use_crf_role", False))
+        self.model = StructuredIrabModel(
+            encoder_name=encoder_name,
+            use_crf_role=use_crf,
+            output_attentions=self.cfg.return_attention,
+        )
         sd_path = self.model_dir / "pytorch_model.bin"
         sd = torch.load(sd_path, map_location="cpu", weights_only=True)
         missing, unexpected = self.model.load_state_dict(sd, strict=False)
         if missing or unexpected:
-            print(f"[StructuredPredictor] load_state_dict missing={len(missing)} unexpected={len(unexpected)}")
+            # Filter: missing role_crf.* keys are expected when CRF wasn't trained
+            non_crf_missing = [k for k in missing if not k.startswith("role_crf.")]
+            non_crf_unexpected = [k for k in unexpected if not k.startswith("role_crf.")]
+            if non_crf_missing or non_crf_unexpected:
+                print(f"[StructuredPredictor] load_state_dict non-CRF missing={non_crf_missing} unexpected={non_crf_unexpected}")
         self.model.eval()
 
         if self.cfg.device == "auto":
@@ -142,6 +159,7 @@ class StructuredPredictor:
         role_logits = out["role_logits"]
         marker_logits = out["marker_logits"]
         pos_logits = out["pos_logits"]
+        attentions = out.get("attentions")
 
         trace: Optional[ConstraintTrace] = None
         if self.cfg.apply_constraints:
@@ -154,14 +172,62 @@ class StructuredPredictor:
                 enabled=self.cfg.enabled_constraints,
             )
 
+        # Decode role first (Viterbi if CRF, argmax otherwise) so the
+        # hierarchical step can use the structured role prediction.
+        if self.model.use_crf_role and self.model.role_crf is not None:
+            paths = self.model.role_crf.decode(role_logits, enc["word_mask"])
+            role_pred = torch.zeros_like(case_logits[..., 0], dtype=torch.long)
+            for b, p in enumerate(paths):
+                for j, t in enumerate(p):
+                    role_pred[b, j] = t
+            role_probs = torch.softmax(role_logits, dim=-1)
+            role_conf = role_probs[0].gather(-1, role_pred[0].unsqueeze(-1)).squeeze(-1)
+            role_pred = role_pred[0]
+        else:
+            role_probs = torch.softmax(role_logits, dim=-1)
+            role_conf, role_pred = role_probs[0].max(dim=-1)
+
+        # Hierarchical role -> case biasing
+        if self.cfg.apply_hierarchical:
+            case_logits, hier_trace = apply_hierarchical(
+                case_logits,
+                role_pred=role_pred.unsqueeze(0) if role_pred.dim() == 1 else role_pred,
+                word_mask=enc["word_mask"],
+                lambda_hier=self.cfg.hierarchical_lambda,
+                trace=trace,
+            )
+            trace = hier_trace
+
         case_probs = torch.softmax(case_logits, dim=-1)
-        role_probs = torch.softmax(role_logits, dim=-1)
         marker_probs = torch.softmax(marker_logits, dim=-1)
         pos_probs = torch.softmax(pos_logits, dim=-1)
         case_conf, case_pred = case_probs[0].max(dim=-1)
-        role_conf, role_pred = role_probs[0].max(dim=-1)
         marker_conf, marker_pred = marker_probs[0].max(dim=-1)
         pos_conf, pos_pred = pos_probs[0].max(dim=-1)
+
+        # Per-word influence: pool attention by averaging over the subwords
+        # of each input word, then row-wise normalise so each row sums to 1.
+        # This becomes the demo's attention-heatmap feed.
+        per_word_influence: Optional[torch.Tensor] = None
+        if attentions is not None:
+            attn = attentions[0]                 # (T, T) — averaged over heads in model.forward
+            T = attn.shape[0]
+            n_words = len(enc["words"])
+            ws = enc["word_starts"][0]
+            we = enc["word_ends"][0]
+            # influence[i, j] = mean over t in word i, mean over t' in word j
+            inf = torch.zeros((n_words, n_words), dtype=attn.dtype)
+            for i in range(n_words):
+                rs, re = int(ws[i].item()), int(we[i].item())
+                if re <= rs: continue
+                row = attn[rs:re].mean(dim=0)  # (T,)
+                for j in range(n_words):
+                    cs, ce = int(ws[j].item()), int(we[j].item())
+                    if ce <= cs: continue
+                    inf[i, j] = row[cs:ce].mean()
+            # row-normalise so each word's influence row sums to 1
+            inf = inf / inf.sum(dim=-1, keepdim=True).clamp(min=1e-8)
+            per_word_influence = inf
 
         items: List[WordIrab] = []
         for i, w in enumerate(enc["words"]):
@@ -186,7 +252,13 @@ class StructuredPredictor:
                 wi.irab_prose = render_word(wi)
             items.append(wi)
 
-        return SentenceIrab(sentence=sentence, items=items)
+        sent = SentenceIrab(sentence=sentence, items=items)
+        # Stash the attention matrix on the SentenceIrab so the demo / qual
+        # trace can read it back. We don't add it to WordIrab to keep the
+        # dataclass clean for serialisation.
+        if per_word_influence is not None:
+            sent.influence = per_word_influence.tolist()  # type: ignore[attr-defined]
+        return sent
 
     # -------- run_baselines.py adapter --------
     def predict_for_baseline(self, sentence: str) -> List[dict]:

@@ -21,6 +21,11 @@ module load miniconda3
 module load cuda/12.4 || true
 source activate irab
 
+# Compute nodes have no internet; the HF cache is already populated.
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+
 MODEL_DIR="${1:-}"
 if [ -z "$MODEL_DIR" ]; then
     echo "ERROR: pass model dir as first arg, e.g. sbatch ... /path/to/runs/structured_v1_rebuild_xxx/final"

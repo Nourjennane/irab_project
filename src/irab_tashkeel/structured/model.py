@@ -21,6 +21,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
+from .crf import LinearChainCRF
 from .schema import N_CASE, N_ROLE, N_MARKER, N_POS
 
 IGNORE = -100
@@ -111,6 +112,8 @@ class StructuredIrabModel(nn.Module):
         label_smoothing: float = 0.0,
         role_class_weights: Optional[torch.Tensor] = None,
         pooling_strategy: str = "mean",
+        use_crf_role: bool = False,
+        output_attentions: bool = False,
     ):
         super().__init__()
         # Prefer T5EncoderModel for T5-family checkpoints: it loads ONLY the
@@ -152,6 +155,13 @@ class StructuredIrabModel(nn.Module):
             self.register_buffer("role_class_weights", w)
             self._has_role_weights = True
 
+        self.use_crf_role = use_crf_role
+        if use_crf_role:
+            self.role_crf = LinearChainCRF(N_ROLE)
+        else:
+            self.role_crf = None
+        self.output_attentions = output_attentions
+
     def gradient_checkpointing_enable(self, **kwargs):
         if hasattr(self.encoder, "gradient_checkpointing_enable"):
             self.encoder.gradient_checkpointing_enable(**kwargs)
@@ -172,7 +182,10 @@ class StructuredIrabModel(nn.Module):
     ):
         # The HF Trainer often passes a `labels` kwarg or `num_items_in_batch`;
         # ignore harmlessly.
-        enc_out = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
+        enc_kwargs = {"input_ids": input_ids, "attention_mask": attention_mask}
+        if self.output_attentions:
+            enc_kwargs["output_attentions"] = True
+        enc_out = self.encoder(**enc_kwargs)
         hidden = enc_out.last_hidden_state                                   # (B, T, H)
         if self.pooling_strategy == "first":
             pooled = _word_first_pool(hidden, word_starts, word_mask)
@@ -201,10 +214,18 @@ class StructuredIrabModel(nn.Module):
                 ignore_index=IGNORE, label_smoothing=ls,
             )
             role_weight = self.role_class_weights if self._has_role_weights else None
-            loss_role = F.cross_entropy(
-                role_logits.reshape(-1, N_ROLE), role_labels.reshape(-1),
-                ignore_index=IGNORE, label_smoothing=ls, weight=role_weight,
-            )
+            if self.use_crf_role and self.role_crf is not None:
+                # CRF: emissions = role_logits, tags = role_labels (clamped),
+                # mask = word_mask. The CRF NLL is per-sequence; we average it
+                # and DO NOT apply label smoothing (CRFs don't combine cleanly
+                # with label smoothing; the structural transitions already act
+                # as regularisation).
+                loss_role = self.role_crf(role_logits, role_labels, word_mask)
+            else:
+                loss_role = F.cross_entropy(
+                    role_logits.reshape(-1, N_ROLE), role_labels.reshape(-1),
+                    ignore_index=IGNORE, label_smoothing=ls, weight=role_weight,
+                )
             loss_marker = F.cross_entropy(
                 marker_logits.reshape(-1, N_MARKER), marker_labels.reshape(-1),
                 ignore_index=IGNORE, label_smoothing=ls,
@@ -221,7 +242,7 @@ class StructuredIrabModel(nn.Module):
 
         if return_dict:
             # Trainer.compute_loss expects a dict-like with .loss
-            return {
+            d = {
                 "loss": out.loss,
                 "case_logits": out.case_logits,
                 "role_logits": out.role_logits,
@@ -233,6 +254,11 @@ class StructuredIrabModel(nn.Module):
                 "marker_loss": out.marker_loss,
                 "pos_loss": out.pos_loss,
             }
+            if self.output_attentions and hasattr(enc_out, "attentions") and enc_out.attentions:
+                # last-layer attention, mean over heads: (B, T, T)
+                last = enc_out.attentions[-1]
+                d["attentions"] = last.mean(dim=1)
+            return d
         return out
 
     @torch.no_grad()
@@ -244,18 +270,39 @@ class StructuredIrabModel(nn.Module):
         word_ends: torch.LongTensor,
         word_mask: torch.LongTensor,
     ):
-        """Return (preds_dict, confidence_dict) per head.
+        """Return (preds_dict, confidence_dict, full_output_dict) per head.
 
         preds_dict[head] : (B, W) long
         confidence_dict[head] : (B, W) float — max softmax prob
+        For role, when CRF is enabled, ``preds["role"]`` holds the Viterbi-
+        decoded path and ``confs["role"]`` is the per-word marginal probability
+        (approximated as the softmax-prob of the Viterbi tag at each position).
         """
         out = self.forward(input_ids, attention_mask, word_starts, word_ends, word_mask, return_dict=True)
         preds = {}
         confs = {}
-        for name in ("case", "role", "marker", "pos"):
+        for name in ("case", "marker", "pos"):
             logits = out[f"{name}_logits"]
             probs = torch.softmax(logits, dim=-1)
             conf, idx = probs.max(dim=-1)
             preds[name] = idx
             confs[name] = conf
+        # Role: Viterbi if CRF, argmax otherwise.
+        role_logits = out["role_logits"]
+        if self.use_crf_role and self.role_crf is not None:
+            paths = self.role_crf.decode(role_logits, word_mask)
+            B, W, _ = role_logits.shape
+            role_idx = torch.zeros((B, W), dtype=torch.long, device=role_logits.device)
+            for b, p in enumerate(paths):
+                for j, t in enumerate(p):
+                    role_idx[b, j] = t
+            role_probs = torch.softmax(role_logits, dim=-1)
+            role_conf = role_probs.gather(-1, role_idx.unsqueeze(-1)).squeeze(-1)
+            preds["role"] = role_idx
+            confs["role"] = role_conf
+        else:
+            role_probs = torch.softmax(role_logits, dim=-1)
+            role_conf, role_idx = role_probs.max(dim=-1)
+            preds["role"] = role_idx
+            confs["role"] = role_conf
         return preds, confs, out

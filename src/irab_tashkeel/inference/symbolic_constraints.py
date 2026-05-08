@@ -118,6 +118,21 @@ def _is_predicted_noun_or_adj(pos_pred: int) -> bool:
     return pos_pred in (POS_TO_ID["noun"], POS_TO_ID["adjective"], POS_TO_ID["pronoun"])
 
 
+ALL_CONSTRAINTS = {
+    # Phase 3 (rev 2)
+    "prep_to_jarr",
+    "inna_sisters",
+    "kana_sisters",
+    "idafa_stub",
+    # Phase 4 (added 2026-05-08)
+    "adjective_agreement",        # noun raf -> following adj raf, etc.
+    "coordination_share_case",    # X و Y share case
+    "idafa_chain",                # mudaaf_ilayh -> jarr stronger
+    "naat_propagation",           # naat inherits case from head noun
+    "munadi_to_nasb",             # vocative noun -> nasb
+}
+
+
 def apply_constraints(
     case_logits: torch.Tensor,         # (B, W, N_CASE)
     role_logits: torch.Tensor,         # (B, W, N_ROLE)
@@ -136,7 +151,7 @@ def apply_constraints(
     ``enabled=set()`` (the no-op identity).
     """
     if enabled is None:
-        enabled = {"prep_to_jarr", "inna_sisters", "kana_sisters", "idafa_stub"}
+        enabled = set(ALL_CONSTRAINTS)
 
     case_logits = case_logits.clone()
     role_logits = role_logits.clone()
@@ -235,4 +250,171 @@ def apply_constraints(
                 role_logits[b, i, R_MUDAAF] += 0.5 * lambda_role
                 trace.add(b, i, "idafa_stub")
 
+        # ============== Phase 4 — stronger constraints ==============
+        # ---------------- 5) adjective agreement -----------------
+        # If word is predicted as adjective (POS=adjective) and the head noun
+        # immediately precedes, copy the head noun's argmax case onto this
+        # word's logits as a soft bias. Adjectives in Arabic agree with their
+        # head noun's case.
+        if "adjective_agreement" in enabled:
+            ADJ = POS_TO_ID["adjective"]
+            NOUN = POS_TO_ID["noun"]
+            R_NAAT = ROLE_TO_ID["naat"]
+            for i in range(1, n):
+                pos_i = _argmax_pos(pos_logits[b, i])
+                if pos_i != ADJ:
+                    continue
+                pos_prev = _argmax_pos(pos_logits[b, i - 1])
+                if pos_prev != NOUN:
+                    continue
+                head_case = int(case_logits[b, i - 1].argmax().item())
+                case_logits[b, i, head_case] += lambda_case
+                role_logits[b, i, R_NAAT] += 0.5 * lambda_role
+                trace.add(b, i, "adjective_agreement")
+
+        # ---------------- 6) coordination shares case -----------------
+        # Pattern: X COORD Y where COORD is و / ف / ثم / أو / أم. Y inherits
+        # X's argmax case as a soft bias (Arabic conjoined noun phrases
+        # typically share case).
+        if "coordination_share_case" in enabled:
+            COORD = {"و", "ف", "ثم", "او", "ام"}
+            R_MATUF = ROLE_TO_ID["matuf"]
+            for i in range(2, n):
+                if norm_words[i - 1] in COORD:
+                    head_case = int(case_logits[b, i - 2].argmax().item())
+                    case_logits[b, i, head_case] += lambda_case
+                    role_logits[b, i, R_MATUF] += 0.5 * lambda_role
+                    trace.add(b, i, "coordination_share_case")
+
+        # ---------------- 7) idafa chain (stronger) -----------------
+        # Two consecutive nouns where the second has no determiner ال and
+        # neither is preceded by a preposition: bias the second toward
+        # mudaaf_ilayh + jarr more strongly than the stub.
+        # (Distinguished from idafa_stub by a stricter condition: previous
+        # word's role is already predicted as a head noun — mubtada / fail /
+        # khabar / mafoul_bih / ism_majrur / mudaaf_ilayh.)
+        if "idafa_chain" in enabled:
+            HEAD_ROLES = {
+                ROLE_TO_ID["mubtada"], ROLE_TO_ID["fail"], ROLE_TO_ID["khabar"],
+                ROLE_TO_ID["mafoul_bih"], ROLE_TO_ID["ism_majrur"],
+                ROLE_TO_ID["mudaaf_ilayh"], ROLE_TO_ID["ism_inna"],
+                ROLE_TO_ID["khabar_inna"], ROLE_TO_ID["ism_kana"],
+                ROLE_TO_ID["khabar_kana"],
+            }
+            for i in range(1, n):
+                wi = norm_words[i]
+                if not wi or _has_al_prefix(wi):
+                    continue
+                if norm_words[i - 1] in PREPS:
+                    continue
+                pi_prev = _argmax_pos(pos_logits[b, i - 1])
+                pi_cur = _argmax_pos(pos_logits[b, i])
+                if pi_prev != POS_TO_ID["noun"] or pi_cur != POS_TO_ID["noun"]:
+                    continue
+                role_prev = int(role_logits[b, i - 1].argmax().item())
+                if role_prev not in HEAD_ROLES:
+                    continue
+                # full strength (no half-bias unlike the stub)
+                case_logits[b, i, JARR] += lambda_case
+                role_logits[b, i, R_MUDAAF] += lambda_role
+                trace.add(b, i, "idafa_chain")
+
+        # ---------------- 8) naat (adjective) propagation -----------------
+        # If the model already predicts role=naat at word i, ensure case
+        # agreement with word i-1 (the head noun). This is a redundant signal
+        # to (5) but kicks in when the model has identified the role first.
+        if "naat_propagation" in enabled:
+            R_NAAT_ID = ROLE_TO_ID["naat"]
+            for i in range(1, n):
+                role_i = int(role_logits[b, i].argmax().item())
+                if role_i != R_NAAT_ID:
+                    continue
+                head_case = int(case_logits[b, i - 1].argmax().item())
+                case_logits[b, i, head_case] += lambda_case
+                trace.add(b, i, "naat_propagation")
+
+        # ---------------- 9) munadā (vocative) -> nasb -----------------
+        # After يا (vocative particle), the immediately following noun is in
+        # nasb when it's a definite munadā (e.g. يا أيها الناس -> أيها is
+        # mabni على الضم but for indefinite the noun goes to nasb).
+        # We pick nasb as the dominant pattern; a conservative bias applies.
+        if "munadi_to_nasb" in enabled:
+            VOC = {"يا", "ايا", "هيا", "اي"}
+            R_MUNADA = ROLE_TO_ID["munada"]
+            for i in range(1, n):
+                if norm_words[i - 1] in VOC:
+                    pos_i = _argmax_pos(pos_logits[b, i])
+                    if pos_i in (POS_TO_ID["noun"], POS_TO_ID["adjective"]):
+                        case_logits[b, i, NASB] += 0.5 * lambda_case
+                        role_logits[b, i, R_MUNADA] += lambda_role
+                        trace.add(b, i, "munadi_to_nasb")
+
     return case_logits, role_logits, trace
+
+
+# ---------------------------------------------------------------------------
+# Hierarchical inference: role -> case biasing
+# ---------------------------------------------------------------------------
+# Strong role-implies-case priors derived from the canonical schema. After
+# the role head's argmax (or CRF-Viterbi) is fixed, these biases nudge case
+# toward the syntactically-implied value. Soft (logit add), not hard.
+ROLE_TO_CASE_PRIOR = {
+    "fail":         "raf",
+    "naib_fail":    "raf",
+    "mubtada":      "raf",
+    "khabar":       "raf",
+    "ism_kana":     "raf",
+    "khabar_inna":  "raf",
+    "mafoul_bih":   "nasb",
+    "khabar_kana":  "nasb",
+    "ism_inna":     "nasb",
+    "mafoul_other": "nasb",
+    "hal":          "nasb",
+    "tamyeez":      "nasb",
+    "munada":       "nasb",
+    "mudaaf_ilayh": "jarr",
+    "ism_majrur":   "jarr",
+    "harf_jarr":    "mabni",
+    "harf_atf":     "mabni",
+    "harf_other":   "mabni",
+    "fil":          "mabni",
+}
+
+
+def apply_hierarchical(
+    case_logits: torch.Tensor,        # (B, W, N_CASE)
+    role_pred: torch.Tensor,          # (B, W) long — Viterbi or argmax of role
+    word_mask: torch.Tensor,          # (B, W)
+    *,
+    lambda_hier: float = 1.0,
+    trace: Optional[ConstraintTrace] = None,
+) -> Tuple[torch.Tensor, ConstraintTrace]:
+    """Bias case logits by the role-implied case prior.
+
+    For each word with a confident role prediction, add ``+lambda_hier`` to
+    the case index implied by ROLE_TO_CASE_PRIOR. Soft, ablation-friendly.
+    """
+    from ..structured.schema import ID_TO_ROLE, CASE_TO_ID
+
+    case_logits = case_logits.clone()
+    B, W, _ = case_logits.shape
+    if trace is None:
+        trace = ConstraintTrace()
+        trace.init(B, W)
+
+    for b in range(B):
+        n = int(word_mask[b].sum().item())
+        for i in range(n):
+            r_id = int(role_pred[b, i].item())
+            r_label = ID_TO_ROLE.get(r_id)
+            if r_label is None:
+                continue
+            implied = ROLE_TO_CASE_PRIOR.get(r_label)
+            if implied is None:
+                continue
+            c_idx = CASE_TO_ID.get(implied)
+            if c_idx is None:
+                continue
+            case_logits[b, i, c_idx] += lambda_hier
+            trace.add(b, i, f"hierarchical_role_to_case[{r_label}->{implied}]")
+    return case_logits, trace

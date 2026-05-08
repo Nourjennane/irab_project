@@ -133,7 +133,12 @@
       "Bash(scp -q docs/paper/REPORT.tex 3415496@10.35.5.3:~/irab_project/docs/paper/REPORT.tex)",
       "Bash(scp -q -r docs/figures 3415496@10.35.5.3:~/irab_project/docs/)",
       "Bash(scp -q docs/paper/generate_figures.py 3415496@10.35.5.3:~/irab_project/docs/paper/generate_figures.py)",
-      "Bash(scp -q 3415496@10.35.5.3:~/irab_project/docs/paper/REPORT.pdf docs/paper/REPORT.pdf)"
+      "Bash(scp -q 3415496@10.35.5.3:~/irab_project/docs/paper/REPORT.pdf docs/paper/REPORT.pdf)",
+      "Bash(env)",
+      "Bash(USE_TF=0 python3 *)",
+      "Bash(scp -q src/irab_tashkeel/structured/crf.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/crf.py)",
+      "Bash(scp -q scripts/slurm/50_train_structured_v1.sbatch 3415496@10.35.5.3:~/irab_project/scripts/slurm/50_train_structured_v1.sbatch)",
+      "Bash(rsync -avz --no-perms runs/structured_v1_rebuild_490894/final/ 3415496@10.35.5.3:~/irab_project/runs/structured_v1_rebuild_490894/final/)"
     ]
   }
 }
