@@ -104,7 +104,21 @@
       "Bash(timeout 5 nc -zv 10.35.5.3 22)",
       "Bash(timeout 5 nc -zv slogin.hpc.unibocconi.it 22)",
       "Bash(python3 *)",
-      "Bash(pip3 list *)"
+      "Bash(pip3 list *)",
+      "Bash(rsync -avz --no-perms src/irab_tashkeel/structured/ '3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/')",
+      "Bash(rsync -avz --no-perms src/irab_tashkeel/training/structured/ '3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/training/structured/')",
+      "Bash(rsync -avz --no-perms data/structured_v1/ '3415496@10.35.5.3:~/irab_project/data/structured_v1/')",
+      "Bash(rsync -avz --no-perms configs/structured_v1_rebuild.yaml scripts/slurm/49_smoke_structured_v1.sbatch scripts/slurm/50_train_structured_v1.sbatch scripts/structured/build_structured_corpus.py '3415496@10.35.5.3:~/irab_project/_staging/')",
+      "Bash(pip3 install *)",
+      "Bash(rsync -avz --no-perms src/irab_tashkeel/structured/model.py src/irab_tashkeel/inference/symbolic_constraints.py src/irab_tashkeel/inference/template_renderer.py src/irab_tashkeel/inference/qualitative_trace.py '3415496@10.35.5.3:~/irab_project/_staging/')",
+      "Bash(rsync -avz --no-perms src/irab_tashkeel/retrieval/ 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/retrieval/)",
+      "Bash(scp -q src/irab_tashkeel/structured/model.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/structured/model.py)",
+      "Bash(scp -q src/irab_tashkeel/inference/symbolic_constraints.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/inference/symbolic_constraints.py)",
+      "Bash(scp -q src/irab_tashkeel/inference/template_renderer.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/inference/template_renderer.py)",
+      "Bash(scp -q src/irab_tashkeel/inference/qualitative_trace.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/inference/qualitative_trace.py)",
+      "Bash(scp -q src/irab_tashkeel/training/structured/train.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/training/structured/train.py)",
+      "Bash(scp -q src/irab_tashkeel/inference/structured_predictor.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/inference/structured_predictor.py)",
+      "Bash(scp -q src/irab_tashkeel/evaluation/run_baselines.py 3415496@10.35.5.3:~/irab_project/src/irab_tashkeel/evaluation/run_baselines.py)"
     ]
   }
 }

@@ -19,7 +19,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoModel
+from transformers import AutoConfig, AutoModel, AutoTokenizer
 
 from .schema import N_CASE, N_ROLE, N_MARKER, N_POS
 
@@ -90,17 +90,21 @@ class StructuredIrabModel(nn.Module):
         loss_weights: tuple[float, float, float, float] = (1.0, 1.0, 1.0, 0.5),
     ):
         super().__init__()
-        full_model = AutoModel.from_pretrained(encoder_name)
-        # AutoModel for T5 returns a T5Model which exposes .encoder
-        if hasattr(full_model, "encoder"):
-            self.encoder = full_model.encoder
-        elif hasattr(full_model, "get_encoder"):
-            self.encoder = full_model.get_encoder()
+        # Prefer T5EncoderModel for T5-family checkpoints: it loads ONLY the
+        # encoder, avoiding the cyclic encoder<->decoder<->shared-embedding
+        # references that segfault during CUDA destructor teardown on
+        # transformers 4.46 + torch 2.5.  For non-T5 checkpoints (AraBERT etc)
+        # we fall back to AutoModel which is already encoder-only.
+        cfg = AutoConfig.from_pretrained(encoder_name)
+        is_t5 = cfg.model_type == "t5" or cfg.model_type == "mt5"
+        if is_t5:
+            from transformers import T5EncoderModel
+            self.encoder = T5EncoderModel.from_pretrained(encoder_name)
+            self.hidden_size = self.encoder.config.d_model
         else:
-            self.encoder = full_model  # already encoder-only (e.g. AraBERT)
-        # Some HF model wrappers (T5Model / T5ForConditionalGeneration) keep a
-        # shared embedding on the parent. We pull the hidden_size from config.
-        self.hidden_size = self.encoder.config.d_model if hasattr(self.encoder.config, "d_model") else self.encoder.config.hidden_size
+            self.encoder = AutoModel.from_pretrained(encoder_name)
+            self.hidden_size = getattr(self.encoder.config, "d_model",
+                                       getattr(self.encoder.config, "hidden_size"))
 
         self.dropout = nn.Dropout(head_dropout)
         self.case_head = nn.Linear(self.hidden_size, N_CASE)

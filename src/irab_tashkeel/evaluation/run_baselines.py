@@ -213,6 +213,9 @@ def main():
     p.add_argument("--acegpt_base_model", default=None,
                    help="optional override for AceGPT base model path/id "
                         "(default: read from adapter_config.json)")
+    p.add_argument("--structured_v1_path", default=None,
+                   help="path to the structured-v1-rebuild final/ dir "
+                        "(for the 'structured_v1' / 'structured_v1_constrained' baselines)")
     p.add_argument("--include_distilled_v2_pool", action="store_true",
                    help="add ~5K Phase 1 distillation rows (data/distill_v2/distilled.jsonl) to the RAG pool")
     p.add_argument("--include_masaq_pool", action="store_true",
@@ -369,6 +372,36 @@ def main():
             out_dir=args.out,
         )
         reports.append(rep)
+
+    if "structured_v1" in baselines or "structured_v1_constrained" in baselines:
+        from ..inference.structured_predictor import (
+            StructuredPredictor, StructuredPredictorConfig,
+        )
+        if not args.structured_v1_path:
+            print("  [structured_v1*] skipped — pass --structured_v1_path path/to/final/")
+        else:
+            print(f"  Structured v1 rebuild: model={args.structured_v1_path}")
+            if "structured_v1" in baselines:
+                # heads-only, no symbolic constraints (pure neural ablation)
+                pred_no_c = StructuredPredictor(
+                    args.structured_v1_path,
+                    cfg=StructuredPredictorConfig(apply_constraints=False),
+                )
+                rep = evaluate_baseline(
+                    "structured_v1", sentences, gold_pairs,
+                    predict_fn=pred_no_c.predict, out_dir=args.out,
+                )
+                reports.append(rep)
+            if "structured_v1_constrained" in baselines:
+                pred_c = StructuredPredictor(
+                    args.structured_v1_path,
+                    cfg=StructuredPredictorConfig(apply_constraints=True),
+                )
+                rep = evaluate_baseline(
+                    "structured_v1_constrained", sentences, gold_pairs,
+                    predict_fn=pred_c.predict, out_dir=args.out,
+                )
+                reports.append(rep)
 
     if "decoder" in baselines:
         if not args.decoder_ckpt:

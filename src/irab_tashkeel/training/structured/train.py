@@ -224,6 +224,10 @@ def main():
         load_best_model_at_end=False,
         remove_unused_columns=False,
         label_names=["case_labels", "role_labels", "marker_labels", "pos_labels"],
+        # T5EncoderModel keeps a shared input embedding (encoder.shared aliases
+        # encoder.embed_tokens.weight); safetensors refuses to save tied tensors.
+        # Use the regular torch pickle save which handles shared tensors fine.
+        save_safetensors=False,
     )
     # transformers >=4.30 renamed evaluation_strategy -> eval_strategy
     try:
