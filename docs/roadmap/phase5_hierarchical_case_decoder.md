@@ -169,3 +169,84 @@ to remember to run `dep_proj`).
   scale).
 - Constraint reranking interaction with hierarchical case (test post-
   ship).
+
+## 11. Run 1 (Phase 5-A) — gate result
+
+**Phase 5-A fails the soft gate. Phase 3-A remains the production
+checkpoint. Phase 5 ships as opt-in archival.**
+
+Configuration (run `phase5_491263`):
+- 6 epochs joint training on `data/morph_v1_dep` (Phase 3-A corpus)
+- Layered on Phase 3-A: rev 2 + Phase 1 morph + dep features + role→case bias
+- `role_to_case_bias = nn.Linear(25, 5, bias=False)`, zero-init
+- Joint training (case loss flows through softmax back into role logits)
+
+### 11.1 Gazelle headline (heads only, structured_v1)
+
+| Metric | Phase 3-A baseline | Phase 5-A | Δ |
+|---|---:|---:|---:|
+| case | 56.7 | 56.0 | **−0.7** |
+| role-F1 | 41.3 | 41.3 | 0.0 |
+| marker | 44.8 | 43.3 | **−1.5** |
+| fully | 20.1 | 20.1 | 0.0 |
+
+Phase 5-A beats Phase 3-A on **zero** of {case, role-F1, fully}. The
+soft two-of-three gate requires ≥ 2 wins; with zero wins, the gate
+fails. Marker regresses by 1.5 pp (not in the gate set but still
+documented).
+
+### 11.2 Mechanism interpretation — the architectural lesson sharpens
+
+Phase 3-A passed the gate because dep features were a *genuinely new
+information source* (relational signal that morph + taxonomy could not
+express). Phase 5's role→case bias is the opposite: it re-uses the
+role head's *predictions* as a bias on the case head's logits — both
+heads are already trained on the same encoder representation with
+their own labels. No new information enters the model. The role→case
+bias matrix can only redistribute what's already in the role logits.
+
+The case head was already saturated by Phase 3-A's dep features (the
++3.0 pp case improvement Phase 3 delivered came from relational signal
+that the dep features carried). Adding a small role→case bias on top
+of that has nothing left to give.
+
+The role-F1 staying flat (0.0) confirms the joint training did not
+corrupt the role head — the Phase 2 joint-dynamics issue does not
+apply to output-side conditioning, as expected. So the architectural
+choice was correct; the limitation is about *information content*,
+not training stability.
+
+### 11.3 Generalisation of the architectural lesson
+
+Phase 1 → Phase 4a → Phase 2 → Phase 3 → Phase 5 sequence delivers a
+clean rule:
+
+> At 296M / 6 epochs, **rearranging the same supervision plateaus.
+> Adding genuinely new supervision unlocks gain.**
+
+- Phase 4a: 25→34 taxonomy expansion = same supervision (per-word role
+  labels, just more granular). Plateau.
+- Phase 2: rearrange how morph→iʿrāb interaction happens. Plateau.
+- Phase 3: dep features are new information (relational, not per-word).
+  Gain.
+- Phase 5: role→case bias = rearranges existing role predictions. Plateau.
+
+This rule predicts Phase 6 (hierarchical marker, conditioned on
+case+role) will also plateau — the marker head is already getting case
++ role information indirectly through the shared encoder
+representation, and adding an explicit case_softmax+role_softmax→
+marker bias just re-uses signal already there. We document Phase 6 as
+the symmetric prediction; if it confirms, we have a clean four-cell
+case study (Phase 4a, Phase 2, Phase 5, Phase 6 = all rearrangements,
+all plateau; Phase 3 = new info, gain).
+
+## 12. Ship decision (final)
+
+**Phase 5 does NOT ship as production. Phase 3-A remains the
+production checkpoint.** The role→case bias module + factory + flag
+stay in the codebase under `enable_case_hierarchy=False` default;
+opt-in for downstream consumers who want the case+role consistency
+guarantee at the cost of −0.7 pp case + −1.5 pp marker.
+
+Production lineage: rev 2 → Phase 1 → **Phase 3-A**. Phase 4a, Phase 2,
+Phase 5 all opt-in.

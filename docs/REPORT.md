@@ -180,7 +180,9 @@ We retrain once with all four enabled (≈ 4 min wall-clock on the same MIG slic
 | Phase 2 — Phase 1 + FiLM conditioning, soft + joint | 79.9 | 52.2 | 36.7 | 41.8 | 17.2 |
 | Phase 2 — Phase 1 + additive bias, soft + joint | 79.9 | 53.7 | 39.0 | 41.0 | **19.4** |
 | Phase 2 — Phase 1 + FiLM conditioning, soft + **detached** | 79.9 | 53.7 | 41.1 | 41.0 | **19.4** |
-| **Phase 3 — Phase 1 + Stanza UD dep features (NEW PRODUCTION)** | 79.9 | **56.7** | 41.3 | **44.8** | **20.1** |
+| **Phase 3 — Phase 1 + Stanza UD dep features (PRODUCTION)** | 79.9 | **56.7** | 41.3 | **44.8** | **20.1** |
+| Phase 5 — Phase 3 + role→case hierarchical bias | 79.9 | 56.0 | 41.3 | 43.3 | 20.1 |
+| Phase 6 — Phase 3 + case+role→marker hierarchical bias | 79.9 | 56.0 | 38.8 | 43.3 | 18.7 |
 | AraT5v2-base FT (seq2seq, prose decoding) | 79.9 | 65.7 | 54.8 | 44.0 | 24.6 |
 | Claude Sonnet 4.5 + RAG (headline) | 79.9 | 73.9 | 74.7 | 50.0 | 32.1 |
 
@@ -283,6 +285,30 @@ Phase 3-A (Phase 1 + Stanza dep, soft two-of-three gate):
 **Inference distribution mismatch — debugging episode.** A first eval pass produced an apparent regression across the board (case 50.0 / role-F1 36.5 / marker 38.8 / fully 16.4). The cause was an inference-side bug: when the predictor doesn't supply dep tensors (the predictor doesn't run Stanza on Gazelle inputs in this iteration), the model's `dep_provided` check fell through to `pooled_irab = pooled`, *skipping `dep_proj` entirely*. But during training, the iʿrāb heads consumed `dep_proj([h; dep_emb])` even on `has_dep=False` rows (the 70% of records where Stanza failed to align), with `dep_emb` masked to zero. So `dep_proj` was trained to map `[h; 0]` → `pooled_irab`, and skipping it at inference fed the iʿrāb heads an out-of-distribution input. Fix: when `enable_dep_features=True`, ALWAYS run `dep_proj`; if no dep tensors are supplied, use a zero `dep_emb` (matches the `has_dep=False` training path). Re-evaluating the *same* checkpoint after the fix produced the corrected +3.0 / −1.0 / +3.8 / +0.7 numbers above. The training was not broken — only the inference path. We document this as a methodological lesson: any architectural change adding a new transformation layer needs explicit inference-vs-training-distribution validation.
 
 **Stanza alignment as the bottleneck.** Stanza's Arabic UD parser has UAS ≈ 84%, and only 70% of distill_v2 records were successfully aligned to whitespace tokens (the alignment script uses a 50% surface-match threshold; the rest had `has_dep=False`). Cleaner dep coverage would likely lift Phase 3-A further on role-F1, possibly through the strict gate. Concrete follow-on levers documented in `phase3_dependency_reasoning.md` §14.4 — dropping the alignment threshold, adding gold UD-PADT dep to the morph-only half, running Stanza at inference time. The fact that even noisy 70%-coverage Stanza dep features drive +3 pp case improvement demonstrates that dep is the productive lever; cleaner dep should compound the gain.
+
+#### 5.6.6 Phases 5 + 6 — hierarchical case and marker decoders (negative results)
+
+If Phase 3's gain came from genuinely new information (Stanza UD dep edges), what about purely architectural rearrangements that re-use information already in the model? Phases 5 and 6 test this directly: condition the case head on role softmax (Phase 5: `case_logits += role_to_case_bias(role_softmax)`) and condition the marker head on case+role softmax (Phase 6: `marker_logits += case_role_to_marker_bias(softmax([case;role]))`). Both layered on Phase 3-A. Both with zero-init bias matrices, both joint-trained. Both fail the soft gate.
+
+| Variant | case | role-F1 | marker | *fully* | wins vs P3-A |
+|---|---:|---:|---:|---:|:---:|
+| Phase 3-A baseline | 56.7 | 41.3 | 44.8 | 20.1 | — |
+| Phase 5 (role→case bias) | 56.0 (−0.7) | 41.3 (=) | 43.3 (−1.5) | 20.1 (=) | 0/3 |
+| Phase 6 (case+role→marker bias) | 56.0 (−0.7) | 38.8 (−2.5) | 43.3 (−1.5) | 18.7 (−1.4) | 0/3 |
+
+Phase 5 is essentially flat with a small case + marker cost. Phase 6 is worse: role-F1 drops 2.5 pp and *fully* drops 1.4 pp because the joint training of the marker bias pulls case + role logits toward "useful as marker conditioning input" rather than "directly predict case / role". Both heads were already trained on the same encoder representation with their own labels; the bias matrices can only redistribute existing prediction mass, not add new information — and the redistribution costs accuracy where the encoder representation is most balanced.
+
+**The four-cell architectural case study, closed:**
+
+| Phase | Intervention | Adds new info? | Headline outcome |
+|---|---|:---:|---|
+| 4a | 25 → 34 taxonomy expansion | ✗ (same labels, more granular) | role-F1 +6.8 / *fully* 0.0 — substitutable with morph |
+| 2 | Morph → iʿrāb conditioning (FiLM/additive/detached) | ✗ (same supervision rearranged) | all three regress {case, role-F1, fully} or only role-F1 |
+| 5 | Role → case hierarchical output bias | ✗ (re-uses role pred) | flat / mild regress |
+| 6 | Case+role → marker hierarchical output bias | ✗ (re-uses case+role pred) | clearer regress |
+| **3** | **UD dep edges (Stanza-parsed)** | **✓ relational signal** | **case +3.0, marker +3.8, fully +0.7** |
+
+**The empirical generalisation: at 296M / 6 epochs, rearranging the same supervision plateaus or regresses; orthogonal information sources unlock gain.** The pattern is robust across encoder-side conditioning (Phase 2), input-side augmentation (Phase 3), and output-side hierarchical decoders (Phases 5, 6). Production lineage is rev 2 → Phase 1 → **Phase 3-A**; Phases 4a, 2, 5, 6 ship as opt-in archival.
 
 **Architectural stress test — CRF + cumulative constraints (negative result, prior to Phase 1).** Earlier we ran one further iteration that added (a) a linear-chain CRF over the role head with empirical-bigram-initialised transitions, (b) five additional symbolic-constraint families (adjective agreement, coordination case-share, iḍāfa chain, *naat* propagation, vocative→nasb), and (c) a hierarchical role→case post-processing bias (mafoul_bih→nasb, ism_majrur→jarr, …) applied after the role argmax. The hypothesis was that role transitions are sequentially structured (e.g.\ *ḥarf jarr* → *ism majrūr* with empirical p≈0.85, the strongest single transition) and that a sequence-aware decoder would capture this better than independent CE. The retrain (6 epochs, same recipe + CRF + 9 constraints + hierarchical) gave case 50.0% / role-F1 37.9% / fully 11.9% on Gazelle — a regression vs rev 2 (case 55.2 / role-F1 36.9 / fully 18.7). Diagnostics: the CRF NLL plateaued at ≈14 at the end of 6 epochs vs rev 2's CE at ≈2, indicating insufficient training of the structured loss. The 9-constraint + hierarchical combination further over-corrected role-F1 (37.9 → 30.9 within this stress test) by stacking too many same-direction biases. We report this as a documented negative result: at our corpus size + 6-epoch budget, the additional sequence structure does not pay for itself; rev 2 remained our frozen architecture during the subsequent Phase 1 + Phase 4a iterations. Future-work levers: longer training with CRF-only (no class-weighting interaction) and per-constraint ablation to identify which of the 9 constraints help vs hurt.
 

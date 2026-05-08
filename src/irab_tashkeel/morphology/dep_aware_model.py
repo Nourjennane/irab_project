@@ -90,6 +90,9 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         # Phase 5: hierarchical case decoder (output-side conditioning).
         enable_case_hierarchy: bool = False,
         case_hierarchy_detached: bool = False,
+        # Phase 6: hierarchical marker decoder (output-side; conditions marker on case + role).
+        enable_marker_hierarchy: bool = False,
+        marker_hierarchy_detached: bool = False,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
@@ -128,6 +131,22 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             )
             with torch.no_grad():
                 self.role_to_case_bias.weight.zero_()
+
+        # Phase 6: optional hierarchical marker decoder.
+        # softmax([case_logits; role_logits]) → small linear → marker_bias (N_marker).
+        self.enable_marker_hierarchy = bool(enable_marker_hierarchy)
+        self.marker_hierarchy_detached = bool(marker_hierarchy_detached)
+        if self.enable_marker_hierarchy:
+            if not self.enable_dep_features:
+                raise ValueError(
+                    "enable_marker_hierarchy=True requires enable_dep_features=True."
+                )
+            n_case = self.case_head.out_features
+            self.case_role_to_marker_bias = nn.Linear(
+                n_case + self._n_role, self.marker_head.out_features, bias=False,
+            )
+            with torch.no_grad():
+                self.case_role_to_marker_bias.weight.zero_()
 
     def _identity_init_dep_proj(self) -> None:
         """Initialise dep_proj so that, with random near-zero dep embeddings,
@@ -247,6 +266,16 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             if self.case_hierarchy_detached:
                 role_softmax = role_softmax.detach()
             case_logits = case_logits + self.role_to_case_bias(role_softmax)
+
+        # Phase 6: marker conditioned on case + role
+        if self.enable_marker_hierarchy:
+            case_softmax = F.softmax(case_logits, dim=-1)
+            role_softmax_m = F.softmax(role_logits, dim=-1)
+            if self.marker_hierarchy_detached:
+                case_softmax = case_softmax.detach()
+                role_softmax_m = role_softmax_m.detach()
+            cr = torch.cat([case_softmax, role_softmax_m], dim=-1)
+            marker_logits = marker_logits + self.case_role_to_marker_bias(cr)
 
         out: Dict[str, torch.Tensor] = {
             "case_logits":   case_logits,

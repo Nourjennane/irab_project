@@ -100,6 +100,8 @@ class StructuredPredictor:
             enable_dep_features = bool(tcfg.get("enable_dep_features", False))
             enable_case_hierarchy = bool(tcfg.get("enable_case_hierarchy", False))
             case_hierarchy_detached = bool(tcfg.get("case_hierarchy_detached", False))
+            enable_marker_hierarchy = bool(tcfg.get("enable_marker_hierarchy", False))
+            marker_hierarchy_detached = bool(tcfg.get("marker_hierarchy_detached", False))
 
         # Phase 4a: taxonomy switch picks the right ID_TO_ROLE map at predict-time.
         if taxonomy == "v4":
@@ -137,6 +139,8 @@ class StructuredPredictor:
                 enable_dep_features=True,
                 enable_case_hierarchy=enable_case_hierarchy,
                 case_hierarchy_detached=case_hierarchy_detached,
+                enable_marker_hierarchy=enable_marker_hierarchy,
+                marker_hierarchy_detached=marker_hierarchy_detached,
                 **n_role_kw,
             )
             self.has_morph_path = True

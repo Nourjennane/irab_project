@@ -119,6 +119,12 @@ class StructuredConfig:
     # case loss does NOT flow back into the role head. Reported as ablation.
     case_hierarchy_detached: bool = False
 
+    # ---- Phase 6 — hierarchical marker decoder ----
+    # When True, marker is conditioned on softmax([case;role]) via a learnable
+    # bias matrix (zero-init). Requires enable_dep_features=True.
+    enable_marker_hierarchy: bool = False
+    marker_hierarchy_detached: bool = False
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -334,6 +340,8 @@ def main():
                 enable_dep_features=True,
                 enable_case_hierarchy=cfg.enable_case_hierarchy,
                 case_hierarchy_detached=cfg.case_hierarchy_detached,
+                enable_marker_hierarchy=cfg.enable_marker_hierarchy,
+                marker_hierarchy_detached=cfg.marker_hierarchy_detached,
                 **n_role_kw,
             )
             print(f"[train] dep features enabled: encoder + dep_proj "

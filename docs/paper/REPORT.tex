@@ -260,7 +260,9 @@ Phase 4a-full (25 $\rightarrow$ 34 $+$ Phase 1 morph) & 79.9 & 56.0 & 42.6 & 41.
 Phase 2: P1 $+$ FiLM, soft + joint & 79.9 & 52.2 & 36.7 & 41.8 & 17.2 \\
 Phase 2: P1 $+$ additive, soft + joint & 79.9 & 53.7 & 39.0 & 41.0 & \textbf{19.4} \\
 Phase 2: P1 $+$ FiLM, soft + \textbf{detached} & 79.9 & 53.7 & 41.1 & 41.0 & 19.4 \\
-\textbf{Phase 3: P1 $+$ Stanza UD dep features (NEW PRODUCTION)} & 79.9 & \textbf{56.7} & 41.3 & \textbf{44.8} & \textbf{20.1} \\
+\textbf{Phase 3: P1 $+$ Stanza UD dep features (PRODUCTION)} & 79.9 & \textbf{56.7} & 41.3 & \textbf{44.8} & \textbf{20.1} \\
+Phase 5: P3 $+$ role$\rightarrow$case bias & 79.9 & 56.0 & 41.3 & 43.3 & 20.1 \\
+Phase 6: P3 $+$ case+role$\rightarrow$marker bias & 79.9 & 56.0 & 38.8 & 43.3 & 18.7 \\
 \midrule
 \emph{Reference: AraT5v2-base FT (seq2seq prose)} & 79.9 & 65.7 & 54.8 & 44.0 & 24.6 \\
 \emph{Reference: Sonnet RAG (headline)} & 79.9 & 73.9 & 74.7 & 50.0 & 32.1 \\
@@ -294,6 +296,14 @@ Why dep features are the productive lever: Arabic case assignment is heavily rel
 Stanza alignment succeeded on only 70\% of distill\_v2 records (Stanza's Arabic UAS $\approx 84\%$, plus tokenisation alignment failures). Cleaner dep coverage (drop the 50\% match threshold, add gold UD-PADT dep on the morph half, run Stanza at inference time) is the next iteration's lever and would likely lift role-F1 further. The fact that even noisy 70\%-coverage dep features drive $+3$\,pp case improvement demonstrates that dep is the productive lever; cleaner dep should compound. We also document an inference-distribution-mismatch debugging episode where the predictor initially skipped \texttt{dep\_proj} entirely on Gazelle inputs (since no dep tensors were supplied), producing an apparent regression; the fix (always run \texttt{dep\_proj}, with zero \texttt{dep\_emb} when no tensors are passed --- matching the \texttt{has\_dep=False} training-time path) restored the corrected numbers above on the same checkpoint.
 
 The Phase 1 $\rightarrow$ Phase 4a $\rightarrow$ Phase 2 $\rightarrow$ Phase 3 sequence delivers a clean lesson: \textbf{at 296M / 6 epochs, parametric capacity is not the bottleneck --- orthogonal information sources are.} Adding more parallel heads on the same supervision plateaus (Phase 4a substitutability); rearranging the form of morph$\rightarrow$iʿrāb interaction plateaus (Phase 2 joint dynamics); adding a genuinely different supervision unlocks measurable gain (Phase 3 dep features).
+
+\paragraph{Phases 5 + 6 --- hierarchical case and marker decoders (closing the architectural case study).}
+\label{sec:phase56}
+We close the architectural ablation with two output-side conditioning experiments layered on Phase 3-A. Phase 5 conditions the case head on role softmax via $\texttt{case\_logits} \mathrel{+}= W_{r\rightarrow c}\,\sigma(\texttt{role\_logits})$ with $W_{r\rightarrow c}$ a $25 \times 5$ zero-initialised matrix. Phase 6 conditions the marker head on case+role softmax similarly: $\texttt{marker\_logits} \mathrel{+}= W_{cr\rightarrow m}\,\sigma([\texttt{case\_logits};\texttt{role\_logits}])$. Both joint-trained.
+
+Both fail the soft gate. Phase 5: case $56.0$ ($-0.7$), role-F1 $41.3$ ($=$), marker $43.3$ ($-1.5$), \emph{fully} $20.1$ ($=$). Phase 6: case $56.0$, role-F1 \textbf{$38.8$ ($-2.5$)}, marker $43.3$, \emph{fully} $18.7$ ($-1.4$). Phase 6's larger regression is informative: stacking output-side conditioning when both consumed heads (case, role) already share the same encoder representation drives joint-training drift faster than Phase 5's single-head dependency. The role head loses 2.5\,pp role-F1 because marker loss flowing through softmax pulls role logits toward "useful as marker conditioning input" rather than "directly predict role".
+
+Both ship as opt-in archival. Phase 3-A remains production. Phases 4a + 2 + 5 + 6 form a four-cell case study where each intervention re-uses information already in the model: 25$\rightarrow$34 taxonomy expansion (same labels, more granular), morph$\rightarrow$iʿrāb conditioning rearrangement, role$\rightarrow$case bias, case+role$\rightarrow$marker bias. None unlock gain; all plateau or regress. Only Phase 3 (Stanza UD dep edges --- a genuinely orthogonal signal source) unlocks gain. \textbf{The empirical generalisation: at 296M / 6 epochs, rearranging the same supervision plateaus or regresses; orthogonal information sources unlock gain.} The pattern is robust across encoder-side conditioning (Phase 2), input-side augmentation (Phase 3), and output-side hierarchical decoders (Phases 5, 6).
 
 \paragraph{Phase 2 --- soft morphology conditioning (negative result, joint-training dynamics).}
 \label{sec:phase2}
