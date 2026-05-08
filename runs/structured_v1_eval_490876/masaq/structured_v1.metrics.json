@@ -1,0 +1,22 @@
+{
+  "baseline": "structured_v1",
+  "n_sentences": 624,
+  "raw": {
+    "n": 5007.0,
+    "well_formed_rate": 1.0,
+    "case_accuracy": 0.8206510884761334,
+    "pos_accuracy": 0.4733373277411624,
+    "marker_em": 0.2967845016976233,
+    "role_f1_macro": 0.16818603661395337,
+    "fully_correct_word": 0.07988815658078689
+  },
+  "constrained": {
+    "n": 5007.0,
+    "well_formed_rate": 1.0,
+    "case_accuracy": 0.8206510884761334,
+    "pos_accuracy": 0.4733373277411624,
+    "marker_em": 0.29398841621729577,
+    "role_f1_macro": 0.16818603661395337,
+    "fully_correct_word": 0.07988815658078689
+  }
+}

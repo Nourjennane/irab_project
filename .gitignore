@@ -19,6 +19,10 @@ runs/
 !runs/irab_acegpt13b_distill_v2_487888/**
 !runs/baseline_eval_*/
 !runs/baseline_eval_*/**
+# Phase 3 / structured rebuild — keep eval predictions (small ~5 MB total)
+# but NOT the model bin (~680 MB; reproducible via seeded retrain in 4 min).
+!runs/structured_v1_eval_*/
+!runs/structured_v1_eval_*/**
 
 # Build / venv / caches
 __pycache__/
