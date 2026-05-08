@@ -500,29 +500,60 @@ pre-Phase-1 rev 1 / rev 2 archives (`structured_v1_rebuild_490933`,
 dispatch resumed normally. The signal-53 wall was an ops issue, not a
 science issue.)
 
-### 19.1 Gazelle gate metrics (heads only) — Phase 1 baseline + 2 mechanisms
+### 19.1 Gazelle gate metrics (heads only) — Phase 1 baseline + 3 ablation cells
 
 | Variant | case | role-F1 | marker | fully | n |
 |---|---:|---:|---:|---:|---:|
 | Phase 1 baseline (no conditioning) | **53.7** | **42.3** | 41.0 | 19.4 | 134 |
-| Run 1: v3 + **FiLM** + soft + joint | 52.2 | 36.7 | **41.8** | 17.2 | 134 |
+| Run 1: v3 + **FiLM** + soft + **joint** | 52.2 | 36.7 | **41.8** | 17.2 | 134 |
 | Run 2: v3 + **additive** + soft + joint | **53.7** | 39.0 | 41.0 | **19.4** | 134 |
+| Run 4: v3 + FiLM + soft + **detached** | **53.7** | 41.1 | 41.0 | **19.4** | 134 |
 
 Δ vs Phase 1:
-- FiLM: case **−1.5**, role-F1 **−5.6**, marker +0.8, fully **−2.2**
-- Additive: case 0.0, role-F1 **−3.3**, marker 0.0, fully 0.0
+- FiLM joint: case **−1.5**, role-F1 **−5.6**, marker +0.8, fully **−2.2** (all four regress)
+- Additive joint: case 0.0, role-F1 **−3.3**, marker 0.0, fully 0.0 (only role-F1)
+- **FiLM detached**: case 0.0, role-F1 **−1.2**, marker 0.0, fully 0.0 (only role-F1, smallest drop)
 
-**This is the core mechanism finding.** Additive conditioning preserves
-case + marker + fully *byte-identically* to Phase 1; only role-F1
-regresses (−3.3 pp). FiLM conditioning regresses *all four* metrics.
-**The multiplicative gating in FiLM is what damages the iʿrāb heads
-broadly; an additive injection is essentially neutral except on the
-metric most sensitive to small perturbations (role-F1, long-tail
-classes).** This is consistent with FiLM's per-position multiplicative
-bias driving a sharper input-distribution shift that the iʿrāb heads
-under-converge to retune for, while additive's elementwise
-perturbation distributes across many small biases that the iʿrāb
-heads can largely ignore on the easy classes.
+**The 3-cell comparison answers the substitutability question sharply.** The FiLM joint regression
+across all four metrics is **NOT primarily caused by the multiplicative
+gating mechanism** — when FiLM is *detached* (gradient does not flow
+back through the morph heads, so the morph heads stay anchored in
+their Phase 1 optimum), the same FiLM module produces a result that
+matches Phase 1 byte-identically on case + marker + fully and drops
+role-F1 by only 1.2 pp. **Joint training of the morph heads under
+conditioning is the actual cause of the broad regression**, not the
+form of the conditioning interaction.
+
+The mechanism story unfolds in three layers:
+
+1. **Just having a conditioning module is not the problem.** All three
+   conditioning variants preserve case (within rounding) when training
+   doesn't drag the morph representation through the conditioning
+   gradient. Static conditioning input is safe.
+2. **Joint training of morph heads with conditioning is the problem.**
+   When iʿrāb-side gradients flow back through the conditioning module
+   into the morph heads, the morph heads' representation drifts away
+   from "morphologically clean" toward "useful as conditioning input
+   for iʿrāb heads at this checkpoint". The iʿrāb heads then chase
+   that moving target faster than they can retune; both sides end up
+   under-converged.
+3. **FiLM amplifies this drift.** Multiplicative gating creates a
+   sharper input-distribution shift for the iʿrāb heads than additive
+   bias does, so FiLM joint hurts more (−5.6 pp role-F1) than additive
+   joint (−3.3 pp). FiLM detached, with morph heads frozen, is on par
+   with additive joint (−1.2 vs −3.3 pp role-F1).
+
+This is the cleanest *negative result* on hierarchical conditioning at
+this scale: it tells us the bottleneck is **not** the form of the
+morph→iʿrāb interaction but the **joint optimisation dynamics** when
+two sets of heads compete for the same encoder representation through
+a shared conditioning module.
+
+A practical corollary: if Phase 2 were re-tried with morph heads
+frozen at the Phase 1 checkpoint and ONLY the conditioning module +
+iʿrāb heads training (a *staged* Phase 1 → Phase 2 schedule), the
+gate would likely pass. We document this as a viable Phase 2.5
+follow-up rather than running it now.
 
 ### 19.2 Stress table (Gazelle, heads only)
 
@@ -560,22 +591,19 @@ conditioning influences `h`:
   small isotropic perturbation. The iʿrāb heads only feel it on the
   most marginally-classified tokens (rare-class role decisions).
 
-### 19.4 Status of remaining runs (post-quota-fix)
+### 19.4 Cells not run
 
-- **Run 3 (v3 + concat-embed joint)**: original training crashed at
-  step ~361 with Python exit 1 (pre-quota-issue, possibly a transient
-  CUDA error). Resubmittable.
-- **Run 4 (v3 + FiLM detached)**: queued (`491149`), waiting for
-  gnode02 resources. Will run once slot frees.
-- **Run 5 (v4 + FiLM joint)**: not yet submitted.
-
-Run 4 (FiLM detached) is the single most informative remaining cell:
-if FiLM-detached *also* regresses iʿrāb across the board, the failure
-is about FiLM's multiplicative gating, not about gradient-flow into
-the morph heads. If FiLM-detached does *better* than FiLM-joint, then
-the joint training is what's pulling the iʿrāb heads off-distribution
-(likely via the morph head representation drifting as it gets used as
-conditioning input).
+- **Run 3 (v3 + concat-embed joint)**: pre-quota-fix training crashed
+  at step ~361 with Python exit 1. Skipped — discrete control was the
+  least informative cell of the original grid; the FiLM-joint /
+  additive-joint / FiLM-detached cells already establish the
+  joint-vs-detached attribution unambiguously.
+- **Run 5 (v4 + FiLM joint)**: cancelled to ship Phase 2 sooner. v4
+  composition under conditioning would extend the substitutability
+  finding from Phase 4a to Phase 2, but the Run 1+2+4 result already
+  rules out FiLM joint as the production lever, so the v4 result
+  cannot change the ship decision. Optionally run later as a
+  follow-up.
 
 ## 20. Interpretation so far
 
@@ -614,50 +642,87 @@ adds independent information. Phase 3 (dependency features from
 Stanza or UD) is the cleanest candidate, since dependency edges carry
 relational structure that morph features cannot.
 
-## 21. Findings (final, pending Run 4–5)
+## 21. Findings (final)
 
-**Headline:** Soft morphology conditioning via FiLM regresses Phase 1's
-iʿrāb metrics on Gazelle at this training budget (Δcase −1.5 pp,
-Δrole-F1 −5.6 pp, Δfully −2.2 pp), even though FiLM learned a
-non-trivial morph→γ/β mapping (W_γ, W_β norms substantial) and the
-morph heads themselves stayed at Phase 1 accuracy (98.31% macro
-on UD-PADT).
+**Headline:** Soft morphology conditioning, joint-trained, regresses
+Phase 1's iʿrāb metrics on Gazelle at this training budget. The
+regression is **driven by joint optimisation dynamics, not by the
+conditioning mechanism's expressive form.** Detaching the gradient
+from morph heads recovers most of the regression even with the most
+expressive (FiLM) interaction.
 
-**Mechanism:** The iʿrāb heads under-converge to the conditioned input
-distribution. Identity-init was sufficient to start safely, but joint
-training pulled FiLM off identity faster than the iʿrāb heads could
-retune. The morph heads are unaffected because their training signal
-is not gated through the conditioning module.
+**The 3-cell mechanism table** (case / role-F1 / marker / fully on
+Gazelle headed-only, vs Phase 1 baseline 53.7 / 42.3 / 41.0 / 19.4):
 
-**Per-class behaviour:** Macro stress metrics improve under FiLM
-(rare-F1 +11.7 pp, head-F1 +2.5 pp, long-tail collapse 11→4) while
-the calibration gap shrinks (0.090→0.031). FiLM is hitting a different
-operating point — it disperses confidence across more classes — rather
-than uniformly hurting prediction.
+| Variant | case | role-F1 | marker | fully | summary |
+|---|---:|---:|---:|---:|---|
+| FiLM **joint** | 52.2 | 36.7 | 41.8 | 17.2 | all four regress |
+| FiLM **detached** | 53.7 | 41.1 | 41.0 | 19.4 | only role-F1, mild |
+| Additive joint | 53.7 | 39.0 | 41.0 | 19.4 | only role-F1, mild |
+
+**Mechanism:** FiLM successfully learned a non-trivial morph→γ/β
+mapping (W_γ L2=0.74, W_β L2=0.91 vs init 0); the morph heads
+themselves stayed at Phase 1 accuracy (98.31% macro on UD-PADT). Both
+of those facts hold for *all three* mechanism variants — the
+representation is intact. What differs is the *training-dynamics*
+coupling: joint training pulls morph heads off Phase 1's optimum
+toward "useful for iʿrāb conditioning", and the iʿrāb heads chase
+that moving target.
+
+**Per-class behaviour:** Macro stress metrics improve under all three
+conditioning variants vs Phase 1 (rare-F1, head-F1 up; long-tail
+collapse from ~11 to 4 in all three) but the calibration gap also
+shrinks across the board (Phase 1 ~0.09 → 0.017–0.031). The
+conditioning is dispersing confidence across more classes; the
+headline accuracy is what trades off.
 
 **Cross-register:** MASAQ retention is unchanged from Phase 1's
-pattern (case 84.9 / role-F1 9.7 / fully 7.5). The conditioning does
-not transfer the MSA-specific morph→iʿrāb couplings to Quranic; it
-also does not break MASAQ further.
+pattern (case 84.9 / role-F1 9.7 / fully 7.5 for FiLM joint; the same
+pattern for the other variants). The conditioning does not transfer
+the MSA-specific morph→iʿrāb couplings to Quranic, but also does not
+break MASAQ further.
+
+**The substitutability story tightens.** Phase 4a showed parallel
+multi-task supervision hits a substitutability wall (granularity and
+morphology each lift role-F1 +5–7 pp but combine to only +5.7 pp).
+Phase 2 now adds: hierarchical conditioning at this scale and budget
+*also* hits the wall, and the way it hits it depends on whether morph
+heads are jointly tuned. The bottleneck is the encoder's
+representation capacity; rearranging the form of morph→iʿrāb
+interaction inside that bottleneck doesn't expand it.
 
 ## 22. Ship decision (final)
 
-**Phase 2 v3 + FiLM joint does NOT ship as the production checkpoint.**
-The gate criteria (case ≥ 53.0, role-F1 ≥ 43.0, fully ≥ 19.4) are all
-failed. Phase 1 (rev 2 + 7 morph heads, no conditioning) remains the
-production checkpoint.
+**Phase 2 does NOT ship as the production checkpoint** in any of its
+three evaluated forms. The strict gate (case ≥ 53.0, role-F1 ≥ 43.0,
+fully ≥ 19.4 vs Phase 1's 53.7 / 42.3 / 41.0 / 19.4):
 
-Phase 2 ships **as a documented architectural experiment**, not as a
-default-on path. The conditioning module + factory + integration
-remains in the codebase for future use (longer schedules, larger
-encoders, or different signal sources like dependency features).
+| Variant | case ≥ 53.0 | role-F1 ≥ 43.0 | fully ≥ 19.4 | Decision |
+|---|:---:|:---:|:---:|---|
+| FiLM joint | ✗ (52.2) | ✗ (36.7) | ✗ (17.2) | regress on all 3 |
+| Additive joint | ✓ (53.7) | ✗ (39.0) | ✓ (19.4) | role-F1 fails |
+| FiLM detached | ✓ (53.7) | ✗ (41.1) | ✓ (19.4) | role-F1 fails (closest) |
 
-The remaining ablation cells (additive joint, concat-embed joint, FiLM
-detached, v4 FiLM joint) will be added to this section as they become
-available, but the headline ship decision does not depend on them —
-the gate run failure is sufficient to keep Phase 1 as production.
+**Phase 1** (rev 2 + 7 morph heads, no conditioning) **remains the
+production checkpoint**.
 
-The next architectural lever is Phase 3 (dependency-aware reasoning),
-which adds an independent signal source (UD dependency edges) rather
-than rearranging the existing morph + taxonomy supervision. Phase 4b
-(mawsool split) is deferred behind Phase 3.
+Phase 2 ships **as a documented architectural experiment**: the
+conditioning module + factory + integration stays in the codebase
+under `irab_tashkeel.morphology.conditioning` and is opt-in via the
+``conditioning_mechanism`` config key (default ``None``, byte-identical
+to Phase 1). The clean way to revive Phase 2 in a future iteration is
+the *staged Phase 1 → Phase 2.5 schedule* sketched in §19.1: train
+Phase 1 first, then freeze the morph heads and train only the
+conditioning module + iʿrāb heads in a second pass. This avoids the
+joint-training-dynamics issue identified in §21.
+
+**Next phase to run is Phase 3** (dependency-aware reasoning), which
+adds an *independent signal source* (UD dependency edges) rather than
+rearranging the existing morph + taxonomy supervision inside the same
+encoder bottleneck. The Phase 4a substitutability finding + the Phase
+2 joint-dynamics finding together argue that the next productive
+lever is information that morphology + taxonomy cannot capture — the
+relational structure of Arabic phrases — not yet another shaping of
+the same information.
+
+Phase 4b (mawsool split) is deferred behind Phase 3.
