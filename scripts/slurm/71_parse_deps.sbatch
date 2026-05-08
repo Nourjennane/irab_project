@@ -22,16 +22,15 @@ module load miniconda3
 module load cuda/12.4 || true
 source activate irab
 
-# Stanza needs network the first time to download Arabic models. Once
-# cached, we can run offline.
-export STANZA_RESOURCES_DIR="${STANZA_RESOURCES_DIR:-$HOME/stanza_resources}"
-
-# If models aren't cached, attempt online download (login node has
-# internet); if we're on a compute node without network, skip — caller
-# should re-run on the login node first.
-python -c "import stanza, os; \
-ar = os.path.join(os.environ.get('STANZA_RESOURCES_DIR', os.path.expanduser('~/stanza_resources')), 'ar'); \
-import os; (os.path.isdir(ar) or stanza.download('ar', verbose=False))"
+# Stanza models are cached at ~/.cache/stanza after the initial
+# stanza.download('ar') run on the login node. Compute nodes have no
+# internet, so the cache must be populated before this job runs.
+if [ ! -d "$HOME/.cache/stanza/1.11.0/resources/ar/depparse" ]; then
+    echo "ERROR: Stanza Arabic dep-parser not cached at ~/.cache/stanza/1.11.0/resources/ar"
+    echo "Run on the login node first:"
+    echo "  python -c 'import stanza; stanza.download(\"ar\")'"
+    exit 4
+fi
 
 PYTHONPATH=src python -u scripts/morphology/parse_deps.py \
     --in_train data/morph_v1/train.jsonl \

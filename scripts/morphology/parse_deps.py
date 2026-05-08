@@ -222,11 +222,14 @@ def main():
 
     print(f"[parse_deps] loading Stanza pipeline (lang={args.lang}, gpu={args.use_gpu})...")
     import stanza
+    # download_method=None skips the network check for resources.json updates
+    # (compute node has no internet; we pre-downloaded models on login node).
     nlp = stanza.Pipeline(
         lang=args.lang,
         processors="tokenize,mwt,pos,lemma,depparse",
         verbose=False,
         use_gpu=args.use_gpu,
+        download_method=None,
     )
 
     out_dir = Path(args.out_dir)
