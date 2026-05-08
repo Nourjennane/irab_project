@@ -236,7 +236,135 @@ Total: half a day to ship + write up.
 - Re-running Stanza at inference (separate inference-quality lever)
 - Joint training of morph heads (Phase 2 documented this is harmful)
 
-## 12. After Phase 3.1 ships — next directions
+## 12. Run 1 + 2 results — Phase 3.1 closes as negative
+
+**Phase 3.1 does NOT ship. Phase 3-A remains production.** Both
+training-mode variants fail the soft gate:
+
+| Variant | morph | case | role-F1 | marker | fully | gate |
+|---|---|---:|---:|---:|---:|:---:|
+| Phase 3-A baseline | trained | **56.7** | **41.3** | **44.8** | **20.1** | — |
+| Phase 3.1-A (491284) | frozen | 56.0 (−0.7) | 38.7 (−2.6) | 41.8 (−3.0) | 18.7 (−1.4) | ✗ |
+| Phase 3.1-A2 (491290) | unfrozen | 56.0 (−0.7) | 41.0 (−0.3) | 41.0 (−3.8) | 17.2 (−2.9) | ✗ |
+
+The unfrozen variant recovered role-F1 (the frozen-morph
+configuration was over-conservative — the encoder was originally
+trained with morph supervision flowing and freezing it prevented the
+encoder from adapting to support the new attention layer) but
+regressed marker + fully more sharply.
+
+### 12.1 Mechanism interpretation
+
+Both variants confirm the same finding: **the encoder representation
+Phase 3-A learns from the static dep features already saturates the
+dep information at this corpus size and training budget**. Adding a
+relation-aware attention layer downstream just redistributes existing
+prediction mass without adding new information. This is the same
+shape as Phases 5, 6: redistribution of existing signal under joint
+training tends to hurt the heads most sensitive to small input
+distribution changes (here, marker and the *fully* aggregate, which
+require all four heads to be simultaneously correct).
+
+The frozen-morph variant's role-F1 collapse (−2.6 pp) was a separate
+artifact: the encoder couldn't adapt because morph gradient was
+removed, so the representation drifted in only the iʿrāb-loss
+direction, hurting role-discrimination disproportionately. Unfreezing
+morph fixed the role-F1 issue but didn't recover marker or fully.
+
+### 12.2 The architectural lesson sharpens further
+
+The original four-cell case study (Phases 4a + 2 + 5 + 6 = same-
+supervision rearrangements all plateau or regress; Phase 3 = new info
+gain) is now extended to FIVE cells with Phase 3.1 added:
+
+| Phase | Intervention | New info? | Result |
+|---|---|:---:|---|
+| 4a | 25 → 34 taxonomy | ✗ (same labels, more granular) | plateau |
+| 2 | morph→iʿrāb conditioning | ✗ (same supervision rearranged) | regress |
+| 5 | role→case output bias | ✗ (re-uses role pred) | slight regress |
+| 6 | case+role→marker output bias | ✗ (re-uses case+role pred) | larger regress |
+| **3** | **UD dep edges (static input)** | **✓ relational signal (orthogonal)** | **gain** |
+| **3.1** | **relation-aware attention** (rich relational reasoning over the same dep tree) | **✗ rearranges Phase 3's existing dep signal** | **regress** |
+
+The five-cell pattern delivers an even sharper conclusion: **at 296M
+/ 6 epochs, ANY downstream-of-encoder mechanism that operates on
+already-incorporated information plateaus or regresses, regardless
+of whether the mechanism is encoder-side conditioning (Phase 2),
+input-side static augmentation (Phase 3), output-side hierarchical
+decoders (Phases 5, 6), or input-side dynamic attention (Phase 3.1).
+Only the introduction of NEW information (Phase 3 dep features vs
+the morph + taxonomy baseline) unlocks gain.**
+
+The implication for the next phases: do NOT add more architectural
+mechanisms downstream of Phase 3-A's encoder. The next productive
+levers must add NEW information sources or NEW training signals:
+
+- **#39 (rare-construction synthetic augmentation)**: adds new
+  training data for under-covered constructions
+- **Phase 9 (grammar memory expansion)**: adds new lexical
+  knowledge via the symbolic constraint reranker
+- **Inference-time Stanza parsing**: addresses the Phase 3 inference
+  distribution mismatch by giving the predictor real dep features
+  on test inputs (currently inference passes zero dep_emb)
+- **Cleaner Stanza alignment** (drop the 50% match threshold) +
+  **gold UD-PADT dep on the morph half** — both add more dep
+  coverage, which is the only signal that has ever moved the needle
+
+### 12.3 Ship decision (final)
+
+Phase 3.1 ships **as a documented negative result**. Code stays in
+the codebase under `enable_relational_reasoning: None` default
+(byte-equivalent to Phase 3-A). The relation-aware attention module
++ five-cell case study extension are valuable empirical evidence
+for the "orthogonal info > rearrangement" generalization at this
+scale.
+
+Phase 3-A (rev 2 + Phase 1 morph + static Stanza dep features)
+remains the production checkpoint. The next architectural cycle
+focuses on data engineering (Phase 9 / #39 / cleaner Stanza), not
+more downstream mechanisms.
+
+## 13. After Phase 3.1 closes — next directions (revised)
+
+The five-cell case study makes the priority order clearer:
+
+1. **#39 — rare-construction synthetic augmentation** (highest priority).
+   §5.4 of REPORT.md documents that EXCEPTION + KANA_SISTERS construct
+   types are 0/9 and 0/7 across ALL systems including the closed
+   frontier. This is a clear "missing training data" gap, not a
+   missing-architecture gap. Augmentation here is the canonical case
+   of "add new info" rather than "rearrange existing".
+
+2. **Cleaner Stanza dep coverage**. Phase 3 succeeded with 70%
+   alignment success. Dropping the 50% match threshold to 25% would
+   raise coverage to ~85%; adding gold UD-PADT dep on the
+   morph-only half adds another ~6,600 sentences with perfect dep.
+   Both are pure data-engineering and add information.
+
+3. **Inference-time Stanza parsing**. Phase 3 inference currently
+   passes zero dep_emb (the predictor doesn't run Stanza on Gazelle
+   inputs). Running Stanza at inference would give the iʿrāb heads
+   the same dep-augmented input distribution they were trained on.
+   This is a deployment-time fix, not a training-time intervention.
+
+4. **Phase 9 — grammar memory expansion** (lower priority, requires
+   Arabic linguistic decisions). Extends the symbolic constraint
+   reranker with new lexicons (mawsool relative pronouns, modal
+   verbs, demonstratives). Adds symbolic knowledge that the encoder
+   doesn't have parametric access to.
+
+5. **Phase 11 — explanation engine** (capstone). Generates rationale
+   prose conditioned on the predictions; orthogonal to the
+   supervision plateau (it's a new output modality, not new input).
+
+The original Phase 3.1 plan (3.1-B/C/D — message passing,
+clause-level, neighborhood) is **archived without execution**: the
+five-cell pattern strongly predicts they will plateau too, since
+all are rearrangements of the same relational signal Phase 3-A
+already captures statically. Running them would only add more
+documented negatives without changing the conclusion. Code surface
+left in `relational_reasoning.py` for reference; the alternative
+mechanisms are not implemented.
 
 Per the user's 2026-05-08 redirect, the priority order after Phase
 3.1 ships is:
