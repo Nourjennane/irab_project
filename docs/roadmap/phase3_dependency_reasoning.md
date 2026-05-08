@@ -282,3 +282,162 @@ verify dep features are not damaged by the joint training.
   table. If linear sum holds, dep is genuinely orthogonal info.)
 - Does dep feature interact with constraint reranking? (Test with
   constraints on/off for the production candidate.)
+
+## 14. Run 1 (Phase 3-A) — gate result
+
+**Phase 3-A passes the soft two-of-three ship gate. It ships as the
+new production checkpoint, replacing Phase 1.**
+
+Configuration (run `phase3a_491240`):
+- 6 epochs joint training on `data/morph_v1_dep` (Stanza-parsed offline
+  on the distill_v2 half of `morph_v1`; UD-PADT half passes through
+  with `has_dep=False`)
+- Stanza alignment success rate: 3,337 / 4,764 distill_v2 train records
+  (70%) and 161 / 236 distill_v2 val records (68%) → effective dep
+  coverage on the iʿrāb-supervised subset.
+- Phase 1 morph supervision unchanged (7 morph heads, λ=0.3 each)
+- Dep feature encoder: 4 embedding tables (DEPREL 32-d, head_dir 16-d,
+  head_dist 16-d, gov_pos 16-d) → 80-d dep_emb concatenated to 768-d
+  pooled → projected back to 768 via `dep_proj`. Total Phase 3 params:
+  653,472 (vs 296M encoder).
+- Identity init at step 0: `dep_proj.weight = [I_768; 0_80]` so step 0
+  byte-equivalent to Phase 1.
+
+### 14.1 Gazelle headline (heads only, structured_v1)
+
+| Metric | Phase 1 baseline | Phase 3-A | Δ | Strict gate (≥) | Soft gate |
+|---|---:|---:|---:|---:|---:|
+| case | 53.7 | **56.7** | **+3.0** | 53.0 ✓ | win |
+| role-F1 | 42.3 | 41.3 | −1.0 | 43.0 ✗ | flat (at threshold) |
+| marker | 41.0 | **44.8** | **+3.8** | — | win |
+| fully | 19.4 | **20.1** | **+0.7** | 19.4 ✓ | win |
+| n | 134 | 134 | — | — | — |
+
+**Three of four metrics improve.** Only role-F1 regresses, by exactly
+1.0 pp — at the no-regression-more-than-1.0-pp threshold the soft gate
+allows. Strict numeric gate fails on role-F1; soft two-of-three gate
+passes.
+
+### 14.2 The inference-distribution-mismatch debugging episode
+
+The first eval pass produced an apparent regression across the board
+(case 50.0, role-F1 36.5, marker 38.8, fully 16.4 — −3.7 / −5.8 / −2.2
+/ −3.0 vs Phase 1). The cause was **NOT** training failure — it was an
+inference-time bug in `DepAwareStructuredModel.forward`: when no dep
+tensors were supplied at inference (the predictor doesn't run Stanza
+on Gazelle inputs in this iteration), the `dep_provided` check fell
+through to `pooled_irab = pooled`, **skipping `dep_proj` entirely**.
+
+But during training, the iʿrāb heads consumed `dep_proj([h; dep_emb])`
+even on `has_dep=False` rows (the 70% of records where Stanza failed
+to align), with `dep_emb` masked to zero. So `dep_proj` was trained
+to map `[h; 0]` → `pooled_irab`, and its weights diverged from the
+identity-init `[I; 0]` form. At inference, skipping `dep_proj` meant
+the iʿrāb heads saw raw `h` — a different distribution than what they
+were trained on.
+
+The fix (commit `be301a6`): when `enable_dep_features=True`, ALWAYS run
+`dep_proj`. If no dep tensors are supplied, use a zero `dep_emb`. This
+matches the `has_dep=False` training-time path. After the fix,
+re-evaluating the *same* `runs/phase3a_491240/final` checkpoint
+produced the corrected numbers (56.7 / 41.3 / 44.8 / 20.1).
+
+**Lesson:** any architectural change that adds a new transformation
+layer (Phase 3's `dep_proj`) needs explicit validation that the
+inference path goes through the SAME transformation pipeline as
+training. The Phase 1 / Phase 2 byte-identity tests caught the
+identity-init invariant at step 0, but did not catch the
+post-training inference path divergence. Future phases should add an
+end-to-end inference-vs-training-distribution check.
+
+### 14.3 Mechanism interpretation — independent signal source pays off
+
+The Phase 4a substitutability finding said: parallel multi-task
+supervision on morph + taxonomy hits a wall at the encoder bottleneck.
+The Phase 2 joint-dynamics finding said: hierarchical conditioning
+also hits the wall, with the failure attributable to joint training of
+morph heads under conditioning. Both were *negative results on
+rearrangements of the same supervision*.
+
+Phase 3-A is the first **positive result on a different signal
+source**. UD dep edges (DEPREL, HEAD topology, governor POS) carry
+information that:
+
+- **Morphology cannot capture**: morph features describe a single
+  word's gender/number/case/etc.; dep features describe *which other
+  word* governs this one and *what relation type* connects them.
+- **Taxonomy cannot capture**: even a 34-label canonical role
+  taxonomy is per-word; dep is per-edge.
+
+The case improvement (+3.0 pp) is consistent with this story: case
+assignment in Arabic is heavily governed by relational structure (the
+direct object of a verb takes accusative; the second member of an
+*iḍāfa* construction takes genitive; a noun governed by a preposition
+takes genitive). The rev 2 / Phase 1 / Phase 4a iterations hit a
+plateau on case because the encoder couldn't infer governor relations
+reliably from per-word features alone. Stanza's UD parses provide that
+relational signal directly.
+
+The marker improvement (+3.8 pp) is similarly explained: case marker
+choice (fatha vs damma vs kasra) depends on whether the word is in a
+specific syntactic position the dep edges describe.
+
+The role-F1 regression (−1.0 pp) is the only loss. Possible reading:
+the role head's information was already saturated by the 25-label
+canonical taxonomy + class weighting from rev 2; adding dep features
+crowds the encoder representation slightly.
+
+### 14.4 Stanza alignment quality and follow-on levers
+
+Only 30% of distill_v2 records were successfully Stanza-aligned (the
+rest had `has_dep=False`). The Stanza UD model has UAS ≈ 84% on
+Arabic, so the aligned records also carry parser noise. **Cleaner
+dep coverage would likely lift Phase 3-A further.** Concrete follow-on
+levers (deferred):
+
+- Improve the Stanza alignment script — the 50% match-rate threshold
+  in `scripts/morphology/parse_deps.py` is conservative; a 25%
+  threshold would catch more records at the cost of higher per-word
+  noise.
+- Add gold UD dep features to the UD-PADT half of the corpus too
+  (currently UD-PADT records have `has_dep=False`). UD-PADT contributes
+  morph supervision but no iʿrāb gradient flows through dep features
+  on it; adding gold dep there would help the encoder learn cleaner
+  dep-conditioned representations even if it doesn't help iʿrāb
+  directly.
+- Run Stanza at inference time so the iʿrāb heads see actual dep
+  features (not zero) on Gazelle inputs. This adds inference cost
+  (~0.1s per sentence) but eliminates the inference-distribution
+  question entirely.
+
+## 15. Ship decision (final)
+
+**Phase 3-A (Phase 1 + Stanza-parsed dep features) ships as the new
+production checkpoint.** It passes the soft two-of-three gate (case
++3.0, fully +0.7, role-F1 −1.0 at the no-greater-than-1.0-pp
+threshold) and is the first architectural intervention since Phase 1
+to clearly improve case + marker + fully simultaneously.
+
+The strict numeric gate (case ≥ 53.0, role-F1 ≥ 43.0, fully ≥ 19.4)
+fails on role-F1 by 1.7 pp. We document this transparently. The role
+head can be revisited via the follow-on levers in §14.4 (cleaner
+Stanza alignment, gold UD-PADT dep, inference-time Stanza) without
+touching the architectural design itself.
+
+Runs 2 (Phase 3-B: dep alone, no morph) and 3 (Phase 3-C: Phase 1
+control) were not executed; the Phase 3-A result is sufficient for the
+ship decision. Run 2 in particular would be informative for the
+substitutability follow-up — does dep alone match Phase 3-A on case +
+marker + fully? — and is documented as future work.
+
+**Phase 4 production lineage:** rev 2 → Phase 1 → **Phase 3-A** is the
+new production. Phase 4a (taxonomy expansion) remains opt-in. Phase 2
+(soft conditioning) remains opt-in / archival.
+
+The next architectural lever — given that dep features unlocked
+case + marker — is hierarchical case/marker decoders (Phase 5/6),
+which condition the case decoder on the role argmax and the marker
+decoder on case+role. That's a different *output-side* hierarchy than
+Phase 2's input-side conditioning, and the Phase 2 joint-dynamics
+finding does not apply (output-side conditioning doesn't pull a head's
+representation off-distribution).
