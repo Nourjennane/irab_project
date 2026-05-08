@@ -1,0 +1,9 @@
+{
+  "train_orig": 4750,
+  "val_orig": 250,
+  "synth_total": 1400,
+  "synth_train": 1330,
+  "synth_val": 70,
+  "train_combined": 6080,
+  "val_combined": 320
+}
