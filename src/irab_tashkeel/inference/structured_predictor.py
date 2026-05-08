@@ -88,6 +88,7 @@ class StructuredPredictor:
         morph_heads_enabled_cfg: Optional[List[str]] = None
         conditioning_mechanism: Optional[str] = None
         conditioning_detached = False
+        enable_dep_features = False
         if tcfg_path.exists():
             tcfg = json.loads(tcfg_path.read_text())
             use_crf = bool(tcfg.get("use_crf_role", False))
@@ -96,6 +97,7 @@ class StructuredPredictor:
             morph_heads_enabled_cfg = tcfg.get("morph_heads_enabled")
             conditioning_mechanism = tcfg.get("conditioning_mechanism")
             conditioning_detached = bool(tcfg.get("conditioning_detached", False))
+            enable_dep_features = bool(tcfg.get("enable_dep_features", False))
 
         # Phase 4a: taxonomy switch picks the right ID_TO_ROLE map at predict-time.
         if taxonomy == "v4":
@@ -106,16 +108,37 @@ class StructuredPredictor:
             n_role_kw = {}
         self.taxonomy = taxonomy
 
-        # If conditioning was used at training time we MUST instantiate the
-        # morph-augmented model — the iʿrāb heads were trained to consume
-        # the conditioned representation, not raw pooled features.
+        # If conditioning OR dep features were used at training time we MUST
+        # instantiate the matching subclass — the iʿrāb heads were trained
+        # to consume the corresponding modulated/augmented representation,
+        # not raw pooled features.
         needs_morph_class = (
             enable_morph_heads
             or (conditioning_mechanism and conditioning_mechanism != "none")
+            or enable_dep_features
         )
-        if needs_morph_class:
+        morph_set = set(morph_heads_enabled_cfg) if morph_heads_enabled_cfg else None
+        if needs_morph_class and enable_dep_features:
+            # Phase 3 path: dep-aware model. At inference time we pass
+            # has_dep=False per word (no Stanza at predict time in this
+            # iteration), so the model falls through to pooled_irab=pooled.
+            # The iʿrāb heads were trained on a mix of has_dep=True
+            # (distill_v2) and has_dep=False (UD-PADT, masked) examples,
+            # so the no-dep inference path is in-distribution.
+            from ..morphology.dep_aware_model import DepAwareStructuredModel
+            self.model = DepAwareStructuredModel(
+                encoder_name=encoder_name,
+                use_crf_role=use_crf,
+                output_attentions=self.cfg.return_attention,
+                enable_morph_heads=True,
+                morph_heads_enabled=morph_set,
+                enable_dep_features=True,
+                **n_role_kw,
+            )
+            self.has_morph_path = True
+            self.has_dep_path = True
+        elif needs_morph_class:
             from ..morphology.morph_model import MorphAugmentedStructuredModel
-            morph_set = set(morph_heads_enabled_cfg) if morph_heads_enabled_cfg else None
             self.model = MorphAugmentedStructuredModel(
                 encoder_name=encoder_name,
                 use_crf_role=use_crf,
@@ -127,6 +150,7 @@ class StructuredPredictor:
                 **n_role_kw,
             )
             self.has_morph_path = True
+            self.has_dep_path = False
         else:
             self.model = StructuredIrabModel(
                 encoder_name=encoder_name,
@@ -135,6 +159,7 @@ class StructuredPredictor:
                 **n_role_kw,
             )
             self.has_morph_path = False
+            self.has_dep_path = False
         sd_path = self.model_dir / "pytorch_model.bin"
         sd = torch.load(sd_path, map_location="cpu", weights_only=True)
         missing, unexpected = self.model.load_state_dict(sd, strict=False)

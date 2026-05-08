@@ -109,6 +109,7 @@ class MorphAwareStructuredIrabDataset(Dataset):
     def _encode(self, rec: Dict) -> Dict:
         has_irab = bool(rec.get("has_irab"))
         has_morph = bool(rec.get("has_morph"))
+        has_dep = bool(rec.get("has_dep"))
         items = rec["items"]
 
         ids: List[int] = []
@@ -130,6 +131,12 @@ class MorphAwareStructuredIrabDataset(Dataset):
         aspect_lbl: List[int] = []
         mood_lbl: List[int] = []
         voice_lbl: List[int] = []
+
+        # Phase 3 dep-feature inputs (per word). Default to <unk>/root/root/punct
+        # for items without dep info, masked by has_dep at the record level.
+        deprels: List[str] = []
+        head_indices: List[int] = []
+        governor_uposes: List[str] = []
 
         for w in items:
             sub = self.tokenizer.encode(w["word"], add_special_tokens=False)
@@ -163,6 +170,12 @@ class MorphAwareStructuredIrabDataset(Dataset):
                 else:
                     pos_lbl.append(IGNORE)
 
+            # Phase 3 dep features (per word). Always present in tensor space;
+            # has_dep flag controls whether the model uses them.
+            deprels.append(str(w.get("deprel") or "<unk>"))
+            head_indices.append(int(w.get("head_idx", 0) or 0))
+            governor_uposes.append(str(w.get("governor_upos") or ""))
+
             # morph labels: use values when has_morph else IGNORE
             if has_morph:
                 gender_lbl.append(GENDER_TO_ID.get(w.get("gender", "und"), IGNORE))
@@ -182,6 +195,14 @@ class MorphAwareStructuredIrabDataset(Dataset):
             ids.append(int(self.eos_id))
         attention_mask = [1] * len(ids)
 
+        # Phase 3: convert per-word dep strings/ids to feature ids
+        from .dep_schema import build_dep_features
+        deprel_ids, head_dir_ids, head_dist_ids, gov_pos_ids = build_dep_features(
+            deprels=deprels,
+            head_indices=head_indices,
+            governor_uposes=governor_uposes,
+        )
+
         return {
             "input_ids": torch.tensor(ids, dtype=torch.long),
             "attention_mask": torch.tensor(attention_mask, dtype=torch.long),
@@ -198,8 +219,13 @@ class MorphAwareStructuredIrabDataset(Dataset):
             "aspect_labels": torch.tensor(aspect_lbl, dtype=torch.long),
             "mood_labels": torch.tensor(mood_lbl, dtype=torch.long),
             "voice_labels": torch.tensor(voice_lbl, dtype=torch.long),
+            "deprel_ids":    torch.tensor(deprel_ids,    dtype=torch.long),
+            "head_dir_ids":  torch.tensor(head_dir_ids,  dtype=torch.long),
+            "head_dist_ids": torch.tensor(head_dist_ids, dtype=torch.long),
+            "gov_pos_ids":   torch.tensor(gov_pos_ids,   dtype=torch.long),
             "has_irab": int(has_irab),
             "has_morph": int(has_morph),
+            "has_dep": int(has_dep),
             "sentence": rec.get("sentence", ""),
             "words": kept_words,
         }
@@ -254,4 +280,17 @@ class MorphAwareCollator:
             "has_irab": torch.tensor([b["has_irab"] for b in batch], dtype=torch.long),
             "has_morph": torch.tensor([b["has_morph"] for b in batch], dtype=torch.long),
         }
+        # Phase 3: dep features (always padded; consumers gate on has_dep).
+        # Use 0 (= ``<unk>`` / ``root`` / ``noun``) for pad fill — those rows
+        # are masked by word_mask anyway.
+        if "deprel_ids" in batch[0]:
+            out["deprel_ids"]    = _pad_w("deprel_ids", 0)
+            out["head_dir_ids"]  = _pad_w("head_dir_ids", 0)
+            out["head_dist_ids"] = _pad_w("head_dist_ids", 0)
+            out["gov_pos_ids"]   = _pad_w("gov_pos_ids", 0)
+            # has_dep is per-record, broadcast to per-word later in the model
+            # via the (B,W,1) gate. Encode at (B,) here.
+            out["has_dep"] = torch.tensor(
+                [b.get("has_dep", 0) for b in batch], dtype=torch.long
+            )
         return out

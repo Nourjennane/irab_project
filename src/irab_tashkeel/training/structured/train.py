@@ -104,6 +104,12 @@ class StructuredConfig:
     # gradients do NOT flow back through the morph heads. Reported as an ablation.
     conditioning_detached: bool = False
 
+    # ---- Phase 3 — dep-feature input augmentation (opt-in) ----
+    # When True, instantiate DepAwareStructuredModel and consume per-word dep
+    # ids (deprel/head_dir/head_dist/gov_pos) from the batch. Default False
+    # keeps the Phase 1 / Phase 2 graph byte-identical.
+    enable_dep_features: bool = False
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "StructuredConfig":
         d = yaml.safe_load(Path(path).read_text())
@@ -297,27 +303,50 @@ def main():
     # n_role passes through to the model so v4 (34) overrides the default v3 (25).
     n_role_kw = {"n_role": N_ROLE_active} if cfg.taxonomy == "v4" else {}
     if cfg.enable_morph_heads:
-        # Phase 1 path — morph-augmented model + masked multi-task dataset.
-        from irab_tashkeel.morphology.morph_model import MorphAugmentedStructuredModel
+        # Phase 1 / Phase 2 / Phase 3 path — morph-augmented model + masked multi-task dataset.
         morph_heads_enabled = set(cfg.morph_heads_enabled) if cfg.morph_heads_enabled else None
-        model = MorphAugmentedStructuredModel(
-            encoder_name=cfg.encoder_name,
-            head_dropout=cfg.head_dropout,
-            loss_weights=tuple(cfg.loss_weights),
-            label_smoothing=cfg.label_smoothing,
-            role_class_weights=role_weights,
-            pooling_strategy=cfg.pooling_strategy,
-            use_crf_role=cfg.use_crf_role,
-            enable_morph_heads=True,
-            morph_heads_enabled=morph_heads_enabled,
-            morph_loss_weights=cfg.morph_loss_weights,
-            conditioning_mechanism=cfg.conditioning_mechanism,
-            conditioning_detached=cfg.conditioning_detached,
-            **n_role_kw,
-        )
+        if cfg.enable_dep_features:
+            # Phase 3: dep-aware model. Phase 2 conditioning is incompatible
+            # (raises in DepAwareStructuredModel.__init__).
+            from irab_tashkeel.morphology.dep_aware_model import DepAwareStructuredModel
+            model = DepAwareStructuredModel(
+                encoder_name=cfg.encoder_name,
+                head_dropout=cfg.head_dropout,
+                loss_weights=tuple(cfg.loss_weights),
+                label_smoothing=cfg.label_smoothing,
+                role_class_weights=role_weights,
+                pooling_strategy=cfg.pooling_strategy,
+                use_crf_role=cfg.use_crf_role,
+                enable_morph_heads=True,
+                morph_heads_enabled=morph_heads_enabled,
+                morph_loss_weights=cfg.morph_loss_weights,
+                conditioning_mechanism=cfg.conditioning_mechanism,
+                conditioning_detached=cfg.conditioning_detached,
+                enable_dep_features=True,
+                **n_role_kw,
+            )
+            print(f"[train] dep features enabled: encoder + dep_proj "
+                  f"params={sum(p.numel() for p in model.dep_feature_encoder.parameters()) + sum(p.numel() for p in model.dep_proj.parameters())}")
+        else:
+            from irab_tashkeel.morphology.morph_model import MorphAugmentedStructuredModel
+            model = MorphAugmentedStructuredModel(
+                encoder_name=cfg.encoder_name,
+                head_dropout=cfg.head_dropout,
+                loss_weights=tuple(cfg.loss_weights),
+                label_smoothing=cfg.label_smoothing,
+                role_class_weights=role_weights,
+                pooling_strategy=cfg.pooling_strategy,
+                use_crf_role=cfg.use_crf_role,
+                enable_morph_heads=True,
+                morph_heads_enabled=morph_heads_enabled,
+                morph_loss_weights=cfg.morph_loss_weights,
+                conditioning_mechanism=cfg.conditioning_mechanism,
+                conditioning_detached=cfg.conditioning_detached,
+                **n_role_kw,
+            )
         print(f"[train] morph heads enabled: {sorted(model.morph_heads_enabled)}")
         print(f"[train] morph loss weights: { {k: model.morph_loss_weights[k] for k in sorted(model.morph_heads_enabled)} }")
-        if model.conditioning is not None:
+        if getattr(model, "conditioning", None) is not None:
             print(f"[train] conditioning: mechanism={model.conditioning_mechanism} "
                   f"detached={model.conditioning_detached} "
                   f"params={sum(p.numel() for p in model.conditioning.parameters())}")
