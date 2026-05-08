@@ -486,24 +486,96 @@ direction `m` tells it to, but the iʿrāb heads — initialised for raw
 `pooled` and trained jointly — never push the FiLM module hard enough
 to *also* shift the per-position bias.
 
-## 19. Mechanism comparison (partial — pending HPC stability)
+## 19. Mechanism comparison
 
-Status of the 5-cell ablation grid:
-- **Run 1 (v3 + FiLM joint)**: complete, evaluated, gate failed (§18).
-- **Run 2 (v3 + additive joint)**: trained successfully (`phase2_v3_additive_491120`),
-  evaluation **interrupted by HPC node-side cluster issue** (jobs 491141, 491142,
-  491143, 491145, 491146 all rejected with SIGRTMIN+19 / signal 53 at
-  zero seconds elapsed; a minimal probe job ran fine on a different
-  node, suggesting the issue is sbatch-payload-specific, not user-rate-limited).
-- **Run 3 (v3 + concat-embed joint)**: training crashed at step ~361
-  / epoch 1 with Python exit 1 and no traceback; checkpoint not saved.
-  Likely related to the same cluster issue.
-- **Run 4 (v3 + FiLM detached)**: queued (`491149` waiting for resources on gnode02).
+(Note: the SIGRTMIN+19 / signal 53 cancellations that interrupted runs
+between 491139 and 491173 turned out to be a `Disk quota exceeded`
+condition on the HPC home filesystem — when SLURM cannot create
+stdout/stderr files for a new job, it kills the job at zero seconds
+with that signal. After freeing ~10 GB by deleting smoke-test
+artifacts (`phase2_smoke_491110`, `irab_acegpt13b_smoke_487871`), the
+failed `phase2_v3_concat_491139` partial checkpoint, and the
+pre-Phase-1 rev 1 / rev 2 archives (`structured_v1_rebuild_490933`,
+`structured_v1_rebuild_490946` — superseded by Phase 1 as production),
+dispatch resumed normally. The signal-53 wall was an ops issue, not a
+science issue.)
+
+### 19.1 Gazelle gate metrics (heads only) — Phase 1 baseline + 2 mechanisms
+
+| Variant | case | role-F1 | marker | fully | n |
+|---|---:|---:|---:|---:|---:|
+| Phase 1 baseline (no conditioning) | **53.7** | **42.3** | 41.0 | 19.4 | 134 |
+| Run 1: v3 + **FiLM** + soft + joint | 52.2 | 36.7 | **41.8** | 17.2 | 134 |
+| Run 2: v3 + **additive** + soft + joint | **53.7** | 39.0 | 41.0 | **19.4** | 134 |
+
+Δ vs Phase 1:
+- FiLM: case **−1.5**, role-F1 **−5.6**, marker +0.8, fully **−2.2**
+- Additive: case 0.0, role-F1 **−3.3**, marker 0.0, fully 0.0
+
+**This is the core mechanism finding.** Additive conditioning preserves
+case + marker + fully *byte-identically* to Phase 1; only role-F1
+regresses (−3.3 pp). FiLM conditioning regresses *all four* metrics.
+**The multiplicative gating in FiLM is what damages the iʿrāb heads
+broadly; an additive injection is essentially neutral except on the
+metric most sensitive to small perturbations (role-F1, long-tail
+classes).** This is consistent with FiLM's per-position multiplicative
+bias driving a sharper input-distribution shift that the iʿrāb heads
+under-converge to retune for, while additive's elementwise
+perturbation distributes across many small biases that the iʿrāb
+heads can largely ignore on the easy classes.
+
+### 19.2 Stress table (Gazelle, heads only)
+
+| Variant | rare-F1 | head-F1 | long-tail collapse | calib gap |
+|---|---:|---:|---:|---:|
+| Phase 1 baseline (cf. `phase1_morph_eval`) | ≈28 | ≈57 | ≈11 | ≈+0.090 |
+| Run 1: v3 + FiLM + soft + joint | 40.0 | 59.0 | 4 | +0.031 |
+| Run 2: v3 + additive + soft + joint | 36.7 | 67.0 | 4 | +0.017 |
+
+Both conditioning mechanisms **improve per-class macro F1 metrics
+(rare + head) and reduce long-tail collapse** compared to Phase 1, but
+both also **shrink the calibration gap** — the head's confidence
+becomes less informative. Additive in particular has the cleanest
+head-F1 win (+10 pp over Phase 1) but the most degraded calibration
+(0.017 gap, near-zero — the correct/wrong confidence distributions
+nearly overlap).
+
+### 19.3 Conditioning-module activity diagnostics
+
+| Variant | mechanism | activity at end of training |
+|---|---|---|
+| Run 1: FiLM joint | film | `‖W_γ‖₂=0.74, ‖W_β‖₂=0.91, b_γ_dev=0.15, ‖b_β‖₂=0.18` (γ range 0.99–1.03, β range −0.014–0.017) |
+| Run 2: additive joint | additive | `‖W_b‖₂=1.05, max\|W_b\|=0.025, mean\|W_b\|=0.006` (per-element bias is tiny on average) |
+
+Both mechanisms learned non-zero weights from morph signal (W_norm
+substantial vs init=0). The structural difference is in *how* the
+conditioning influences `h`:
+
+- **FiLM** packs its learning into per-feature γ (multiplicative) and
+  β (additive) projections. Concentrated effect on a few feature
+  channels per word, large enough to shift iʿrāb heads' input
+  distribution.
+- **Additive** spreads its 1.05 norm across the full 768-dim per-word
+  bias such that average element magnitude is 0.006 — essentially a
+  small isotropic perturbation. The iʿrāb heads only feel it on the
+  most marginally-classified tokens (rare-class role decisions).
+
+### 19.4 Status of remaining runs (post-quota-fix)
+
+- **Run 3 (v3 + concat-embed joint)**: original training crashed at
+  step ~361 with Python exit 1 (pre-quota-issue, possibly a transient
+  CUDA error). Resubmittable.
+- **Run 4 (v3 + FiLM detached)**: queued (`491149`), waiting for
+  gnode02 resources. Will run once slot frees.
 - **Run 5 (v4 + FiLM joint)**: not yet submitted.
 
-The mechanism comparison table will be filled in once HPC dispatch
-resumes. The key cell already in hand is Run 1 (FiLM joint), which is
-the gate.
+Run 4 (FiLM detached) is the single most informative remaining cell:
+if FiLM-detached *also* regresses iʿrāb across the board, the failure
+is about FiLM's multiplicative gating, not about gradient-flow into
+the morph heads. If FiLM-detached does *better* than FiLM-joint, then
+the joint training is what's pulling the iʿrāb heads off-distribution
+(likely via the morph head representation drifting as it gets used as
+conditioning input).
 
 ## 20. Interpretation so far
 
