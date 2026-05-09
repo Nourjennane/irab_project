@@ -1,0 +1,54 @@
+# Top failures (highest role confidence wrong)
+
+| sid | tok | surface | gold (case/role/marker) | pred (case/role/marker) | role_conf |
+|---|---|---|---|---|---|
+| s_c90869 | 0 | `مررت` | raf/fail/sukun | mabni/fil/sukun | 0.978 |
+| s_c90869 | 1 | `بأخيك` | jarr/ism_majrur/ya | jarr/ism_majrur/kasra_visible | 0.458 |
+| s_f0bc83 | 0 | `استعنت` | raf/fail/sukun | mabni/fil/sukun | 0.973 |
+| s_a0242a | 2 | `رياحه` | raf/mudaaf_ilayh/الضمة | nasb/khabar_kana/damma_visible | 0.671 |
+| s_3eefd8 | 0 | `أسلمت` | raf/fail/sukun | mabni/fil/sukun | 0.990 |
+| s_3eefd8 | 2 | `أدخل` | nasb/mafoul_bih/fatha_visible | mabni/fil/fatha_visible | 0.996 |
+| s_a1feff | 0 | `رأيت` | raf/fail/sukun | mabni/fil/sukun | 0.971 |
+| s_a1feff | 2 | `يقرأ` | raf/hal/damma_visible | raf/fil/damma_visible | 0.682 |
+| s_8cdde3 | 2 | `الشريف` | raf/fail/الضمة | raf/fail/damma_visible | 0.977 |
+| s_8cdde3 | 6 | `من` | jarr/mudaaf_ilayh/sukun | mabni/harf_jarr/sukun | 0.950 |
+| s_8cdde3 | 7 | `حول` | nasb/dharf/fatha_visible | jarr/ism_majrur/kasra_visible | 0.908 |
+| s_a73ef2 | 3 | `لدى` | nasb/dharf/sukun | mabni/harf_jarr/sukun | 0.889 |
+| s_25d296 | 1 | `تصحبني` | raf/mafoul_bih/damma_visible | raf/fil/damma_visible | 0.983 |
+| s_77cc37 | 2 | `هديتي` | nasb/mudaaf_ilayh/fatha_visible | nasb/mafoul_bih/ya | 0.767 |
+| s_a5026f | 2 | `القرآن` | raf/mudaaf_ilayh/damma_visible | raf/mafoul_bih/damma_visible | 0.579 |
+| s_a5026f | 3 | `فاستمعوا` | raf/fail/sukun | mabni/fil/nun | 0.953 |
+| s_a5026f | 4 | `له` | raf/fail/sukun | jarr/ism_majrur/kasra_visible | 0.566 |
+| s_027193 | 0 | `قرأتُ` | raf/fail/sukun | mabni/fil/sukun | 0.915 |
+| s_027193 | 1 | `مائتي` | nasb/mafoul_bih/ya | nasb/mafoul_bih/fatha_visible | 0.951 |
+| s_027193 | 2 | `صفحةٍ` | jarr/mudaaf_ilayh/tanween_kasr | jarr/mudaaf_ilayh/kasra_visible | 0.748 |
+| s_b6617c | 0 | `مَنْ` | raf/mubtada/sukun | mabni/harf_jarr/sukun | 0.932 |
+| s_47785d | 4 | `المريضُ` | raf/naib_fail/damma_visible | raf/fail/damma_visible | 0.606 |
+| s_69dbd4 | 0 | `قرأتُ` | raf/fail/sukun | mabni/fil/sukun | 0.922 |
+| s_e2fca5 | 3 | `حارٌ` | raf/mafoul_bih/tanween_damm | raf/khabar/damma_visible | 0.939 |
+| s_e9d699 | 2 | `طريقُهُ` | raf/mudaaf_ilayh/damma_visible | raf/ism_inna/damma_visible | 0.421 |
+| s_21acd3 | 3 | `استعطافٍ` | nasb/ism_majrur/tanween_kasr | jarr/ism_majrur/kasra_visible | 0.865 |
+| s_21acd3 | 5 | `أعطِني` | nasb/mafoul_bih/sukun | mabni/fil/sukun | 0.966 |
+| s_7295c9 | 3 | `حليفُهُ` | raf/mudaaf_ilayh/damma_visible | raf/khabar/damma_visible | 0.648 |
+| s_983362 | 1 | `كتابٌ` | raf/khabar/tanween_damm | raf/khabar/damma_visible | 0.770 |
+| s_983362 | 2 | `ينفعُ` | raf/naat/damma_visible | raf/fil/damma_visible | 0.501 |
+| s_3f3218 | 1 | `محمدٌ` | raf/fail/tanween_damm | raf/fail/damma_visible | 0.948 |
+| s_86f2f1 | 0 | `مررْتُ` | raf/fail/sukun | mabni/fil/sukun | 0.966 |
+| s_86f2f1 | 3 | `الفتياتِ` | jarr/badal/kasra_visible | mabni/badal/kasra_visible | 0.405 |
+| s_a19e61 | 1 | `المدينة` | jarr/mudaaf_ilayh/kasra_visible | nasb/mafoul_bih/fatha_visible | 0.929 |
+| s_f82839 | 8 | `سقفا` | nasb/mafoul_bih/fatha_visible | nasb/mafoul_bih/tanween_fath | 0.873 |
+| s_6d6f9b | 5 | `والرسول` | jarr/ism_majrur/kasra_visible | jarr/matuf/kasra_visible | 0.916 |
+| s_6d6f9b | 10 | `بينكم` | jarr/mudaaf_ilayh/kasra_visible | jarr/mudaaf_ilayh/sukun | 0.236 |
+| s_c13594 | 3 | `قرية` | nasb/mafoul_bih/kasra_visible | jarr/ism_majrur/kasra_visible | 0.961 |
+| s_fbb797 | 7 | `أيمانهم` | jarr/mudaaf_ilayh/kasra_visible | nasb/ism_inna/fatha_visible | 0.986 |
+| s_45d855 | 5 | `شيئا` | nasb/mafoul_bih/fatha_visible | nasb/mafoul_bih/tanween_fath | 0.939 |
+| s_835a69 | 1 | `سماوات` | jarr/mudaaf_ilayh/kasra_visible | nasb/mafoul_bih/fatha_visible | 0.893 |
+| s_835a69 | 5 | `الرحمن` | jarr/mudaaf_ilayh/kasra_visible | jarr/ism_majrur/kasra_visible | 0.980 |
+| s_b9fbb2 | 4 | `الله` | jarr/mudaaf_ilayh/kasra_visible | raf/fail/damma_visible | 0.949 |
+| s_9c23f1 | 1 | `السماوات` | nasb/mafoul_bih/kasra_visible | nasb/mafoul_bih/fatha_visible | 0.884 |
+| s_9c23f1 | 8 | `النهار` | nasb/mafoul_bih/fatha_visible | raf/fail/damma_visible | 0.700 |
+| s_b87bb8 | 6 | `آيات` | nasb/mafoul_bih/kasra_visible | nasb/mafoul_bih/fatha_visible | 0.975 |
+| s_90dc91 | 2 | `الله` | jarr/mudaaf_ilayh/kasra_visible | nasb/mafoul_bih/fatha_visible | 0.994 |
+| s_90dc91 | 3 | `إلها` | nasb/mafoul_bih/fatha_visible | nasb/mafoul_bih/tanween_fath | 0.970 |
+| s_e73ae2 | 6 | `رجزا` | nasb/mafoul_bih/fatha_visible | nasb/mafoul_bih/tanween_fath | 0.956 |
+| s_cdbb3d | 5 | `الأرض` | jarr/mudaaf_ilayh/kasra_visible | jarr/ism_majrur/kasra_visible | 0.983 |

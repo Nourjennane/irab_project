@@ -1,0 +1,770 @@
+{
+  "checkpoint": "runs/validated_nextgen_recovery",
+  "n_sentences": 654,
+  "n_failure_records": 322,
+  "buckets": {
+    "ambiguity_failures": 142,
+    "calibration_failures": 131,
+    "role_confusion__fail→fil": 8,
+    "case_confusion__raf→mabni": 9,
+    "marker_confusion__ya→kasra_visible": 1,
+    "overlap_failures": 42,
+    "construction_family__idafa": 188,
+    "construction_family__kana_sisters": 9,
+    "role_confusion__mudaaf_ilayh→khabar_kana": 2,
+    "case_confusion__raf→nasb": 1,
+    "marker_confusion__الضمة→damma_visible": 2,
+    "construction_family__quranic_proxy": 27,
+    "role_confusion__mafoul_bih→fil": 4,
+    "case_confusion__nasb→mabni": 4,
+    "role_confusion__hal→fil": 1,
+    "construction_family__mawsool": 100,
+    "role_confusion__mudaaf_ilayh→harf_jarr": 1,
+    "case_confusion__jarr→mabni": 10,
+    "role_confusion__dharf→ism_majrur": 1,
+    "case_confusion__nasb→jarr": 12,
+    "marker_confusion__fatha_visible→kasra_visible": 9,
+    "role_confusion__dharf→harf_jarr": 1,
+    "role_confusion__mudaaf_ilayh→mafoul_bih": 32,
+    "marker_confusion__fatha_visible→ya": 2,
+    "marker_confusion__sukun→nun": 1,
+    "role_confusion__fail→ism_majrur": 1,
+    "case_confusion__raf→jarr": 4,
+    "marker_confusion__sukun→kasra_visible": 8,
+    "marker_confusion__ya→fatha_visible": 1,
+    "marker_confusion__tanween_kasr→kasra_visible": 2,
+    "role_confusion__mubtada→harf_jarr": 1,
+    "construction_family__inna_sisters": 80,
+    "role_confusion__naib_fail→fail": 1,
+    "role_confusion__mafoul_bih→khabar": 1,
+    "marker_confusion__tanween_damm→damma_visible": 3,
+    "role_confusion__mudaaf_ilayh→ism_inna": 7,
+    "role_confusion__mudaaf_ilayh→khabar": 2,
+    "role_confusion__naat→fil": 1,
+    "case_confusion__jarr→nasb": 38,
+    "marker_confusion__kasra_visible→fatha_visible": 66,
+    "marker_confusion__fatha_visible→tanween_fath": 46,
+    "role_confusion__ism_majrur→matuf": 21,
+    "marker_confusion__kasra_visible→sukun": 8,
+    "construction_family__istithna": 30,
+    "role_confusion__mafoul_bih→ism_majrur": 8,
+    "role_confusion__mudaaf_ilayh→ism_majrur": 13,
+    "role_confusion__mudaaf_ilayh→fail": 13,
+    "case_confusion__jarr→raf": 79,
+    "marker_confusion__kasra_visible→damma_visible": 79,
+    "role_confusion__mafoul_bih→fail": 12,
+    "case_confusion__nasb→raf": 16,
+    "marker_confusion__fatha_visible→damma_visible": 16,
+    "construction_family__idafa_multi": 18,
+    "role_confusion__mudaaf_ilayh→mubtada": 29,
+    "marker_confusion__kasra_visible→ya": 4,
+    "role_confusion__ism_majrur→naat": 7,
+    "role_confusion__ism_majrur→harf_jarr": 1,
+    "role_confusion__ism_majrur→fil": 9,
+    "role_confusion__ism_majrur→fail": 4,
+    "role_confusion__mafoul_bih→khabar_kana": 1,
+    "role_confusion__mafoul_bih→dharf": 1,
+    "role_confusion__ism_majrur→badal": 1,
+    "role_confusion__ism_majrur→mubtada": 8,
+    "role_confusion__ism_majrur→khabar": 2,
+    "role_confusion__ism_majrur→khabar_kana": 1,
+    "role_confusion__mudaaf_ilayh→badal": 5,
+    "role_confusion__mafoul_bih→mubtada": 2,
+    "role_confusion__ism_majrur→khabar_inna": 2,
+    "role_confusion__mudaaf_ilayh→khabar_inna": 6,
+    "marker_confusion__sukun→damma_visible": 2,
+    "role_confusion__ism_majrur→mafoul_bih": 1,
+    "role_confusion__khabar→mubtada": 2,
+    "marker_confusion__alif→damma_visible": 2,
+    "role_confusion__ism_majrur→mudaaf_ilayh": 2,
+    "role_confusion__mudaaf_ilayh→fil": 1,
+    "role_confusion__khabar→fil": 1,
+    "marker_confusion__waw→damma_visible": 1,
+    "role_confusion__mafoul_bih→mudaaf_ilayh": 1
+  },
+  "confusions": {
+    "case": {
+      "matrix": {
+        "raf": {
+          "mabni": 9,
+          "nasb": 1,
+          "raf": 14,
+          "jarr": 4
+        },
+        "jarr": {
+          "jarr": 54,
+          "mabni": 10,
+          "nasb": 38,
+          "raf": 79
+        },
+        "nasb": {
+          "mabni": 4,
+          "jarr": 12,
+          "nasb": 81,
+          "raf": 16
+        }
+      },
+      "top": [
+        [
+          "jarr",
+          "raf",
+          79
+        ],
+        [
+          "jarr",
+          "nasb",
+          38
+        ],
+        [
+          "nasb",
+          "raf",
+          16
+        ],
+        [
+          "nasb",
+          "jarr",
+          12
+        ],
+        [
+          "jarr",
+          "mabni",
+          10
+        ],
+        [
+          "raf",
+          "mabni",
+          9
+        ],
+        [
+          "nasb",
+          "mabni",
+          4
+        ],
+        [
+          "raf",
+          "jarr",
+          4
+        ],
+        [
+          "raf",
+          "nasb",
+          1
+        ]
+      ]
+    },
+    "role": {
+      "matrix": {
+        "fail": {
+          "fil": 8,
+          "fail": 2,
+          "ism_majrur": 1
+        },
+        "ism_majrur": {
+          "ism_majrur": 11,
+          "matuf": 21,
+          "naat": 7,
+          "harf_jarr": 1,
+          "fil": 9,
+          "fail": 4,
+          "badal": 1,
+          "mubtada": 8,
+          "khabar": 2,
+          "khabar_kana": 1,
+          "khabar_inna": 2,
+          "mafoul_bih": 1,
+          "mudaaf_ilayh": 2
+        },
+        "mudaaf_ilayh": {
+          "khabar_kana": 2,
+          "harf_jarr": 1,
+          "mafoul_bih": 32,
+          "mudaaf_ilayh": 8,
+          "ism_inna": 7,
+          "khabar": 2,
+          "ism_majrur": 13,
+          "fail": 13,
+          "mubtada": 29,
+          "badal": 5,
+          "khabar_inna": 6,
+          "fil": 1
+        },
+        "mafoul_bih": {
+          "fil": 4,
+          "mafoul_bih": 81,
+          "khabar": 1,
+          "ism_majrur": 8,
+          "fail": 12,
+          "khabar_kana": 1,
+          "dharf": 1,
+          "mubtada": 2,
+          "mudaaf_ilayh": 1
+        },
+        "hal": {
+          "fil": 1
+        },
+        "dharf": {
+          "ism_majrur": 1,
+          "harf_jarr": 1
+        },
+        "mubtada": {
+          "harf_jarr": 1
+        },
+        "naib_fail": {
+          "fail": 1
+        },
+        "khabar": {
+          "khabar": 1,
+          "mubtada": 2,
+          "fil": 1
+        },
+        "naat": {
+          "fil": 1
+        },
+        "badal": {
+          "badal": 1
+        }
+      },
+      "top": [
+        [
+          "mudaaf_ilayh",
+          "mafoul_bih",
+          32
+        ],
+        [
+          "mudaaf_ilayh",
+          "mubtada",
+          29
+        ],
+        [
+          "ism_majrur",
+          "matuf",
+          21
+        ],
+        [
+          "mudaaf_ilayh",
+          "ism_majrur",
+          13
+        ],
+        [
+          "mudaaf_ilayh",
+          "fail",
+          13
+        ],
+        [
+          "mafoul_bih",
+          "fail",
+          12
+        ],
+        [
+          "ism_majrur",
+          "fil",
+          9
+        ],
+        [
+          "fail",
+          "fil",
+          8
+        ],
+        [
+          "mafoul_bih",
+          "ism_majrur",
+          8
+        ],
+        [
+          "ism_majrur",
+          "mubtada",
+          8
+        ],
+        [
+          "mudaaf_ilayh",
+          "ism_inna",
+          7
+        ],
+        [
+          "ism_majrur",
+          "naat",
+          7
+        ],
+        [
+          "mudaaf_ilayh",
+          "khabar_inna",
+          6
+        ],
+        [
+          "mudaaf_ilayh",
+          "badal",
+          5
+        ],
+        [
+          "mafoul_bih",
+          "fil",
+          4
+        ],
+        [
+          "ism_majrur",
+          "fail",
+          4
+        ],
+        [
+          "mudaaf_ilayh",
+          "khabar_kana",
+          2
+        ],
+        [
+          "mudaaf_ilayh",
+          "khabar",
+          2
+        ],
+        [
+          "ism_majrur",
+          "khabar",
+          2
+        ],
+        [
+          "mafoul_bih",
+          "mubtada",
+          2
+        ]
+      ]
+    },
+    "marker": {
+      "matrix": {
+        "sukun": {
+          "sukun": 11,
+          "nun": 1,
+          "kasra_visible": 8,
+          "damma_visible": 2
+        },
+        "ya": {
+          "kasra_visible": 1,
+          "fatha_visible": 1
+        },
+        "الضمة": {
+          "damma_visible": 2
+        },
+        "fatha_visible": {
+          "fatha_visible": 6,
+          "kasra_visible": 9,
+          "ya": 2,
+          "tanween_fath": 46,
+          "damma_visible": 16
+        },
+        "damma_visible": {
+          "damma_visible": 7
+        },
+        "tanween_kasr": {
+          "kasra_visible": 2
+        },
+        "tanween_damm": {
+          "damma_visible": 3
+        },
+        "kasra_visible": {
+          "kasra_visible": 45,
+          "fatha_visible": 66,
+          "sukun": 8,
+          "damma_visible": 79,
+          "ya": 4
+        },
+        "alif": {
+          "damma_visible": 2
+        },
+        "waw": {
+          "damma_visible": 1
+        }
+      },
+      "top": [
+        [
+          "kasra_visible",
+          "damma_visible",
+          79
+        ],
+        [
+          "kasra_visible",
+          "fatha_visible",
+          66
+        ],
+        [
+          "fatha_visible",
+          "tanween_fath",
+          46
+        ],
+        [
+          "fatha_visible",
+          "damma_visible",
+          16
+        ],
+        [
+          "fatha_visible",
+          "kasra_visible",
+          9
+        ],
+        [
+          "sukun",
+          "kasra_visible",
+          8
+        ],
+        [
+          "kasra_visible",
+          "sukun",
+          8
+        ],
+        [
+          "kasra_visible",
+          "ya",
+          4
+        ],
+        [
+          "tanween_damm",
+          "damma_visible",
+          3
+        ],
+        [
+          "الضمة",
+          "damma_visible",
+          2
+        ],
+        [
+          "fatha_visible",
+          "ya",
+          2
+        ],
+        [
+          "tanween_kasr",
+          "kasra_visible",
+          2
+        ],
+        [
+          "sukun",
+          "damma_visible",
+          2
+        ],
+        [
+          "alif",
+          "damma_visible",
+          2
+        ],
+        [
+          "ya",
+          "kasra_visible",
+          1
+        ],
+        [
+          "sukun",
+          "nun",
+          1
+        ],
+        [
+          "ya",
+          "fatha_visible",
+          1
+        ],
+        [
+          "waw",
+          "damma_visible",
+          1
+        ]
+      ]
+    }
+  },
+  "structural_breakdown": {
+    "by_dep_depth": {
+      "0": {
+        "n": 1060,
+        "n_correct": 738,
+        "fully": 0.6962
+      }
+    },
+    "by_clause_depth": {
+      "0": {
+        "n": 1060,
+        "n_correct": 738,
+        "fully": 0.6962
+      }
+    },
+    "by_sent_length": {
+      "<10": {
+        "n": 491,
+        "n_correct": 309,
+        "fully": 0.6293
+      },
+      "10-19": {
+        "n": 544,
+        "n_correct": 407,
+        "fully": 0.7482
+      },
+      "20-29": {
+        "n": 25,
+        "n_correct": 22,
+        "fully": 0.88
+      }
+    },
+    "by_overlap": {
+      "false": {
+        "n": 592,
+        "n_correct": 420,
+        "fully": 0.7095
+      },
+      "true": {
+        "n": 468,
+        "n_correct": 318,
+        "fully": 0.6795
+      }
+    },
+    "by_long_range": {
+      "false": {
+        "n": 1060,
+        "n_correct": 738,
+        "fully": 0.6962
+      }
+    },
+    "by_semantic_pressure": {
+      "2": {
+        "n": 537,
+        "n_correct": 395,
+        "fully": 0.7356
+      },
+      "0": {
+        "n": 523,
+        "n_correct": 343,
+        "fully": 0.6558
+      }
+    },
+    "by_construction_family": {
+      "idafa": {
+        "n": 521,
+        "n_correct": 333,
+        "fully": 0.6392
+      },
+      "kana_sisters": {
+        "n": 43,
+        "n_correct": 34,
+        "fully": 0.7907
+      },
+      "quranic_proxy": {
+        "n": 94,
+        "n_correct": 67,
+        "fully": 0.7128
+      },
+      "mawsool": {
+        "n": 415,
+        "n_correct": 315,
+        "fully": 0.759
+      },
+      "inna_sisters": {
+        "n": 268,
+        "n_correct": 188,
+        "fully": 0.7015
+      },
+      "istithna": {
+        "n": 106,
+        "n_correct": 76,
+        "fully": 0.717
+      },
+      "idafa_multi": {
+        "n": 22,
+        "n_correct": 4,
+        "fully": 0.1818
+      }
+    }
+  },
+  "calibration": {
+    "case": {
+      "reliability": {
+        "n": [
+          0,
+          0,
+          0,
+          1,
+          11,
+          18,
+          11,
+          30,
+          39,
+          212
+        ],
+        "correct": [
+          0,
+          0,
+          0,
+          0,
+          4,
+          4,
+          3,
+          14,
+          14,
+          110
+        ],
+        "conf_sum": [
+          0.0,
+          0.0,
+          0.0,
+          0.37428510189056396,
+          5.2162085473537445,
+          9.706803798675537,
+          7.309786677360535,
+          22.49047440290451,
+          33.341130793094635,
+          206.3493919968605
+        ],
+        "accuracy": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.36363636363636365,
+          0.2222222222222222,
+          0.2727272727272727,
+          0.4666666666666667,
+          0.358974358974359,
+          0.5188679245283019
+        ],
+        "mean_conf": [
+          0.0,
+          0.0,
+          0.0,
+          0.37428510189056396,
+          0.47420077703215857,
+          0.5392668777041965,
+          0.6645260615782305,
+          0.749682480096817,
+          0.8549007895665292,
+          0.9733461886644363
+        ]
+      },
+      "ece": 0.4217,
+      "high_conf_wrong_count": 79
+    },
+    "role": {
+      "reliability": {
+        "n": [
+          0,
+          0,
+          7,
+          13,
+          24,
+          27,
+          22,
+          27,
+          36,
+          166
+        ],
+        "correct": [
+          0,
+          0,
+          3,
+          0,
+          9,
+          1,
+          3,
+          12,
+          14,
+          62
+        ],
+        "conf_sum": [
+          0.0,
+          0.0,
+          1.8028239458799362,
+          4.584200918674469,
+          11.09193566441536,
+          15.127590656280518,
+          14.50418996810913,
+          20.366055607795715,
+          30.96859586238861,
+          160.4736196398735
+        ],
+        "accuracy": [
+          0.0,
+          0.0,
+          0.42857142857142855,
+          0.0,
+          0.375,
+          0.037037037037037035,
+          0.13636363636363635,
+          0.4444444444444444,
+          0.3888888888888889,
+          0.37349397590361444
+        ],
+        "mean_conf": [
+          0.0,
+          0.0,
+          0.257546277982848,
+          0.35263083989803606,
+          0.4621639860173066,
+          0.5602811354177969,
+          0.6592813621867787,
+          0.7542983558442857,
+          0.8602387739552392,
+          0.9667085520474308
+        ]
+      },
+      "ece": 0.4886,
+      "high_conf_wrong_count": 83
+    },
+    "marker": {
+      "reliability": {
+        "n": [
+          0,
+          0,
+          3,
+          8,
+          14,
+          28,
+          28,
+          40,
+          54,
+          147
+        ],
+        "correct": [
+          0,
+          0,
+          1,
+          1,
+          3,
+          3,
+          4,
+          10,
+          4,
+          43
+        ],
+        "conf_sum": [
+          0.0,
+          0.0,
+          0.8169384449720383,
+          2.830340325832367,
+          6.449567884206772,
+          15.295694291591644,
+          17.942487239837646,
+          29.852653741836548,
+          46.13569927215576,
+          141.097407579422
+        ],
+        "accuracy": [
+          0.0,
+          0.0,
+          0.3333333333333333,
+          0.125,
+          0.21428571428571427,
+          0.10714285714285714,
+          0.14285714285714285,
+          0.25,
+          0.07407407407407407,
+          0.2925170068027211
+        ],
+        "mean_conf": [
+          0.0,
+          0.0,
+          0.27231281499067944,
+          0.35379254072904587,
+          0.4606834203004837,
+          0.546274796128273,
+          0.6408031157084874,
+          0.7463163435459137,
+          0.8543648013362178,
+          0.9598463100640953
+        ]
+      },
+      "ece": 0.5956,
+      "high_conf_wrong_count": 70
+    }
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "checkpoint": "runs/validated_nextgen_recovery",
+  "rows": [
+    {
+      "bucket": "ambiguity",
+      "n_sent": 728,
+      "n_words": 26547,
+      "case_acc": 0.8118,
+      "role_acc": 0.8404,
+      "marker_em": 0.719,
+      "fully": 0.7356,
+      "strict_fully": 0.7356,
+      "strict_n_words": 537
+    },
+    {
+      "bucket": "long_range",
+      "n_sent": 608,
+      "n_words": 27826,
+      "case_acc": 0.8109,
+      "role_acc": 0.0,
+      "marker_em": 0.0,
+      "fully": 0.0,
+      "strict_fully": 0.0,
+      "strict_n_words": 0
+    },
+    {
+      "bucket": "overlap",
+      "n_sent": 254,
+      "n_words": 9820,
+      "case_acc": 0.8034,
+      "role_acc": 0.757,
+      "marker_em": 0.7076,
+      "fully": 0.6677,
+      "strict_fully": 0.6677,
+      "strict_n_words": 316
+    },
+    {
+      "bucket": "quranic_hard",
+      "n_sent": 285,
+      "n_words": 2720,
+      "case_acc": 0.8572,
+      "role_acc": 0.8267,
+      "marker_em": 0.7054,
+      "fully": 0.722,
+      "strict_fully": 0.722,
+      "strict_n_words": 554
+    },
+    {
+      "bucket": "rare_constructions",
+      "n_sent": 8,
+      "n_words": 47,
+      "case_acc": 0.6596,
+      "role_acc": 0.4545,
+      "marker_em": 0.303,
+      "fully": 0.1818,
+      "strict_fully": 0.1818,
+      "strict_n_words": 22
+    }
+  ]
+}
