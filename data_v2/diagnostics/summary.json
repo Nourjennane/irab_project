@@ -1,0 +1,52 @@
+{
+  "total_sentences": 19700,
+  "n_sources": 6,
+  "by_source": {
+    "distill_v2": 11382,
+    "gazelle_test": 30,
+    "masaq_quranic": 624,
+    "ud_padt_dev": 909,
+    "ud_padt_test": 680,
+    "ud_padt_train": 6075
+  },
+  "family_distribution": {
+    "idafa": 13705,
+    "_no_construction": 5079,
+    "mawsool": 18285,
+    "kana_sisters": 2359,
+    "quranic_proxy": 1988,
+    "idafa_multi": 2612,
+    "inna_sisters": 6449,
+    "istithna": 1022
+  },
+  "difficulty_distribution": {
+    "5": 12661,
+    "1": 2672,
+    "6": 588,
+    "3": 1046,
+    "4": 387,
+    "7": 125,
+    "2": 2221
+  },
+  "domain_distribution": {
+    "msa_news": 19076,
+    "quranic": 624
+  },
+  "quality_distribution": {
+    "silver_llm_distill": 11382,
+    "gold_human": 654,
+    "gold_treebank": 7664
+  },
+  "completeness_distribution": {
+    "fully_observable": 4764,
+    "none": 14223,
+    "two_of_three": 115,
+    "one_of_three": 598
+  },
+  "semantic_pressure_distribution": {
+    "2": 12766,
+    "0": 3826,
+    "3": 588,
+    "1": 2520
+  }
+}

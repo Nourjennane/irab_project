@@ -1,0 +1,5 @@
+# schema_v2 corpus JSONL files are too large for git — built locally
+# from the source corpora via scripts/data_v2/build_schema_v2_corpus.py.
+# Diagnostic reports and per-stage summaries ARE committed.
+annotated/*/all.jsonl
+curriculum/stage_*.jsonl

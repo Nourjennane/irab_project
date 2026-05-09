@@ -1,0 +1,171 @@
+{
+  "1": {
+    "n": 2672,
+    "sources": {
+      "distill_v2": 2418,
+      "gazelle_test": 6,
+      "masaq_quranic": 208,
+      "ud_padt_train": 40
+    },
+    "domains": {
+      "msa_news": 2464,
+      "quranic": 208
+    },
+    "family_distribution": {},
+    "n_unique_families": 0,
+    "mean_semantic_pressure": 0.009,
+    "mean_dep_depth": 0.015,
+    "mean_completeness": 0.06,
+    "mean_ambiguity": 0.001,
+    "mean_length": 16.0
+  },
+  "2": {
+    "n": 2221,
+    "sources": {
+      "ud_padt_dev": 250,
+      "ud_padt_test": 192,
+      "ud_padt_train": 1779
+    },
+    "domains": {
+      "msa_news": 2221
+    },
+    "family_distribution": {},
+    "n_unique_families": 0,
+    "mean_semantic_pressure": 0.755,
+    "mean_dep_depth": 5.739,
+    "mean_completeness": 0.173,
+    "mean_ambiguity": 0.114,
+    "mean_length": 17.5
+  },
+  "3": {
+    "n": 1046,
+    "sources": {
+      "distill_v2": 416,
+      "gazelle_test": 9,
+      "masaq_quranic": 108,
+      "ud_padt_dev": 57,
+      "ud_padt_test": 31,
+      "ud_padt_train": 425
+    },
+    "domains": {
+      "msa_news": 938,
+      "quranic": 108
+    },
+    "family_distribution": {
+      "inna_sisters": 728,
+      "kana_sisters": 206,
+      "idafa": 112
+    },
+    "n_unique_families": 3,
+    "mean_semantic_pressure": 0.529,
+    "mean_dep_depth": 3.876,
+    "mean_completeness": 0.209,
+    "mean_ambiguity": 0.046,
+    "mean_length": 25.4
+  },
+  "4": {
+    "n": 387,
+    "sources": {
+      "distill_v2": 209,
+      "gazelle_test": 2,
+      "masaq_quranic": 23,
+      "ud_padt_dev": 17,
+      "ud_padt_test": 7,
+      "ud_padt_train": 129
+    },
+    "domains": {
+      "msa_news": 364,
+      "quranic": 23
+    },
+    "family_distribution": {
+      "inna_sisters": 468,
+      "idafa": 408,
+      "kana_sisters": 125,
+      "idafa_multi": 93
+    },
+    "n_unique_families": 4,
+    "mean_semantic_pressure": 0.693,
+    "mean_dep_depth": 3.478,
+    "mean_completeness": 0.468,
+    "mean_ambiguity": 0.125,
+    "mean_length": 27.3
+  },
+  "5": {
+    "n": 12661,
+    "sources": {
+      "distill_v2": 7751,
+      "gazelle_test": 13,
+      "masaq_quranic": 160,
+      "ud_padt_dev": 585,
+      "ud_padt_test": 450,
+      "ud_padt_train": 3702
+    },
+    "domains": {
+      "msa_news": 12501,
+      "quranic": 160
+    },
+    "family_distribution": {
+      "mawsool": 17689,
+      "idafa": 11468,
+      "inna_sisters": 5079,
+      "idafa_multi": 2223,
+      "quranic_proxy": 1926,
+      "kana_sisters": 1915,
+      "istithna": 951
+    },
+    "n_unique_families": 7,
+    "mean_semantic_pressure": 2.0,
+    "mean_dep_depth": 3.561,
+    "mean_completeness": 0.382,
+    "mean_ambiguity": 0.109,
+    "mean_length": 34.6
+  },
+  "6": {
+    "n": 588,
+    "sources": {
+      "distill_v2": 588
+    },
+    "domains": {
+      "msa_news": 588
+    },
+    "family_distribution": {
+      "idafa": 1614,
+      "mawsool": 469,
+      "idafa_multi": 288,
+      "inna_sisters": 101,
+      "kana_sisters": 92,
+      "quranic_proxy": 47,
+      "istithna": 37
+    },
+    "n_unique_families": 7,
+    "mean_semantic_pressure": 3.0,
+    "mean_dep_depth": 0.0,
+    "mean_completeness": 1.0,
+    "mean_ambiguity": 0.178,
+    "mean_length": 17.6
+  },
+  "7": {
+    "n": 125,
+    "sources": {
+      "masaq_quranic": 125
+    },
+    "domains": {
+      "quranic": 125
+    },
+    "family_distribution": {
+      "mawsool": 127,
+      "idafa": 103,
+      "inna_sisters": 73,
+      "istithna": 34,
+      "kana_sisters": 21,
+      "quranic_proxy": 15,
+      "idafa_multi": 8
+    },
+    "n_unique_families": 7,
+    "mean_semantic_pressure": 1.68,
+    "mean_dep_depth": 0.0,
+    "mean_completeness": 0.562,
+    "mean_ambiguity": 0.155,
+    "mean_length": 10.4
+  }
+}

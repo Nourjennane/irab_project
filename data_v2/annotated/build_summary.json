@@ -1,0 +1,129 @@
+{
+  "started": 1778329196.738284,
+  "sources": {
+    "distill_v2": {
+      "n_sentences": 11382,
+      "n_with_constructions": 8784,
+      "family_counts": {
+        "idafa": 13477,
+        "mawsool": 9003,
+        "kana_sisters": 1182,
+        "quranic_proxy": 908,
+        "idafa_multi": 2604,
+        "inna_sisters": 2273,
+        "istithna": 456
+      },
+      "difficulty_counts": {
+        "1": 2418,
+        "3": 416,
+        "4": 209,
+        "5": 7751,
+        "6": 588
+      },
+      "out_path": "/Users/nourjennane/Desktop/irab_project/data_v2/annotated/distill_v2/all.jsonl",
+      "size_mb": 74.3
+    },
+    "gazelle_test": {
+      "n_sentences": 30,
+      "n_with_constructions": 18,
+      "family_counts": {
+        "mawsool": 4,
+        "istithna": 1,
+        "idafa": 14,
+        "kana_sisters": 2,
+        "quranic_proxy": 2,
+        "inna_sisters": 3
+      },
+      "difficulty_counts": {
+        "1": 6,
+        "3": 9,
+        "4": 2,
+        "5": 13
+      },
+      "out_path": "/Users/nourjennane/Desktop/irab_project/data_v2/annotated/gazelle_test/all.jsonl",
+      "size_mb": 0.1
+    },
+    "masaq_quranic": {
+      "n_sentences": 624,
+      "n_with_constructions": 416,
+      "family_counts": {
+        "idafa": 214,
+        "inna_sisters": 159,
+        "mawsool": 238,
+        "istithna": 62,
+        "quranic_proxy": 59,
+        "kana_sisters": 33,
+        "idafa_multi": 8
+      },
+      "difficulty_counts": {
+        "1": 208,
+        "3": 108,
+        "4": 23,
+        "5": 160,
+        "7": 125
+      },
+      "out_path": "/Users/nourjennane/Desktop/irab_project/data_v2/annotated/masaq_quranic/all.jsonl",
+      "size_mb": 2.3
+    },
+    "ud_padt_train": {
+      "n_sentences": 6075,
+      "n_with_constructions": 4256,
+      "family_counts": {
+        "mawsool": 7068,
+        "kana_sisters": 867,
+        "inna_sisters": 3192,
+        "quranic_proxy": 817,
+        "istithna": 382
+      },
+      "difficulty_counts": {
+        "1": 40,
+        "2": 1779,
+        "3": 425,
+        "4": 129,
+        "5": 3702
+      },
+      "out_path": "/Users/nourjennane/Desktop/irab_project/data_v2/annotated/ud_padt_train/all.jsonl",
+      "size_mb": 117.4
+    },
+    "ud_padt_dev": {
+      "n_sentences": 909,
+      "n_with_constructions": 659,
+      "family_counts": {
+        "inna_sisters": 365,
+        "kana_sisters": 151,
+        "mawsool": 975,
+        "istithna": 52,
+        "quranic_proxy": 103
+      },
+      "difficulty_counts": {
+        "2": 250,
+        "3": 57,
+        "4": 17,
+        "5": 585
+      },
+      "out_path": "/Users/nourjennane/Desktop/irab_project/data_v2/annotated/ud_padt_dev/all.jsonl",
+      "size_mb": 15.7
+    },
+    "ud_padt_test": {
+      "n_sentences": 680,
+      "n_with_constructions": 488,
+      "family_counts": {
+        "kana_sisters": 124,
+        "mawsool": 997,
+        "quranic_proxy": 99,
+        "inna_sisters": 457,
+        "istithna": 69
+      },
+      "difficulty_counts": {
+        "2": 192,
+        "3": 31,
+        "4": 7,
+        "5": 450
+      },
+      "out_path": "/Users/nourjennane/Desktop/irab_project/data_v2/annotated/ud_padt_test/all.jsonl",
+      "size_mb": 14.9
+    }
+  },
+  "finished": 1778329262.4380019,
+  "total_seconds": 65.7
+}
