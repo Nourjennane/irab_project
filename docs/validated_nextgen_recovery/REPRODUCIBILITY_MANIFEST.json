@@ -1,0 +1,53 @@
+{
+  "src": "runs/nextgen_recovery/stage_7/final",
+  "dst": "runs/validated_nextgen_recovery",
+  "git_commit": "872d468b19ce2aa972090b40d66b1ed647b7aee0",
+  "git_clean": false,
+  "env": {
+    "torch": "2.5.1+cu121",
+    "transformers": "4.46.3",
+    "tokenizers": "0.20.3",
+    "numpy": "2.4.4",
+    "python": "3.11.15"
+  },
+  "datasets": {
+    "distill_v2": {
+      "path": "data_v2/annotated/distill_v2/all.jsonl",
+      "n_sentences": 11382,
+      "sha256": "1e89202aa25f6969b78e44e54b1c7a0ac98582b43aaf7b98fdd0be53af0c0828",
+      "size_bytes": 74255874
+    },
+    "gazelle_test": {
+      "path": "data_v2/annotated/gazelle_test/all.jsonl",
+      "n_sentences": 30,
+      "sha256": "99e02af3f89676cefbe310736881903ced6db57f2772d9e90cbcb8ac1e447676",
+      "size_bytes": 98697
+    },
+    "masaq_quranic": {
+      "path": "data_v2/annotated/masaq_quranic/all.jsonl",
+      "n_sentences": 624,
+      "sha256": "cd7ea01a868e76431c780be19f5ea8e1d669e981385481056a96a4b5cd65d7b0",
+      "size_bytes": 2326176
+    },
+    "ud_padt_dev": {
+      "path": "data_v2/annotated/ud_padt_dev/all.jsonl",
+      "n_sentences": 909,
+      "sha256": "f48b4137ce4e0ac639c07b9280931de6658c7ea0b524ef6b01714b60a9515bb1",
+      "size_bytes": 15742664
+    },
+    "ud_padt_test": {
+      "path": "data_v2/annotated/ud_padt_test/all.jsonl",
+      "n_sentences": 680,
+      "sha256": "90bd9402e1c48877302ab8ba01898b36857a353488627ace462773ee759ab296",
+      "size_bytes": 14899588
+    },
+    "ud_padt_train": {
+      "path": "data_v2/annotated/ud_padt_train/all.jsonl",
+      "n_sentences": 6075,
+      "sha256": "4b572533714c53f5e7842bde80241da2c177d339e9b144fe2923d461156fa004",
+      "size_bytes": 117398917
+    }
+  },
+  "training_summary": null,
+  "curriculum": null
+}

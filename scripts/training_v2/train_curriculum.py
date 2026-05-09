@@ -376,19 +376,38 @@ def main():
                 gate = sched.advance_or_continue(metrics)
                 print(f"  [gate] {gate.decision.value}: {gate.reason}")
                 if gate.decision in (GateDecision.ADVANCE, GateDecision.TIMEOUT_ADVANCE) or early_stop:
-                    # Save SWA-averaged weights (if enabled) so the
-                    # next stage warm-starts from the smoothed loss
-                    # surface, not the noisy SGD endpoint.
                     if swa_snapshot is not None and global_step >= args.swa_start_step:
                         swa_snapshot.copy_into(model)
                     stage_dir = out_dir / f"stage_{stage_id}" / "final"
-                    trainer.save_checkpoint(stage_dir,
-                                              optimizer_state=optimizer.state_dict())
+                    # Wrap save in try/except so a serialization error doesn't
+                    # crash the whole training run silently.
+                    try:
+                        # optimizer.state_dict() can fail with LLRD param-group
+                        # custom keys on some torch versions; fall back to no
+                        # optimizer state if it does.
+                        try:
+                            opt_state = optimizer.state_dict()
+                        except Exception as e:
+                            print(f"  [warn] optimizer.state_dict failed: {e}; "
+                                  f"saving without optimizer state")
+                            opt_state = None
+                        trainer.save_checkpoint(stage_dir, optimizer_state=opt_state)
+                        print(f"  [checkpoint] saved {stage_dir} "
+                              f"({'early_stop' if early_stop else gate.decision.value}"
+                              f"{', swa' if swa_snapshot else ''})")
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
+                        print(f"  [error] save_checkpoint failed: {e} — continuing")
                     if swa_snapshot is not None and global_step >= args.swa_start_step:
                         swa_snapshot.restore(model)
-                    print(f"  [checkpoint] saved {stage_dir} "
-                          f"({'early_stop' if early_stop else gate.decision.value}"
-                          f"{', swa' if swa_snapshot else ''})")
+
+                    # Force scheduler to advance even when our early_stop fired
+                    # (otherwise we re-enter the same stage forever).
+                    if early_stop and gate.decision is GateDecision.CONTINUE:
+                        print(f"  [advance] early_stop forcing stage advance")
+                        sched.state.active_stage_id += 1
+                        sched.state.steps_in_stage = 0
                     if early_stop:
                         epochs_since_best = 0
                         best_strict = -1.0
