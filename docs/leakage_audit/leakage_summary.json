@@ -1,0 +1,1463 @@
+{
+  "fuzzy_threshold": 0.7,
+  "ngram_threshold": 0.5,
+  "n_sources": {
+    "distill_v2": 11382,
+    "ud_padt_train": 6075,
+    "ud_padt_dev": 909,
+    "gazelle_test": 30,
+    "masaq_quranic": 624,
+    "ud_padt_test": 680
+  },
+  "rows": [
+    {
+      "train": "distill_v2",
+      "test": "gazelle_test",
+      "n_train": 11382,
+      "n_test": 30,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "distill_v2",
+      "test": "masaq_quranic",
+      "n_train": 11382,
+      "n_test": 624,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "distill_v2",
+      "test": "ud_padt_test",
+      "n_train": 11382,
+      "n_test": 680,
+      "exact": 17,
+      "normalised": 21,
+      "hash_dup": 21,
+      "fuzzy_jaccard_ge_0.7": 65,
+      "ngram5_jaccard_ge_0.5": 52,
+      "exact_pct": 2.5,
+      "normalised_pct": 3.088,
+      "fuzzy_pct": 9.559,
+      "_exact_pairs": [
+        [
+          "s_2c6986e1e1ea",
+          "s_fa4a694ff4f9"
+        ],
+        [
+          "s_63526e2f8c10",
+          "s_295f16c41b40"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_46c2e3278bd8"
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_d46c473958c4"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_0e3d3f1e3003"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_7818aba4e8a9"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_cd1a54baeab7"
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_9357ac7a2fa6"
+        ],
+        [
+          "s_420b3b17a93e",
+          "s_8a4ddc35f5eb"
+        ],
+        [
+          "s_0f02ce535fae",
+          "s_4d19c0e6fbcf"
+        ],
+        [
+          "s_9e151cce0170",
+          "s_985581b959c5"
+        ],
+        [
+          "s_f48a1be45f3d",
+          "s_0119f5df609b"
+        ],
+        [
+          "s_1cb16f0f344e",
+          "s_72603f838641"
+        ],
+        [
+          "s_08cadfd270c7",
+          "s_9ff2d337fad0"
+        ],
+        [
+          "s_89734b46db7a",
+          "s_fd37f84f1d4b"
+        ],
+        [
+          "s_6cd121511dfe",
+          "s_0f0435b98288"
+        ],
+        [
+          "s_0c6910f900e4",
+          "s_9fd4e6d834d2"
+        ]
+      ],
+      "_norm_pairs": [
+        [
+          "s_830e92452cc2",
+          "s_7718c9e9eb6b"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_fa4a694ff4f9"
+        ],
+        [
+          "s_63526e2f8c10",
+          "s_295f16c41b40"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_46c2e3278bd8"
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_d46c473958c4"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_0e3d3f1e3003"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_7818aba4e8a9"
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_cd1a54baeab7"
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_9357ac7a2fa6"
+        ],
+        [
+          "s_ea54cf2a4b34",
+          "s_efa5938c5bf3"
+        ],
+        [
+          "s_420b3b17a93e",
+          "s_8a4ddc35f5eb"
+        ],
+        [
+          "s_604803edbe85",
+          "s_b4cc5d83bb33"
+        ],
+        [
+          "s_1e470e0a3556",
+          "s_322c68e96e8e"
+        ],
+        [
+          "s_0f02ce535fae",
+          "s_4d19c0e6fbcf"
+        ],
+        [
+          "s_9e151cce0170",
+          "s_985581b959c5"
+        ],
+        [
+          "s_f48a1be45f3d",
+          "s_0119f5df609b"
+        ],
+        [
+          "s_1cb16f0f344e",
+          "s_72603f838641"
+        ],
+        [
+          "s_08cadfd270c7",
+          "s_9ff2d337fad0"
+        ],
+        [
+          "s_89734b46db7a",
+          "s_fd37f84f1d4b"
+        ],
+        [
+          "s_6cd121511dfe",
+          "s_0f0435b98288"
+        ],
+        [
+          "s_0c6910f900e4",
+          "s_9fd4e6d834d2"
+        ]
+      ],
+      "_fuzzy_pairs": [
+        [
+          "s_12001cbc271d",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_fa4a694ff4f9",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_46c2e3278bd8",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_0e3d3f1e3003",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_7818aba4e8a9",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_cd1a54baeab7",
+          1.0
+        ],
+        [
+          "s_7f627000cfb3",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_5965bf8e5b2f",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_5965bf8e5b2f",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_5f56310c3558",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_e9e3449aafe9",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_e9e3449aafe9",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_604803edbe85",
+          "s_b4cc5d83bb33",
+          1.0
+        ],
+        [
+          "s_0c6910f900e4",
+          "s_9fd4e6d834d2",
+          1.0
+        ],
+        [
+          "s_ac49dd933268",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_7c5aea48f650",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_7c5aea48f650",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_be6114edb377",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_32daa0328486",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_830e92452cc2",
+          "s_7718c9e9eb6b",
+          1.0
+        ],
+        [
+          "s_d46061f07a82",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_de8c9e0186e3",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_de8c9e0186e3",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_114a18abe646",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_c9a76900fcbd",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_dae8c55dde1f",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_dae8c55dde1f",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_aba1eb99d0b9",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_28c16dff55a2",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_410507fcdb5e",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_cc92f07605cf",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_ad1ccf6ebfd9",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_7f69d3f37414",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_08cadfd270c7",
+          "s_9ff2d337fad0",
+          1.0
+        ],
+        [
+          "s_f2c378c24f4c",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_ea54cf2a4b34",
+          "s_efa5938c5bf3",
+          1.0
+        ],
+        [
+          "s_63526e2f8c10",
+          "s_295f16c41b40",
+          1.0
+        ],
+        [
+          "s_1e470e0a3556",
+          "s_322c68e96e8e",
+          1.0
+        ],
+        [
+          "s_6cd121511dfe",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_1cb16f0f344e",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_9e151cce0170",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_2965b1ad5844",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_2965b1ad5844",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_89734b46db7a",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_f48a1be45f3d",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_420b3b17a93e",
+          "s_8a4ddc35f5eb",
+          1.0
+        ],
+        [
+          "s_0f02ce535fae",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_c45fcfbedd4a",
+          "s_d8efc2d8f8bd",
+          0.885
+        ]
+      ],
+      "_ngram_pairs": [
+        [
+          "s_12001cbc271d",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_fa4a694ff4f9",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_46c2e3278bd8",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_0e3d3f1e3003",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_7818aba4e8a9",
+          1.0
+        ],
+        [
+          "s_2c6986e1e1ea",
+          "s_cd1a54baeab7",
+          1.0
+        ],
+        [
+          "s_7f627000cfb3",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_5965bf8e5b2f",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_5965bf8e5b2f",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_5f56310c3558",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_e9e3449aafe9",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_e9e3449aafe9",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_604803edbe85",
+          "s_b4cc5d83bb33",
+          1.0
+        ],
+        [
+          "s_0c6910f900e4",
+          "s_9fd4e6d834d2",
+          1.0
+        ],
+        [
+          "s_ac49dd933268",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_7c5aea48f650",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_7c5aea48f650",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_be6114edb377",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_32daa0328486",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_830e92452cc2",
+          "s_7718c9e9eb6b",
+          1.0
+        ],
+        [
+          "s_d46061f07a82",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_de8c9e0186e3",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_de8c9e0186e3",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_114a18abe646",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_c9a76900fcbd",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_dae8c55dde1f",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_dae8c55dde1f",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_aba1eb99d0b9",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_28c16dff55a2",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_410507fcdb5e",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_cc92f07605cf",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_ad1ccf6ebfd9",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_7f69d3f37414",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_08cadfd270c7",
+          "s_9ff2d337fad0",
+          1.0
+        ],
+        [
+          "s_f2c378c24f4c",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_ea54cf2a4b34",
+          "s_efa5938c5bf3",
+          1.0
+        ],
+        [
+          "s_63526e2f8c10",
+          "s_295f16c41b40",
+          1.0
+        ],
+        [
+          "s_1e470e0a3556",
+          "s_322c68e96e8e",
+          1.0
+        ],
+        [
+          "s_6cd121511dfe",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_1cb16f0f344e",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_9e151cce0170",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_2965b1ad5844",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_2965b1ad5844",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_89734b46db7a",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_f48a1be45f3d",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_420b3b17a93e",
+          "s_8a4ddc35f5eb",
+          1.0
+        ],
+        [
+          "s_0f02ce535fae",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_c5e45c9c5a1e",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_c45fcfbedd4a",
+          "s_d8efc2d8f8bd",
+          0.607
+        ]
+      ]
+    },
+    {
+      "train": "ud_padt_train",
+      "test": "gazelle_test",
+      "n_train": 6075,
+      "n_test": 30,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "ud_padt_train",
+      "test": "masaq_quranic",
+      "n_train": 6075,
+      "n_test": 624,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "ud_padt_train",
+      "test": "ud_padt_test",
+      "n_train": 6075,
+      "n_test": 680,
+      "exact": 16,
+      "normalised": 16,
+      "hash_dup": 16,
+      "fuzzy_jaccard_ge_0.7": 45,
+      "ngram5_jaccard_ge_0.5": 44,
+      "exact_pct": 2.353,
+      "normalised_pct": 2.353,
+      "fuzzy_pct": 6.618,
+      "_exact_pairs": [
+        [
+          "s_e0428a2bff12",
+          "s_fa4a694ff4f9"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_46c2e3278bd8"
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_d46c473958c4"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_0e3d3f1e3003"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_7818aba4e8a9"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_cd1a54baeab7"
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_9357ac7a2fa6"
+        ],
+        [
+          "s_9ed31e4dbd91",
+          "s_4d19c0e6fbcf"
+        ],
+        [
+          "s_81590c6434b5",
+          "s_bf3f4aa9c358"
+        ],
+        [
+          "s_9ae5f4733c50",
+          "s_985581b959c5"
+        ],
+        [
+          "s_c7df3616c83e",
+          "s_0119f5df609b"
+        ],
+        [
+          "s_dcc40f1ba55e",
+          "s_72603f838641"
+        ],
+        [
+          "s_17924899a4b1",
+          "s_9ff2d337fad0"
+        ],
+        [
+          "s_38f8e6e4b188",
+          "s_fd37f84f1d4b"
+        ],
+        [
+          "s_7f2acfbc359a",
+          "s_0f0435b98288"
+        ],
+        [
+          "s_07613201d6dd",
+          "s_9fd4e6d834d2"
+        ]
+      ],
+      "_norm_pairs": [
+        [
+          "s_e0428a2bff12",
+          "s_fa4a694ff4f9"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_46c2e3278bd8"
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_d46c473958c4"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_0e3d3f1e3003"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_7818aba4e8a9"
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_cd1a54baeab7"
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_9357ac7a2fa6"
+        ],
+        [
+          "s_9ed31e4dbd91",
+          "s_4d19c0e6fbcf"
+        ],
+        [
+          "s_81590c6434b5",
+          "s_bf3f4aa9c358"
+        ],
+        [
+          "s_9ae5f4733c50",
+          "s_985581b959c5"
+        ],
+        [
+          "s_c7df3616c83e",
+          "s_0119f5df609b"
+        ],
+        [
+          "s_dcc40f1ba55e",
+          "s_72603f838641"
+        ],
+        [
+          "s_17924899a4b1",
+          "s_9ff2d337fad0"
+        ],
+        [
+          "s_38f8e6e4b188",
+          "s_fd37f84f1d4b"
+        ],
+        [
+          "s_7f2acfbc359a",
+          "s_0f0435b98288"
+        ],
+        [
+          "s_07613201d6dd",
+          "s_9fd4e6d834d2"
+        ]
+      ],
+      "_fuzzy_pairs": [
+        [
+          "s_060e84337d0f",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_060e84337d0f",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_4b3edcbd0fb5",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_4b3edcbd0fb5",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_2e0ab99f2593",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_2e0ab99f2593",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_599e881f3c72",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_599e881f3c72",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_8c859a6d6468",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_8c859a6d6468",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_cc74ae752db0",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_cc74ae752db0",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_fa4a694ff4f9",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_46c2e3278bd8",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_0e3d3f1e3003",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_7818aba4e8a9",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_cd1a54baeab7",
+          1.0
+        ],
+        [
+          "s_e41c6e3323dd",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_2ceb9aa0d5dd",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_9ed31e4dbd91",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_81590c6434b5",
+          "s_bf3f4aa9c358",
+          1.0
+        ],
+        [
+          "s_7ab7f3e53540",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_c3cf9af5723f",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_9ae5f4733c50",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_b9ea35b65228",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_5aa3374960d1",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_c3f25ab7eafe",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_37146ba435e1",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_4ed7794236ab",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_e8818e1240fb",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_1fc4ce21ae40",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_17924899a4b1",
+          "s_9ff2d337fad0",
+          1.0
+        ],
+        [
+          "s_a5d825b24d11",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_dcc40f1ba55e",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_97114ee526cb",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_d1e1450c1699",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_c7df3616c83e",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_40758e613171",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_38f8e6e4b188",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_6ba3e7044a9e",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_7f2acfbc359a",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_07613201d6dd",
+          "s_9fd4e6d834d2",
+          1.0
+        ],
+        [
+          "s_ab6c531e72d2",
+          "s_326b7625b73f",
+          0.8
+        ]
+      ],
+      "_ngram_pairs": [
+        [
+          "s_060e84337d0f",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_060e84337d0f",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_4b3edcbd0fb5",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_4b3edcbd0fb5",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_2e0ab99f2593",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_2e0ab99f2593",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_599e881f3c72",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_599e881f3c72",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_8c859a6d6468",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_8c859a6d6468",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_cc74ae752db0",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_cc74ae752db0",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_d46c473958c4",
+          1.0
+        ],
+        [
+          "s_2bfd5b1f9373",
+          "s_9357ac7a2fa6",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_fa4a694ff4f9",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_46c2e3278bd8",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_0e3d3f1e3003",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_7818aba4e8a9",
+          1.0
+        ],
+        [
+          "s_e0428a2bff12",
+          "s_cd1a54baeab7",
+          1.0
+        ],
+        [
+          "s_e41c6e3323dd",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_2ceb9aa0d5dd",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_9ed31e4dbd91",
+          "s_4d19c0e6fbcf",
+          1.0
+        ],
+        [
+          "s_81590c6434b5",
+          "s_bf3f4aa9c358",
+          1.0
+        ],
+        [
+          "s_7ab7f3e53540",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_c3cf9af5723f",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_9ae5f4733c50",
+          "s_985581b959c5",
+          1.0
+        ],
+        [
+          "s_b9ea35b65228",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_5aa3374960d1",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_c3f25ab7eafe",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_37146ba435e1",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_4ed7794236ab",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_e8818e1240fb",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_1fc4ce21ae40",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_17924899a4b1",
+          "s_9ff2d337fad0",
+          1.0
+        ],
+        [
+          "s_a5d825b24d11",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_dcc40f1ba55e",
+          "s_72603f838641",
+          1.0
+        ],
+        [
+          "s_97114ee526cb",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_d1e1450c1699",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_c7df3616c83e",
+          "s_0119f5df609b",
+          1.0
+        ],
+        [
+          "s_40758e613171",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_38f8e6e4b188",
+          "s_fd37f84f1d4b",
+          1.0
+        ],
+        [
+          "s_6ba3e7044a9e",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_7f2acfbc359a",
+          "s_0f0435b98288",
+          1.0
+        ],
+        [
+          "s_07613201d6dd",
+          "s_9fd4e6d834d2",
+          1.0
+        ]
+      ]
+    },
+    {
+      "train": "ud_padt_dev",
+      "test": "gazelle_test",
+      "n_train": 909,
+      "n_test": 30,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "ud_padt_dev",
+      "test": "masaq_quranic",
+      "n_train": 909,
+      "n_test": 624,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "ud_padt_dev",
+      "test": "ud_padt_test",
+      "n_train": 909,
+      "n_test": 680,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "gazelle_test",
+      "test": "masaq_quranic",
+      "n_train": 30,
+      "n_test": 624,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "gazelle_test",
+      "test": "ud_padt_test",
+      "n_train": 30,
+      "n_test": 680,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    },
+    {
+      "train": "masaq_quranic",
+      "test": "ud_padt_test",
+      "n_train": 624,
+      "n_test": 680,
+      "exact": 0,
+      "normalised": 0,
+      "hash_dup": 0,
+      "fuzzy_jaccard_ge_0.7": 0,
+      "ngram5_jaccard_ge_0.5": 0,
+      "exact_pct": 0.0,
+      "normalised_pct": 0.0,
+      "fuzzy_pct": 0.0,
+      "_exact_pairs": [],
+      "_norm_pairs": [],
+      "_fuzzy_pairs": [],
+      "_ngram_pairs": []
+    }
+  ]
+}

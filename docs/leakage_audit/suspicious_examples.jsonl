@@ -1,0 +1,149 @@
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_fa4a694ff4f9"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_63526e2f8c10", "s_295f16c41b40"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_46c2e3278bd8"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_c5e45c9c5a1e", "s_d46c473958c4"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_0e3d3f1e3003"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_7818aba4e8a9"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_cd1a54baeab7"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_c5e45c9c5a1e", "s_9357ac7a2fa6"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_420b3b17a93e", "s_8a4ddc35f5eb"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_0f02ce535fae", "s_4d19c0e6fbcf"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_9e151cce0170", "s_985581b959c5"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_f48a1be45f3d", "s_0119f5df609b"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_1cb16f0f344e", "s_72603f838641"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_08cadfd270c7", "s_9ff2d337fad0"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_89734b46db7a", "s_fd37f84f1d4b"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_6cd121511dfe", "s_0f0435b98288"]}
+{"audit": "_exact_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_0c6910f900e4", "s_9fd4e6d834d2"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_830e92452cc2", "s_7718c9e9eb6b"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_fa4a694ff4f9"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_63526e2f8c10", "s_295f16c41b40"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_46c2e3278bd8"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_c5e45c9c5a1e", "s_d46c473958c4"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_0e3d3f1e3003"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_7818aba4e8a9"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_cd1a54baeab7"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_c5e45c9c5a1e", "s_9357ac7a2fa6"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_ea54cf2a4b34", "s_efa5938c5bf3"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_420b3b17a93e", "s_8a4ddc35f5eb"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_604803edbe85", "s_b4cc5d83bb33"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_1e470e0a3556", "s_322c68e96e8e"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_0f02ce535fae", "s_4d19c0e6fbcf"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_9e151cce0170", "s_985581b959c5"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_f48a1be45f3d", "s_0119f5df609b"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_1cb16f0f344e", "s_72603f838641"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_08cadfd270c7", "s_9ff2d337fad0"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_89734b46db7a", "s_fd37f84f1d4b"]}
+{"audit": "_norm_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_6cd121511dfe", "s_0f0435b98288"]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_12001cbc271d", "s_72603f838641", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_fa4a694ff4f9", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_46c2e3278bd8", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_0e3d3f1e3003", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_7818aba4e8a9", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_cd1a54baeab7", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_7f627000cfb3", "s_72603f838641", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_5965bf8e5b2f", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_5965bf8e5b2f", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_5f56310c3558", "s_fd37f84f1d4b", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_e9e3449aafe9", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_e9e3449aafe9", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_604803edbe85", "s_b4cc5d83bb33", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_0c6910f900e4", "s_9fd4e6d834d2", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_ac49dd933268", "s_72603f838641", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_7c5aea48f650", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_7c5aea48f650", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_be6114edb377", "s_4d19c0e6fbcf", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_32daa0328486", "s_fd37f84f1d4b", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_830e92452cc2", "s_7718c9e9eb6b", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_12001cbc271d", "s_72603f838641", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_fa4a694ff4f9", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_46c2e3278bd8", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_0e3d3f1e3003", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_7818aba4e8a9", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_2c6986e1e1ea", "s_cd1a54baeab7", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_7f627000cfb3", "s_72603f838641", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_5965bf8e5b2f", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_5965bf8e5b2f", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_5f56310c3558", "s_fd37f84f1d4b", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_e9e3449aafe9", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_e9e3449aafe9", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_604803edbe85", "s_b4cc5d83bb33", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_0c6910f900e4", "s_9fd4e6d834d2", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_ac49dd933268", "s_72603f838641", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_7c5aea48f650", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_7c5aea48f650", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_be6114edb377", "s_4d19c0e6fbcf", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_32daa0328486", "s_fd37f84f1d4b", 1.0]}
+{"audit": "_ngram_pairs", "train": "distill_v2", "test": "ud_padt_test", "pair": ["s_830e92452cc2", "s_7718c9e9eb6b", 1.0]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_fa4a694ff4f9"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_46c2e3278bd8"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_d46c473958c4"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_0e3d3f1e3003"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_7818aba4e8a9"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_cd1a54baeab7"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_9357ac7a2fa6"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_9ed31e4dbd91", "s_4d19c0e6fbcf"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_81590c6434b5", "s_bf3f4aa9c358"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_9ae5f4733c50", "s_985581b959c5"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_c7df3616c83e", "s_0119f5df609b"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_dcc40f1ba55e", "s_72603f838641"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_17924899a4b1", "s_9ff2d337fad0"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_38f8e6e4b188", "s_fd37f84f1d4b"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_7f2acfbc359a", "s_0f0435b98288"]}
+{"audit": "_exact_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_07613201d6dd", "s_9fd4e6d834d2"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_fa4a694ff4f9"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_46c2e3278bd8"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_d46c473958c4"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_0e3d3f1e3003"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_7818aba4e8a9"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_cd1a54baeab7"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_9357ac7a2fa6"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_9ed31e4dbd91", "s_4d19c0e6fbcf"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_81590c6434b5", "s_bf3f4aa9c358"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_9ae5f4733c50", "s_985581b959c5"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_c7df3616c83e", "s_0119f5df609b"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_dcc40f1ba55e", "s_72603f838641"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_17924899a4b1", "s_9ff2d337fad0"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_38f8e6e4b188", "s_fd37f84f1d4b"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_7f2acfbc359a", "s_0f0435b98288"]}
+{"audit": "_norm_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_07613201d6dd", "s_9fd4e6d834d2"]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_060e84337d0f", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_060e84337d0f", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_4b3edcbd0fb5", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_4b3edcbd0fb5", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2e0ab99f2593", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2e0ab99f2593", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_599e881f3c72", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_599e881f3c72", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_8c859a6d6468", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_8c859a6d6468", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_cc74ae752db0", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_cc74ae752db0", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_d46c473958c4", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_fa4a694ff4f9", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_46c2e3278bd8", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_0e3d3f1e3003", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_7818aba4e8a9", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_cd1a54baeab7", 1.0]}
+{"audit": "_fuzzy_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e41c6e3323dd", "s_4d19c0e6fbcf", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_060e84337d0f", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_060e84337d0f", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_4b3edcbd0fb5", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_4b3edcbd0fb5", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2e0ab99f2593", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2e0ab99f2593", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_599e881f3c72", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_599e881f3c72", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_8c859a6d6468", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_8c859a6d6468", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_cc74ae752db0", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_cc74ae752db0", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_d46c473958c4", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_2bfd5b1f9373", "s_9357ac7a2fa6", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_fa4a694ff4f9", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_46c2e3278bd8", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_0e3d3f1e3003", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_7818aba4e8a9", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e0428a2bff12", "s_cd1a54baeab7", 1.0]}
+{"audit": "_ngram_pairs", "train": "ud_padt_train", "test": "ud_padt_test", "pair": ["s_e41c6e3323dd", "s_4d19c0e6fbcf", 1.0]}

@@ -215,6 +215,15 @@ def main():
             res = compute_multi_head_loss(logits, labels, ws)
             loss = res["loss"]
 
+            # Defensive: if no head had any valid labels, loss has no grad.
+            # Skip the backward step instead of crashing.
+            if not loss.requires_grad:
+                if global_step % 50 == 0:
+                    print(f"  [warn] step {global_step} batch had no valid labels; skipping")
+                global_step += 1
+                sched.state.steps_in_stage += 1
+                continue
+
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.max_grad_norm)

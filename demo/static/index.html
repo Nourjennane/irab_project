@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Arabic Iʿrāb — Validated Nextgen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; }
+  .arabic { font-family: "Amiri", "Noto Naskh Arabic", "Times New Roman", serif;
+            direction: rtl; font-size: 1.6rem; line-height: 1.8; }
+  .tab.active { border-bottom: 3px solid #38bdf8; color: #38bdf8; }
+  .pill { display: inline-block; padding: .15rem .45rem; border-radius: .375rem;
+          font-size: .75rem; margin-left: .25rem; }
+  .case-raf    { background:#dcfce7; color:#166534; }
+  .case-nasb   { background:#fee2e2; color:#991b1b; }
+  .case-jarr   { background:#dbeafe; color:#1e40af; }
+  .case-jazm   { background:#f3e8ff; color:#6b21a8; }
+  .case-mabni  { background:#e5e7eb; color:#374151; }
+  .case-none   { background:#f1f5f9; color:#94a3b8; }
+  .conf-bar { height: 4px; background: #38bdf8; border-radius: 2px; }
+  body.dark { background:#0f172a; color:#e2e8f0; }
+  body.dark .panel { background:#1e293b; border-color:#334155; }
+  .panel { background:white; border:1px solid #e2e8f0; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+<header class="bg-white border-b shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+    <h1 class="text-xl font-semibold">Arabic Iʿrāb · Validated Nextgen Stage 7</h1>
+    <div class="flex gap-2">
+      <button id="darkToggle" class="text-sm px-3 py-1 border rounded">🌙</button>
+    </div>
+  </div>
+  <nav class="max-w-7xl mx-auto px-4 flex gap-4 text-sm">
+    <button class="tab active py-2 px-1" data-tab="analyze">Sentence Analysis</button>
+    <button class="tab py-2 px-1" data-tab="graph">Grammar Graph</button>
+    <button class="tab py-2 px-1" data-tab="reasoning">Reasoning Trace</button>
+    <button class="tab py-2 px-1" data-tab="construction">Construction Breakdown</button>
+    <button class="tab py-2 px-1" data-tab="eval">Evaluation Dashboard</button>
+    <button class="tab py-2 px-1" data-tab="compare">Model Comparison</button>
+  </nav>
+</header>
+
+<main class="max-w-7xl mx-auto p-4">
+
+<!-- Input bar -->
+<div class="panel rounded-lg p-4 mb-4 shadow-sm">
+  <div class="flex flex-col md:flex-row gap-2">
+    <input id="inputText" type="text" dir="rtl" placeholder="أدخل جملة عربية..."
+           class="arabic flex-1 border rounded px-3 py-2 text-base">
+    <select id="ckpt" class="border rounded px-3 py-2">
+      <option value="stage7">stage_7 (validated)</option>
+      <option value="phase3a">phase3a (baseline)</option>
+    </select>
+    <button id="analyzeBtn" class="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600">Analyze</button>
+  </div>
+  <div id="samples" class="mt-3 text-xs flex flex-wrap gap-2"></div>
+</div>
+
+<!-- Analyze tab -->
+<section id="tab-analyze" class="tab-pane">
+  <div id="analyzeOut" class="panel rounded-lg p-4 min-h-[120px]">
+    <div class="text-slate-500 text-sm">Enter a sentence and press Analyze.</div>
+  </div>
+</section>
+
+<!-- Graph tab -->
+<section id="tab-graph" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Grammar graph</h2>
+    <pre id="graphOut" class="text-xs bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto"></pre>
+  </div>
+</section>
+
+<!-- Reasoning tab -->
+<section id="tab-reasoning" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Reasoning trace</h2>
+    <div id="reasoningOut" class="space-y-2"></div>
+    <p class="text-xs text-slate-500 mt-3">Trace is template-rendered from structured labels — not free-form generation.</p>
+  </div>
+</section>
+
+<!-- Construction tab -->
+<section id="tab-construction" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Detected constructions</h2>
+    <div id="constructionOut" class="space-y-3"></div>
+  </div>
+</section>
+
+<!-- Eval dashboard -->
+<section id="tab-eval" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Phase A — independent evaluation</h2>
+    <p class="text-xs text-slate-500 mb-3">Loaded from <code>docs/final_eval/final_eval_tables.json</code>. Empty until Phase A finishes.</p>
+    <div id="evalOut"></div>
+    <hr class="my-4">
+    <h2 class="font-medium mb-2">Phase B — leakage audit</h2>
+    <div id="leakageOut"></div>
+  </div>
+</section>
+
+<!-- Compare tab -->
+<section id="tab-compare" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Phase 3-A baseline vs stage_7 — same sentence</h2>
+    <button id="compareBtn" class="bg-emerald-500 text-white px-3 py-1.5 rounded text-sm">Compare</button>
+    <div id="compareOut" class="grid md:grid-cols-2 gap-4 mt-4"></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+// Tab switching
+$$(".tab").forEach(b => b.addEventListener("click", () => {
+  $$(".tab").forEach(t => t.classList.remove("active"));
+  b.classList.add("active");
+  const id = b.dataset.tab;
+  $$(".tab-pane").forEach(p => p.classList.add("hidden"));
+  $("#tab-" + id).classList.remove("hidden");
+  if (id === "eval") loadEvalDashboard();
+}));
+
+// Dark toggle
+$("#darkToggle").addEventListener("click", () => document.body.classList.toggle("dark"));
+
+// Sample sentences
+fetch("/api/sample").then(r => r.json()).then(items => {
+  const c = $("#samples");
+  items.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "border px-2 py-1 rounded hover:bg-slate-100 arabic";
+    b.style.fontSize = "0.85rem";
+    b.textContent = s.text + "  (" + s.tag + ")";
+    b.onclick = () => { $("#inputText").value = s.text; };
+    c.appendChild(b);
+  });
+});
+
+// Analyze
+$("#analyzeBtn").addEventListener("click", analyze);
+$("#inputText").addEventListener("keypress", e => { if (e.key === "Enter") analyze(); });
+
+function caseClass(c) {
+  return "case-" + (c || "none");
+}
+function confBar(p) {
+  const w = Math.max(2, Math.round((p || 0) * 100));
+  return `<div class="conf-bar" style="width:${w}%"></div>`;
+}
+
+async function analyze() {
+  const text = $("#inputText").value.trim();
+  if (!text) return;
+  $("#analyzeOut").innerHTML = '<div class="text-slate-500 text-sm">Analyzing...</div>';
+  try {
+    const r = await fetch("/api/analyze", {
+      method: "POST", headers: {"content-type": "application/json"},
+      body: JSON.stringify({text, checkpoint: $("#ckpt").value}),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const d = await r.json();
+    renderTokens(d);
+    renderReasoning(d);
+    renderGraph(d);
+    renderConstructions(d);
+  } catch (e) {
+    $("#analyzeOut").innerHTML = '<div class="text-red-600 text-sm">' + e.message + '</div>';
+  }
+}
+
+function renderTokens(d) {
+  const grid = d.tokens.map(t => `
+    <div class="border rounded p-2 inline-block m-1 align-top text-center" style="min-width:90px">
+      <div class="arabic">${t.surface}</div>
+      <div class="text-xs"><span class="pill ${caseClass(t.case)}">${t.case || "—"}</span></div>
+      <div class="text-xs text-slate-600 mt-1">${t.role || "—"}</div>
+      <div class="text-xs text-slate-500">${t.marker || "—"}</div>
+      <div class="text-[10px] text-slate-400">${t.pos || ""}</div>
+      <div class="mt-1">${confBar(t.case_conf)}</div>
+    </div>
+  `).join("");
+  $("#analyzeOut").innerHTML = `
+    <div class="text-xs text-slate-500 mb-2">Checkpoint: <code>${d.checkpoint}</code> · ${d.n_tokens} tokens</div>
+    <div class="arabic mb-3" style="font-size:1.4rem">${d.text}</div>
+    <div class="flex flex-wrap" dir="rtl">${grid}</div>
+    <div class="text-xs text-amber-700 mt-3">${d.calibration_note || ""}</div>`;
+}
+
+function renderReasoning(d) {
+  const lines = d.tokens.map(t => {
+    if (!t.case) return null;
+    return `<div class="text-sm border-l-2 border-sky-400 pl-3">
+      <span class="arabic">${t.surface}</span> →
+      <span class="font-mono">${t.role || "?"}</span> /
+      <span class="font-mono">${t.case || "?"}</span> /
+      <span class="font-mono">${t.marker || "?"}</span>
+    </div>`;
+  }).filter(Boolean).join("");
+  $("#reasoningOut").innerHTML = lines || '<div class="text-slate-500 text-sm">no reasoning</div>';
+}
+
+function renderGraph(d) {
+  const dot = ['digraph G {', '  rankdir=LR;'];
+  d.tokens.forEach(t => {
+    dot.push(`  t${t.index} [label="${t.surface}\\n${t.role || "?"}"];`);
+  });
+  for (let i = 0; i < d.tokens.length - 1; i++) {
+    dot.push(`  t${i} -> t${i+1};`);
+  }
+  dot.push("}");
+  $("#graphOut").textContent = dot.join("\n");
+}
+
+function renderConstructions(d) {
+  // Lightweight heuristic detection on the client side until the
+  // backend exposes the construction tagger output.
+  const cs = [];
+  d.tokens.forEach((t, i) => {
+    if (t.role && (t.role.includes("ism_kana") || t.role.includes("khabar_kana"))) {
+      cs.push({family: "kana_sisters", token: t.surface, role: t.role});
+    }
+    if (t.role === "mudaaf_ilayh") {
+      cs.push({family: "idafa", token: t.surface, role: t.role});
+    }
+  });
+  $("#constructionOut").innerHTML = cs.length
+    ? cs.map(c => `<div class="border rounded p-2"><b>${c.family}</b> · <span class="arabic">${c.token}</span> (${c.role})</div>`).join("")
+    : '<div class="text-slate-500 text-sm">no constructions detected by heuristic.</div>';
+}
+
+async function loadEvalDashboard() {
+  const ev = await fetch("/api/eval_metrics").then(r => r.json());
+  const lk = await fetch("/api/leakage_summary").then(r => r.json());
+  $("#evalOut").innerHTML = ev.status
+    ? `<div class="text-amber-700 text-sm">${ev.status}</div>`
+    : `<pre class="text-xs bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto">${JSON.stringify(ev.rows ? ev.rows.slice(0, 20) : ev, null, 2)}</pre>`;
+  $("#leakageOut").innerHTML = lk.status
+    ? `<div class="text-amber-700 text-sm">${lk.status}</div>`
+    : `<pre class="text-xs bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto">${JSON.stringify(lk.rows || lk, null, 2)}</pre>`;
+}
+
+$("#compareBtn").addEventListener("click", async () => {
+  const text = $("#inputText").value.trim();
+  if (!text) return;
+  const r = await fetch("/api/compare", {
+    method: "POST", headers: {"content-type": "application/json"},
+    body: JSON.stringify({text}),
+  }).then(r => r.json());
+  const renderSide = (name, d) => {
+    if (!d || d.error) return `<div class="panel rounded p-3 text-sm text-red-600">${name}: ${d?.error || "unavailable"}</div>`;
+    const grid = d.tokens.map(t => `
+      <div class="border rounded p-1 inline-block m-0.5 text-center" style="min-width:75px">
+        <div class="arabic" style="font-size:1rem">${t.surface}</div>
+        <div class="text-xs"><span class="pill ${caseClass(t.case)}">${t.case || "—"}</span></div>
+        <div class="text-[10px] text-slate-500">${t.role || "—"}</div>
+      </div>`).join("");
+    return `<div class="panel rounded p-3"><h3 class="font-medium mb-2">${name}</h3><div class="flex flex-wrap" dir="rtl">${grid}</div></div>`;
+  };
+  $("#compareOut").innerHTML = renderSide("phase3a", r.phase3a) + renderSide("stage7", r.stage7);
+});
+</script>
+</body>
+</html>

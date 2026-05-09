@@ -38,7 +38,11 @@ def compute_multi_head_loss(
     import torch.nn.functional as F
 
     per_head: Dict[str, torch.Tensor] = {}
-    total = torch.tensor(0.0, device=next(iter(logits.values())).device)
+    # Initialise total as a zero-multiple of any logit tensor so it
+    # inherits a grad_fn (otherwise loss.backward() on a fresh
+    # torch.tensor(0.0) raises "element 0 does not require grad").
+    any_logits = next(iter(logits.values()))
+    total = (any_logits.sum() * 0.0)
 
     def _ce(name: str):
         if name not in logits or name not in labels:
