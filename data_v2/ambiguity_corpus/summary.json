@@ -1,0 +1,10 @@
+{
+  "queue_sizes": {
+    "semantic_role_overlap": 622,
+    "idafa_attachment": 684,
+    "preposition_vs_idafa": 530,
+    "nested_attachment": 912,
+    "coordination_scope": 495,
+    "latent_governor": 990
+  }
+}

@@ -230,6 +230,22 @@ def compute_multi_head_loss(
 
     aux: Dict[str, torch.Tensor] = {}
 
+    # Step-4 ambiguity phase: governor-prediction CE loss
+    if "governor" in logits and "governor" in labels:
+        gov_log = logits["governor"]
+        gov_lab = labels["governor"]
+        if (gov_lab != -100).sum().item() > 0:
+            gov_loss = F.cross_entropy(
+                gov_log.reshape(-1, gov_log.size(-1)),
+                gov_lab.reshape(-1),
+                ignore_index=-100,
+                label_smoothing=label_smoothing,
+            )
+            aux["governor_ce"] = gov_loss
+            # Governor weight set in the trainer via a separate kwarg
+            # if desired; default 0.5 to keep it from dominating.
+            total = total + 0.5 * gov_loss
+
     # Item 6 B — entropy regularization (penalise overconfident logits)
     if entropy_reg_lambda > 0:
         e = _entropy_reg(logits)

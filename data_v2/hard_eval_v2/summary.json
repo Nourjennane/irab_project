@@ -1,0 +1,11 @@
+{
+  "sizes": {
+    "multi_valid_parses": 486,
+    "omitted_governor": 3,
+    "classical_arabic": 624,
+    "quranic_difficult": 285,
+    "long_nested_idafa": 17
+  },
+  "n_input": 654,
+  "n_ambiguous_sids": 486
+}

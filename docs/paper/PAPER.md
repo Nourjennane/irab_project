@@ -1,8 +1,41 @@
-# Honest Bottlenecks in Arabic Iʿrāb Generation
-## A Methodology-First Case Study with Negative Architecture Result
+# A Case Study in Honest Arabic Grammatical Reasoning
+## From Leakage Collapse to Structural Ambiguity Bottlenecks
 
-> **Status:** draft. Reframed 2026-05-10 to centre the methodology and
-> the architecture-bottleneck negative result, not the absolute metric.
+> **Status:** draft. Reframed 2026-05-10 around the seven contributions
+> below; the absolute metric is no longer the headline.
+
+### Seven core contributions
+
+1. **Leakage discovery and correction** — same-file contamination in
+   the training pool that produced an apparent 0.999 MASAQ fully;
+   detection methodology + provenance enforcement that closes the
+   class of bugs.
+2. **Curriculum + calibration recovery framework** — the leak-free
+   re-train under strict no-leakage that recovered honest gains
+   (MASAQ fully +0.036, Gazelle role +0.038).
+3. **Structural graph negative result** — gated graph refiner with
+   per-stage edge curriculum trains stably and shows positive
+   training-time ablation deltas (+0.006 to +0.013) but does not
+   exceed the regularization-only recovery on the held-out sets.
+4. **Fine-grained failure taxonomy** — the failure-analysis engine,
+   hard-case bucketing, and confusion matrices reveal idafa-attachment
+   as the dominant failure family (mudaaf_ilayh ↔ {mafoul_bih,
+   mubtada, ism_majrur} accounts for the largest single block of
+   role confusions).
+5. **Ambiguity-aware infrastructure** — `AmbiguityExample` schema with
+   `secondary_analyses`, the annotation server + review queue +
+   majority-vote disagreement resolution, and `eval_v3` permissive
+   scoring that no longer assumes a unique valid parse.
+6. **Governor-attribution bottleneck discovery** — the dominant
+   failure family is structural-attachment, not labeling. Captured
+   by the new biaffine governor head (auxiliary loss + attachment
+   contrastive triplet).
+7. **Uncertainty-aware evaluation** — `eval_v3` ships
+   `calibrated_fully`, `confidence_correctness_alignment`,
+   `selective_accuracy_at_τ`, `high_confidence_error_rate`. The
+   `calibration/` package adds temperature scaling and focal loss
+   to attack the severe over-confidence (case ECE 0.42, role 0.49,
+   marker 0.60).
 
 ## Abstract
 

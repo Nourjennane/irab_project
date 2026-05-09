@@ -96,10 +96,63 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         marker_hierarchy_detached: bool = False,
         # Phase 3.1: relational reasoning expansion. None = Phase 3-A baseline; "attn" = §3.1.
         enable_relational_reasoning: Optional[str] = None,
+        # Step-7 / structural-reasoning upgrade: graph refiner over word states.
+        # Off by default — enable by passing enable_graph_refiner=True at
+        # construction time. The actual refinement only fires when
+        # forward(...) is also given a ``word_edge_index`` tensor.
+        enable_graph_refiner: bool = False,
+        graph_refiner_layers: int = 2,
+        graph_refiner_heads: int = 4,
+        graph_refiner_dropout: float = 0.15,
+        graph_n_edge_types: int = 8,
+        # Step-4 of the ambiguity-aware phase: optional governor-prediction
+        # auxiliary head. For each token, predict the index of its
+        # governor (the ʿāmil). Trained with cross-entropy over
+        # head positions. Off by default; enable by passing
+        # enable_governor_head=True. Targets the dominant failure
+        # family (mudaaf_ilayh confusions) by forcing the encoder
+        # to model attachment explicitly.
+        enable_governor_head: bool = False,
+        governor_head_max_words: int = 64,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.enable_dep_features = bool(enable_dep_features)
+
+        # Optional graph refiner; instantiated only if explicitly enabled
+        # to avoid loading torch graph layers when not needed (e.g., at
+        # inference time on a non-graph deployment).
+        self.enable_graph_refiner = bool(enable_graph_refiner)
+        self.graph_refiner = None
+        self.graph_gate = None
+        if self.enable_graph_refiner:
+            from ..models.graph_refiner import make_graph_refiner
+            self.graph_refiner = make_graph_refiner(
+                d_in=self.hidden_size,
+                n_edge_types=graph_n_edge_types,
+                n_layers=graph_refiner_layers,
+                n_heads=graph_refiner_heads,
+                dropout=graph_refiner_dropout,
+            )
+            # Initialise gate logit at -2.0 → sigmoid ≈ 0.119, so the
+            # graph signal starts weak; the model learns whether structure
+            # actually helps. Critical for avoiding catastrophic
+            # degradation and oversmoothing on small data.
+            self.graph_gate = nn.Parameter(torch.tensor(-2.0))
+
+        # Step-4 ambiguity phase: governor-prediction auxiliary head.
+        # Implemented as a biaffine score over (token, candidate_head)
+        # pairs: query(token) · W · key(head). The model emits a
+        # per-token distribution over candidate head positions.
+        self.enable_governor_head = bool(enable_governor_head)
+        self.governor_head_max_words = int(governor_head_max_words)
+        self.governor_query_proj = None
+        self.governor_key_proj = None
+        if self.enable_governor_head:
+            d = self.hidden_size
+            d_gov = max(64, d // 4)
+            self.governor_query_proj = nn.Linear(d, d_gov, bias=True)
+            self.governor_key_proj   = nn.Linear(d, d_gov, bias=True)
         if self.enable_dep_features:
             if self.conditioning is not None:
                 # Phase 3 explicitly avoids stacking dep features on top of
@@ -245,6 +298,28 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
         pooled = self._encode_and_pool(input_ids, attention_mask,
                                        word_starts, word_ends, word_mask)
 
+        # Step-7 structural-reasoning upgrade: optional graph refinement.
+        # Reads ``word_edge_index`` (B, W, W) from kwargs (emitted by the
+        # collator). When refiner + edges are both present, apply
+        # gated-residual fusion: pooled = pooled + sigmoid(gate) * refined.
+        # The gate starts low (~0.119) so the model can learn whether the
+        # graph signal helps — see __init__ for the rationale.
+        word_edge_index = kwargs.get("word_edge_index")
+        if (self.graph_refiner is not None
+                and word_edge_index is not None
+                and self.graph_gate is not None):
+            refined = self.graph_refiner(
+                token_states=pooled,
+                edge_index=word_edge_index,
+                token_mask=word_mask,
+            )
+            # ``make_graph_refiner`` already adds the residual internally
+            # (returns ``pooled + delta``), so we extract the delta here
+            # and apply the learned gate to it.
+            delta = refined - pooled
+            alpha = torch.sigmoid(self.graph_gate)
+            pooled = pooled + alpha * delta
+
         # Compute morph logits FIRST (Phase 1 still active)
         morph_logits: Dict[str, torch.Tensor] = {}
         for f in self.morph_heads_enabled:
@@ -315,6 +390,28 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             cr = torch.cat([case_softmax, role_softmax_m], dim=-1)
             marker_logits = marker_logits + self.case_role_to_marker_bias(cr)
 
+        # Governor-prediction auxiliary head (Step 4 of ambiguity phase).
+        governor_logits = None
+        if self.enable_governor_head and self.governor_query_proj is not None:
+            q = self.governor_query_proj(pooled_irab)        # (B, W, d_gov)
+            k = self.governor_key_proj(pooled_irab)          # (B, W, d_gov)
+            # Biaffine scores: (B, W_query, W_key) — score[b, i, j] = how
+            # much token i wants j as its governor.
+            governor_logits = torch.einsum("bid,bjd->bij", q, k)
+            # Mask invalid head positions (pad tokens) to -inf
+            mask = word_mask.unsqueeze(1).float()
+            governor_logits = governor_logits.masked_fill(
+                mask == 0, float("-inf")
+            )
+            # Self-loops: zero out the diagonal so a token can't be its
+            # own governor (root tokens get governor = -100 in loss).
+            B, W = governor_logits.size(0), governor_logits.size(1)
+            diag = torch.eye(W, dtype=torch.bool,
+                              device=governor_logits.device)
+            governor_logits = governor_logits.masked_fill(
+                diag.unsqueeze(0).expand(B, -1, -1), float("-inf")
+            )
+
         out: Dict[str, torch.Tensor] = {
             "case_logits":   case_logits,
             "role_logits":   role_logits,
@@ -322,6 +419,8 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             "pos_logits":    pos_logits,
             "word_mask":     word_mask,
         }
+        if governor_logits is not None:
+            out["governor_logits"] = governor_logits
         for f, l in morph_logits.items():
             out[f"{f}_logits"] = l
 
