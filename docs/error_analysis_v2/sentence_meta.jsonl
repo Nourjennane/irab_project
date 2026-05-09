@@ -1,0 +1,654 @@
+{"domain": "gazelle", "sentence_idx": 0, "sentence_length": 5, "n_constructions": 3, "constructions": ["idafa", "istithna", "mawsool"]}
+{"domain": "gazelle", "sentence_idx": 1, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 2, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 3, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 4, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 5, "sentence_length": 2, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 6, "sentence_length": 3, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "gazelle", "sentence_idx": 7, "sentence_length": 4, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "gazelle", "sentence_idx": 8, "sentence_length": 3, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "gazelle", "sentence_idx": 9, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 10, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "gazelle", "sentence_idx": 11, "sentence_length": 9, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "gazelle", "sentence_idx": 12, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 13, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 14, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 15, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 16, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "gazelle", "sentence_idx": 17, "sentence_length": 5, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "gazelle", "sentence_idx": 18, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "gazelle", "sentence_idx": 19, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "gazelle", "sentence_idx": 20, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "gazelle", "sentence_idx": 21, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 22, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 23, "sentence_length": 4, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "gazelle", "sentence_idx": 24, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "gazelle", "sentence_idx": 25, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "gazelle", "sentence_idx": 26, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "gazelle", "sentence_idx": 27, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "gazelle", "sentence_idx": 28, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "gazelle", "sentence_idx": 29, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 0, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 1, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 2, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 3, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 4, "sentence_length": 16, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 5, "sentence_length": 14, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 6, "sentence_length": 3, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 7, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 8, "sentence_length": 16, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 9, "sentence_length": 5, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 10, "sentence_length": 14, "n_constructions": 3, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 11, "sentence_length": 12, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 12, "sentence_length": 12, "n_constructions": 2, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 13, "sentence_length": 11, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 14, "sentence_length": 11, "n_constructions": 5, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 15, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 16, "sentence_length": 18, "n_constructions": 4, "constructions": ["idafa", "kana_sisters", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 17, "sentence_length": 17, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 18, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 19, "sentence_length": 10, "n_constructions": 3, "constructions": ["inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 20, "sentence_length": 7, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 21, "sentence_length": 4, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 22, "sentence_length": 12, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 23, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 24, "sentence_length": 11, "n_constructions": 4, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 25, "sentence_length": 4, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 26, "sentence_length": 9, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 27, "sentence_length": 13, "n_constructions": 4, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 28, "sentence_length": 11, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 29, "sentence_length": 10, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 30, "sentence_length": 13, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 31, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 32, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 33, "sentence_length": 12, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 34, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 35, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 36, "sentence_length": 12, "n_constructions": 4, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 37, "sentence_length": 9, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 38, "sentence_length": 6, "n_constructions": 2, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 39, "sentence_length": 3, "n_constructions": 3, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 40, "sentence_length": 12, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 41, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 42, "sentence_length": 4, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 43, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 44, "sentence_length": 5, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 45, "sentence_length": 5, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 46, "sentence_length": 19, "n_constructions": 5, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 47, "sentence_length": 13, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 48, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 49, "sentence_length": 4, "n_constructions": 2, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 50, "sentence_length": 9, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 51, "sentence_length": 5, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 52, "sentence_length": 13, "n_constructions": 2, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 53, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 54, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 55, "sentence_length": 12, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 56, "sentence_length": 5, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 57, "sentence_length": 5, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 58, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 59, "sentence_length": 8, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 60, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 61, "sentence_length": 21, "n_constructions": 5, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 62, "sentence_length": 5, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 63, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 64, "sentence_length": 8, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 65, "sentence_length": 7, "n_constructions": 3, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 66, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 67, "sentence_length": 19, "n_constructions": 3, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 68, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 69, "sentence_length": 4, "n_constructions": 2, "constructions": ["kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 70, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 71, "sentence_length": 13, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 72, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 73, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 74, "sentence_length": 3, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 75, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 76, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 77, "sentence_length": 15, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 78, "sentence_length": 14, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 79, "sentence_length": 9, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 80, "sentence_length": 4, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 81, "sentence_length": 13, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 82, "sentence_length": 18, "n_constructions": 4, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 83, "sentence_length": 7, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 84, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 85, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 86, "sentence_length": 11, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 87, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 88, "sentence_length": 14, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 89, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 90, "sentence_length": 7, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 91, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 92, "sentence_length": 8, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 93, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 94, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 95, "sentence_length": 14, "n_constructions": 3, "constructions": ["idafa", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 96, "sentence_length": 13, "n_constructions": 4, "constructions": ["inna_sisters", "istithna", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 97, "sentence_length": 16, "n_constructions": 2, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 98, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 99, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 100, "sentence_length": 18, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 101, "sentence_length": 10, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 102, "sentence_length": 9, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 103, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 104, "sentence_length": 6, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 105, "sentence_length": 13, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 106, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 107, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 108, "sentence_length": 15, "n_constructions": 2, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 109, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 110, "sentence_length": 3, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 111, "sentence_length": 3, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 112, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 113, "sentence_length": 10, "n_constructions": 3, "constructions": ["inna_sisters", "kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 114, "sentence_length": 10, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 115, "sentence_length": 15, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 116, "sentence_length": 12, "n_constructions": 2, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 117, "sentence_length": 11, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 118, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 119, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 120, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 121, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 122, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 123, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 124, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 125, "sentence_length": 12, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 126, "sentence_length": 5, "n_constructions": 2, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 127, "sentence_length": 9, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 128, "sentence_length": 12, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 129, "sentence_length": 15, "n_constructions": 3, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 130, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 131, "sentence_length": 6, "n_constructions": 3, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 132, "sentence_length": 6, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 133, "sentence_length": 8, "n_constructions": 2, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 134, "sentence_length": 13, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 135, "sentence_length": 4, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 136, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 137, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 138, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 139, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 140, "sentence_length": 4, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 141, "sentence_length": 11, "n_constructions": 6, "constructions": ["idafa", "inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 142, "sentence_length": 15, "n_constructions": 6, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 143, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 144, "sentence_length": 13, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 145, "sentence_length": 11, "n_constructions": 2, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 146, "sentence_length": 6, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 147, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 148, "sentence_length": 17, "n_constructions": 4, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 149, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 150, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 151, "sentence_length": 11, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 152, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 153, "sentence_length": 10, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 154, "sentence_length": 14, "n_constructions": 3, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 155, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 156, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 157, "sentence_length": 10, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 158, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 159, "sentence_length": 9, "n_constructions": 2, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 160, "sentence_length": 3, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 161, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 162, "sentence_length": 7, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 163, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 164, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 165, "sentence_length": 6, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 166, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 167, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 168, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 169, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 170, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 171, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 172, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 173, "sentence_length": 3, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 174, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 175, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 176, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 177, "sentence_length": 17, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 178, "sentence_length": 12, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 179, "sentence_length": 14, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 180, "sentence_length": 4, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 181, "sentence_length": 9, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 182, "sentence_length": 6, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 183, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 184, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 185, "sentence_length": 12, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 186, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 187, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 188, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 189, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 190, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 191, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 192, "sentence_length": 8, "n_constructions": 5, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 193, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 194, "sentence_length": 18, "n_constructions": 6, "constructions": ["inna_sisters", "kana_sisters", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 195, "sentence_length": 13, "n_constructions": 2, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 196, "sentence_length": 11, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 197, "sentence_length": 10, "n_constructions": 3, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 198, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 199, "sentence_length": 13, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 200, "sentence_length": 4, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 201, "sentence_length": 12, "n_constructions": 3, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 202, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 203, "sentence_length": 3, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 204, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 205, "sentence_length": 16, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 206, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 207, "sentence_length": 6, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 208, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 209, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 210, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 211, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 212, "sentence_length": 3, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 213, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 214, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 215, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 216, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 217, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 218, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 219, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 220, "sentence_length": 6, "n_constructions": 2, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 221, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 222, "sentence_length": 8, "n_constructions": 2, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 223, "sentence_length": 17, "n_constructions": 2, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 224, "sentence_length": 15, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 225, "sentence_length": 12, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 226, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 227, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 228, "sentence_length": 10, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 229, "sentence_length": 11, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 230, "sentence_length": 14, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 231, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 232, "sentence_length": 11, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 233, "sentence_length": 16, "n_constructions": 7, "constructions": ["idafa", "idafa_multi", "istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 234, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 235, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 236, "sentence_length": 3, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 237, "sentence_length": 13, "n_constructions": 2, "constructions": ["kana_sisters", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 238, "sentence_length": 13, "n_constructions": 5, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 239, "sentence_length": 4, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 240, "sentence_length": 10, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 241, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 242, "sentence_length": 11, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 243, "sentence_length": 15, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 244, "sentence_length": 12, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 245, "sentence_length": 10, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 246, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 247, "sentence_length": 7, "n_constructions": 2, "constructions": ["kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 248, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 249, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 250, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 251, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 252, "sentence_length": 9, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 253, "sentence_length": 7, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 254, "sentence_length": 11, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 255, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 256, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 257, "sentence_length": 14, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 258, "sentence_length": 13, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 259, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 260, "sentence_length": 16, "n_constructions": 5, "constructions": ["idafa", "kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 261, "sentence_length": 15, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 262, "sentence_length": 10, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 263, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 264, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 265, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 266, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 267, "sentence_length": 12, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 268, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 269, "sentence_length": 6, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 270, "sentence_length": 6, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 271, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 272, "sentence_length": 5, "n_constructions": 2, "constructions": ["inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 273, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 274, "sentence_length": 3, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 275, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 276, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 277, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 278, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 279, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 280, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 281, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 282, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 283, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 284, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 285, "sentence_length": 11, "n_constructions": 2, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 286, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 287, "sentence_length": 6, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 288, "sentence_length": 4, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 289, "sentence_length": 10, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 290, "sentence_length": 8, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 291, "sentence_length": 9, "n_constructions": 2, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 292, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 293, "sentence_length": 3, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 294, "sentence_length": 17, "n_constructions": 4, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 295, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 296, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 297, "sentence_length": 6, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 298, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 299, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 300, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 301, "sentence_length": 4, "n_constructions": 2, "constructions": ["inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 302, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 303, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 304, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 305, "sentence_length": 11, "n_constructions": 3, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 306, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 307, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 308, "sentence_length": 15, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 309, "sentence_length": 8, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 310, "sentence_length": 9, "n_constructions": 2, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 311, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 312, "sentence_length": 15, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 313, "sentence_length": 10, "n_constructions": 3, "constructions": ["inna_sisters", "istithna", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 314, "sentence_length": 16, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 315, "sentence_length": 12, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 316, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 317, "sentence_length": 16, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 318, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 319, "sentence_length": 12, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 320, "sentence_length": 8, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 321, "sentence_length": 12, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 322, "sentence_length": 7, "n_constructions": 2, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 323, "sentence_length": 13, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 324, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 325, "sentence_length": 17, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 326, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 327, "sentence_length": 10, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 328, "sentence_length": 7, "n_constructions": 3, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 329, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 330, "sentence_length": 15, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 331, "sentence_length": 12, "n_constructions": 2, "constructions": ["inna_sisters", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 332, "sentence_length": 8, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 333, "sentence_length": 9, "n_constructions": 3, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 334, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 335, "sentence_length": 11, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 336, "sentence_length": 5, "n_constructions": 2, "constructions": ["inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 337, "sentence_length": 24, "n_constructions": 6, "constructions": ["idafa", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 338, "sentence_length": 5, "n_constructions": 2, "constructions": ["inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 339, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 340, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 341, "sentence_length": 10, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 342, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 343, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 344, "sentence_length": 10, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 345, "sentence_length": 9, "n_constructions": 3, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 346, "sentence_length": 16, "n_constructions": 2, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 347, "sentence_length": 7, "n_constructions": 2, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 348, "sentence_length": 5, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 349, "sentence_length": 7, "n_constructions": 2, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 350, "sentence_length": 9, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 351, "sentence_length": 3, "n_constructions": 3, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 352, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 353, "sentence_length": 4, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 354, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 355, "sentence_length": 9, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 356, "sentence_length": 14, "n_constructions": 4, "constructions": ["istithna", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 357, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 358, "sentence_length": 10, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 359, "sentence_length": 11, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 360, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 361, "sentence_length": 8, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 362, "sentence_length": 11, "n_constructions": 3, "constructions": ["inna_sisters", "istithna", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 363, "sentence_length": 3, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 364, "sentence_length": 7, "n_constructions": 2, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 365, "sentence_length": 6, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 366, "sentence_length": 7, "n_constructions": 3, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 367, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 368, "sentence_length": 5, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 369, "sentence_length": 15, "n_constructions": 4, "constructions": ["idafa", "inna_sisters", "istithna", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 370, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 371, "sentence_length": 12, "n_constructions": 2, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 372, "sentence_length": 8, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 373, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 374, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 375, "sentence_length": 3, "n_constructions": 3, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 376, "sentence_length": 10, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 377, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 378, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 379, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 380, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 381, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 382, "sentence_length": 14, "n_constructions": 3, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 383, "sentence_length": 10, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 384, "sentence_length": 3, "n_constructions": 3, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 385, "sentence_length": 4, "n_constructions": 2, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 386, "sentence_length": 10, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 387, "sentence_length": 6, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 388, "sentence_length": 9, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 389, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 390, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 391, "sentence_length": 11, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 392, "sentence_length": 3, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 393, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 394, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 395, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 396, "sentence_length": 7, "n_constructions": 2, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 397, "sentence_length": 15, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 398, "sentence_length": 12, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 399, "sentence_length": 14, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 400, "sentence_length": 12, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 401, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 402, "sentence_length": 15, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 403, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 404, "sentence_length": 15, "n_constructions": 6, "constructions": ["inna_sisters", "kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 405, "sentence_length": 10, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 406, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 407, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 408, "sentence_length": 18, "n_constructions": 4, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 409, "sentence_length": 19, "n_constructions": 4, "constructions": ["idafa", "inna_sisters", "istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 410, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 411, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 412, "sentence_length": 20, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 413, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 414, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 415, "sentence_length": 12, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 416, "sentence_length": 14, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 417, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 418, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 419, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 420, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 421, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 422, "sentence_length": 10, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 423, "sentence_length": 9, "n_constructions": 3, "constructions": ["kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 424, "sentence_length": 12, "n_constructions": 2, "constructions": ["kana_sisters", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 425, "sentence_length": 10, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 426, "sentence_length": 6, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 427, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 428, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 429, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 430, "sentence_length": 10, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 431, "sentence_length": 10, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 432, "sentence_length": 8, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 433, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 434, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 435, "sentence_length": 8, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 436, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 437, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 438, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 439, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 440, "sentence_length": 11, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 441, "sentence_length": 13, "n_constructions": 2, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 442, "sentence_length": 9, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 443, "sentence_length": 8, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 444, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 445, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 446, "sentence_length": 14, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 447, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 448, "sentence_length": 5, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 449, "sentence_length": 7, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 450, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 451, "sentence_length": 16, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 452, "sentence_length": 5, "n_constructions": 2, "constructions": ["inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 453, "sentence_length": 3, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 454, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 455, "sentence_length": 13, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 456, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 457, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 458, "sentence_length": 20, "n_constructions": 2, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 459, "sentence_length": 3, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "istithna"]}
+{"domain": "masaq", "sentence_idx": 460, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 461, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 462, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 463, "sentence_length": 9, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 464, "sentence_length": 9, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 465, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 466, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 467, "sentence_length": 11, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 468, "sentence_length": 12, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 469, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 470, "sentence_length": 9, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 471, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 472, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 473, "sentence_length": 13, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 474, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 475, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 476, "sentence_length": 13, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 477, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 478, "sentence_length": 5, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 479, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 480, "sentence_length": 19, "n_constructions": 6, "constructions": ["idafa", "inna_sisters", "istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 481, "sentence_length": 4, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 482, "sentence_length": 9, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 483, "sentence_length": 3, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 484, "sentence_length": 19, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 485, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 486, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 487, "sentence_length": 17, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 488, "sentence_length": 11, "n_constructions": 2, "constructions": ["inna_sisters", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 489, "sentence_length": 11, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 490, "sentence_length": 10, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 491, "sentence_length": 12, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 492, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 493, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 494, "sentence_length": 7, "n_constructions": 3, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 495, "sentence_length": 11, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 496, "sentence_length": 6, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 497, "sentence_length": 17, "n_constructions": 5, "constructions": ["idafa", "inna_sisters", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 498, "sentence_length": 3, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 499, "sentence_length": 8, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 500, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 501, "sentence_length": 4, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 502, "sentence_length": 6, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 503, "sentence_length": 10, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 504, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 505, "sentence_length": 7, "n_constructions": 3, "constructions": ["idafa", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 506, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 507, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 508, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 509, "sentence_length": 3, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 510, "sentence_length": 12, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 511, "sentence_length": 14, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 512, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 513, "sentence_length": 14, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 514, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 515, "sentence_length": 9, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 516, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 517, "sentence_length": 12, "n_constructions": 5, "constructions": ["inna_sisters", "istithna", "kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 518, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 519, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 520, "sentence_length": 5, "n_constructions": 2, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 521, "sentence_length": 12, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 522, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 523, "sentence_length": 8, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 524, "sentence_length": 7, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 525, "sentence_length": 4, "n_constructions": 2, "constructions": ["kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 526, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 527, "sentence_length": 5, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 528, "sentence_length": 10, "n_constructions": 4, "constructions": ["idafa", "idafa_multi"]}
+{"domain": "masaq", "sentence_idx": 529, "sentence_length": 4, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 530, "sentence_length": 11, "n_constructions": 2, "constructions": ["mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 531, "sentence_length": 5, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 532, "sentence_length": 3, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 533, "sentence_length": 8, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 534, "sentence_length": 9, "n_constructions": 2, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 535, "sentence_length": 5, "n_constructions": 4, "constructions": ["idafa", "idafa_multi", "istithna"]}
+{"domain": "masaq", "sentence_idx": 536, "sentence_length": 11, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 537, "sentence_length": 3, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 538, "sentence_length": 3, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 539, "sentence_length": 9, "n_constructions": 3, "constructions": ["idafa", "kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 540, "sentence_length": 16, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 541, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 542, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 543, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 544, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 545, "sentence_length": 11, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 546, "sentence_length": 10, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 547, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 548, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 549, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 550, "sentence_length": 10, "n_constructions": 2, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 551, "sentence_length": 13, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 552, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 553, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 554, "sentence_length": 14, "n_constructions": 2, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 555, "sentence_length": 8, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 556, "sentence_length": 4, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 557, "sentence_length": 4, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 558, "sentence_length": 14, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 559, "sentence_length": 9, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 560, "sentence_length": 15, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 561, "sentence_length": 7, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 562, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 563, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 564, "sentence_length": 10, "n_constructions": 2, "constructions": ["inna_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 565, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 566, "sentence_length": 7, "n_constructions": 2, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 567, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 568, "sentence_length": 13, "n_constructions": 3, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 569, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 570, "sentence_length": 6, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 571, "sentence_length": 15, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 572, "sentence_length": 5, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 573, "sentence_length": 9, "n_constructions": 1, "constructions": ["inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 574, "sentence_length": 14, "n_constructions": 2, "constructions": ["idafa", "istithna"]}
+{"domain": "masaq", "sentence_idx": 575, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 576, "sentence_length": 5, "n_constructions": 2, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 577, "sentence_length": 13, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 578, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 579, "sentence_length": 11, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 580, "sentence_length": 8, "n_constructions": 5, "constructions": ["inna_sisters", "istithna", "kana_sisters", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 581, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 582, "sentence_length": 16, "n_constructions": 6, "constructions": ["idafa", "istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 583, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 584, "sentence_length": 9, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 585, "sentence_length": 5, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 586, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 587, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 588, "sentence_length": 14, "n_constructions": 4, "constructions": ["idafa", "inna_sisters"]}
+{"domain": "masaq", "sentence_idx": 589, "sentence_length": 15, "n_constructions": 4, "constructions": ["inna_sisters", "istithna", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 590, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 591, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 592, "sentence_length": 6, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 593, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 594, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 595, "sentence_length": 11, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 596, "sentence_length": 3, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 597, "sentence_length": 7, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 598, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 599, "sentence_length": 12, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 600, "sentence_length": 9, "n_constructions": 3, "constructions": ["inna_sisters", "mawsool", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 601, "sentence_length": 5, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 602, "sentence_length": 14, "n_constructions": 3, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 603, "sentence_length": 19, "n_constructions": 2, "constructions": ["istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 604, "sentence_length": 10, "n_constructions": 2, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 605, "sentence_length": 5, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 606, "sentence_length": 6, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 607, "sentence_length": 17, "n_constructions": 3, "constructions": ["inna_sisters", "istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 608, "sentence_length": 5, "n_constructions": 2, "constructions": ["idafa", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 609, "sentence_length": 4, "n_constructions": 1, "constructions": ["quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 610, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 611, "sentence_length": 10, "n_constructions": 1, "constructions": ["istithna"]}
+{"domain": "masaq", "sentence_idx": 612, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
+{"domain": "masaq", "sentence_idx": 613, "sentence_length": 14, "n_constructions": 4, "constructions": ["idafa", "istithna", "mawsool"]}
+{"domain": "masaq", "sentence_idx": 614, "sentence_length": 4, "n_constructions": 1, "constructions": ["kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 615, "sentence_length": 4, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 616, "sentence_length": 9, "n_constructions": 4, "constructions": ["inna_sisters", "istithna", "kana_sisters", "quranic_proxy"]}
+{"domain": "masaq", "sentence_idx": 617, "sentence_length": 10, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 618, "sentence_length": 6, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 619, "sentence_length": 17, "n_constructions": 3, "constructions": ["idafa", "inna_sisters", "kana_sisters"]}
+{"domain": "masaq", "sentence_idx": 620, "sentence_length": 10, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 621, "sentence_length": 8, "n_constructions": 0, "constructions": []}
+{"domain": "masaq", "sentence_idx": 622, "sentence_length": 6, "n_constructions": 1, "constructions": ["idafa"]}
+{"domain": "masaq", "sentence_idx": 623, "sentence_length": 8, "n_constructions": 1, "constructions": ["mawsool"]}
