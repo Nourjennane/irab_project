@@ -14,8 +14,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 CHECKPOINT_PATHS = {
-    "stage7":  ROOT / "runs" / "validated_nextgen_stage7",
-    "phase3a": ROOT / "runs" / "phase3a_491240" / "final",
+    "recovery":  ROOT / "runs" / "validated_nextgen_recovery",
+    "phase3a":   ROOT / "runs" / "phase3a_491240" / "final",
+    # legacy alias for the leaked stage_7 (kept reachable for the
+    # contamination case-study tab; will be unavailable once
+    # runs/nextgen/stage_7/final/ is removed from the host)
+    "stage7":    ROOT / "runs" / "nextgen" / "stage_7" / "final",
 }
 
 
