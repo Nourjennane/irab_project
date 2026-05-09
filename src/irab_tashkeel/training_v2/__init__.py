@@ -14,6 +14,9 @@ Public API:
     trainer.StageTrainer
     trainer.TrainerState
 
+    eval_hook.gate_metrics_for_stage(stage_id, model, tokenizer, sentences)
+    eval_hook.predict_for_eval(model, tokenizer, sentences)
+
 The trainer is the bridge between the data engine (data_v2) +
 curriculum scheduler (curriculum) + frozen-baseline model class
 (morphology.dep_aware_model) + eval_v2 metrics. It is backbone-
@@ -29,6 +32,7 @@ from .collator import (
 )
 from .loss import compute_multi_head_loss, MORPH_AXES
 from .trainer import StageTrainer, TrainerState
+from .eval_hook import gate_metrics_for_stage, predict_for_eval
 
 __all__ = [
     "HeadLossWeights", "TrainerConfig",
@@ -37,4 +41,5 @@ __all__ = [
     "MORPH_VOCABS", "MORPH_TO_ID", "MORPH_AXES",
     "compute_multi_head_loss",
     "StageTrainer", "TrainerState",
+    "gate_metrics_for_stage", "predict_for_eval",
 ]

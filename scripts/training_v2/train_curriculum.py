@@ -78,7 +78,7 @@ def main():
     from irab_tashkeel.data_v2.schema_v2 import read_jsonl
     from irab_tashkeel.training_v2 import (
         SchemaV2Collator, SchemaV2Dataset, StageTrainer, TrainerConfig,
-        compute_multi_head_loss,
+        compute_multi_head_loss, gate_metrics_for_stage,
     )
     from irab_tashkeel.morphology.dep_aware_model import DepAwareStructuredModel
 
@@ -102,6 +102,14 @@ def main():
     sched = CurriculumScheduler.from_corpus(sentences, seed=args.seed)
     for sid, info in sched.stage_summary().items():
         print(f"  stage {sid} ({info['name']:25}): n={info['n_eligible']:5d}")
+
+    # Held-out eval set: pick gazelle_test (gold MSA) by default; for
+    # late stages MASAQ is also relevant. We use both for a single
+    # eval-set; the per-stage metric breakdown distinguishes them.
+    eval_sentences = [s for s in sentences
+                      if s.metadata.source in ("gazelle_test", "masaq_quranic")]
+    print(f"  eval set: {len(eval_sentences)} sentences "
+          f"(gazelle_test + masaq_quranic)")
 
     # ----- Tokeniser + model -----
     print("\n[3/5] Loading tokeniser + warm-start checkpoint...")
@@ -215,9 +223,22 @@ def main():
                       f"loss {float(loss.item()):.4f} ({elapsed:.1f}s/50)")
                 last_log = time.time()
 
-            # Periodic gate check
+            # Periodic gate check — runs the model on the held-out
+            # eval set and computes the gate metric for the current
+            # stage. Returns a dict; CurriculumScheduler picks out the
+            # one matching the current stage's gate_metric.
             if global_step % args.eval_every == 0:
-                metrics: Dict[str, float] = {}    # eval hook to be wired later
+                model.eval()
+                metrics = gate_metrics_for_stage(
+                    stage_id, model, tokenizer, eval_sentences,
+                    batch_size=args.batch_size,
+                )
+                model.train()
+                metric_summary = ", ".join(
+                    f"{k}={v:.3f}" for k, v in sorted(metrics.items())
+                    if isinstance(v, (int, float))
+                )
+                print(f"  [eval] {metric_summary}")
                 gate = sched.advance_or_continue(metrics)
                 print(f"  [gate] {gate.decision.value}: {gate.reason}")
                 if gate.decision in (GateDecision.ADVANCE, GateDecision.TIMEOUT_ADVANCE):
