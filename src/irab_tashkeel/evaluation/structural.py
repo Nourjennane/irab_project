@@ -83,6 +83,50 @@ _MARKER_PATTERNS = _compile(MARKERS)
 _CASE_PATTERNS = {label: _compile(words) for label, words in CASES.items()}
 
 
+# ---------------------------------------------------------------------------
+# Kana-family aware role extraction (R2-v2 evaluator fix, 2026-05-09)
+# ---------------------------------------------------------------------------
+# Gazelle iʿrāb prose uses particle-specific phrasing for kana-family roles:
+#   "اسم ليس مرفوع..."        (ism of laysa)
+#   "اسم صار مرفوع..."        (ism of ṣāra)
+#   "خبر صار مرفوع..."        (khabar of ṣāra)
+#   "على أنه خبر ( ليس )"     (he is khabar of laysa, with parens)
+#   "والجملة الاسمية خبر صار"  (the nominal clause is khabar of ṣāra)
+#
+# The base ROLES list above only contains "اسم كان" / "خبر كان" (literal).
+# Without explicit alias detection, ism_kana / khabar_kana for non-كان
+# particles never match — leading to gold role = None on most kana words and
+# blocking the kana_sisters fully metric at 0% on Gazelle. This fix detects
+# any of the 12 kana-family particles in "اسم <particle>" / "خبر <particle>"
+# (or "خبر ( <particle> )") prose and emits the canonical kana role.
+KANA_FAMILY_PARTICLES = [
+    "كان", "كانت", "ليس", "ليست", "أصبح", "أصبحت", "صار", "صارت",
+    "بات", "باتت", "ظل", "ظلت", "أمسى", "أمست", "أضحى",
+    "زال", "برح", "فتئ", "انفك",
+]
+_KANA_PARTICLE_GROUP = "(?:" + "|".join(re.escape(p) for p in KANA_FAMILY_PARTICLES) + ")"
+_KANA_ISM_RE    = re.compile(rf"اسم\s+{_KANA_PARTICLE_GROUP}\b")
+_KANA_KHABAR_RE = re.compile(rf"خبر\s*\(?\s*{_KANA_PARTICLE_GROUP}\s*\)?")
+
+
+def _detect_kana_role(text: str) -> Optional[str]:
+    """Return canonical 'اسم كان' / 'خبر كان' if prose names the role for
+    any kana-family particle; else None.
+
+    This is run BEFORE the generic _ROLE_PATTERNS scan so that prose like
+    "اسم مجرور لفظا، منصوب محلا على أنه خبر (ليس)" produces khabar_kana
+    (the operative grammatical role) instead of ism_majrur (the surface case
+    description). Same priority logic as the classical iʿrāb tradition:
+    when a word is described as both "مجرور لفظا" AND "خبر <kana>", the
+    construction-level role wins.
+    """
+    if _KANA_ISM_RE.search(text):
+        return "اسم كان"
+    if _KANA_KHABAR_RE.search(text):
+        return "خبر كان"
+    return None
+
+
 def _normalize(s: str) -> str:
     """Strip diacritics + NFC + collapse whitespace for robust matching."""
     s = unicodedata.normalize("NFC", s or "")
@@ -124,7 +168,10 @@ def extract(irab_text: str) -> IrabAnalysis:
             case = label
             break
 
-    role = next((t for t, p in _ROLE_PATTERNS if p.search(text)), None)
+    # R2-v2 evaluator fix: kana-family aware extraction takes priority.
+    role = _detect_kana_role(text)
+    if role is None:
+        role = next((t for t, p in _ROLE_PATTERNS if p.search(text)), None)
     marker = next((t for t, p in _MARKER_PATTERNS if p.search(text)), None)
 
     well_formed = case is not None

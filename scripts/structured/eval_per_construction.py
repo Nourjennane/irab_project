@@ -164,6 +164,19 @@ def main():
     ap.add_argument("--retrieval_lambda", type=float, default=0.3,
                     help="bias multiplier on log(prior); 0 reproduces baseline")
     ap.add_argument("--retrieval_k", type=int, default=5)
+    # Phase R2 — structural reasoning (mutually exclusive with --use_retrieval)
+    ap.add_argument("--use_structural_reasoning", action="store_true",
+                    help="Phase R2: apply per-construction structural reasoners with confidence gating")
+    ap.add_argument("--tau_high", type=float, default=0.75,
+                    help="confidence threshold for symbolic override")
+    ap.add_argument("--tau_med", type=float, default=0.50,
+                    help="confidence threshold for strong-bias mode")
+    ap.add_argument("--lambda_strong", type=float, default=1.5,
+                    help="multiplier for strong-bias log-prior addition (when tau_med <= conf < tau_high)")
+    ap.add_argument("--enabled_families", default=None,
+                    help="comma-separated whitelist of construction families (default: all reasoners)")
+    ap.add_argument("--dump_traces", action="store_true",
+                    help="dump per-sentence reasoning traces to traces.jsonl")
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -262,7 +275,11 @@ def main():
     base_pred = StructuredPredictor(args.model, cfg=cfg)
     print(f"  taxonomy={base_pred.taxonomy}")
 
-    # Optional Phase R retrieval wrapper
+    # Optional Phase R retrieval wrapper or Phase R2 structural reasoning
+    pred_retrieval = None
+    use_struct = bool(args.use_structural_reasoning)
+    if args.use_retrieval and use_struct:
+        raise ValueError("--use_retrieval and --use_structural_reasoning are mutually exclusive")
     if args.use_retrieval:
         from irab_tashkeel.grammar_memory.memory import GrammarMemory
         from irab_tashkeel.grammar_memory.retrieval_predictor import RetrievalAugmentedPredictor
@@ -273,10 +290,33 @@ def main():
             lambda_=args.retrieval_lambda,
             k=args.retrieval_k,
         )
-        print(f"  retrieval ENABLED: lambda={args.retrieval_lambda}, k={args.retrieval_k}")
-    else:
-        pred_retrieval = None
+        print(f"  Phase R retrieval ENABLED: lambda={args.retrieval_lambda}, k={args.retrieval_k}")
+    elif use_struct:
+        from irab_tashkeel.grammar_memory.memory import GrammarMemory
+        from irab_tashkeel.grammar_memory.structural_predictor import StructuralReasoningPredictor
+        memory = GrammarMemory(Path(args.retrieval_memory))
+        enabled_fams = (
+            [s.strip() for s in args.enabled_families.split(",") if s.strip()]
+            if args.enabled_families else None
+        )
+        pred_retrieval = StructuralReasoningPredictor(
+            base_predictor=base_pred,
+            memory=memory,
+            tau_high=args.tau_high,
+            tau_med=args.tau_med,
+            lambda_strong=args.lambda_strong,
+            retrieval_k=args.retrieval_k,
+            enabled_families=enabled_fams,
+        )
+        print(f"  Phase R2 structural reasoning ENABLED: "
+              f"tau_high={args.tau_high}, tau_med={args.tau_med}, "
+              f"lambda_strong={args.lambda_strong}, "
+              f"families={enabled_fams or 'all reasoners'}")
     pred = base_pred
+    # Trace dump file (optional) — JSONL of structural reasoning traces
+    trace_fh = None
+    if args.dump_traces and use_struct:
+        trace_fh = open(out_dir / "traces.jsonl", "w")
 
     # Per-construction tracking
     # construction -> list of (case_correct, role_correct, marker_correct, fully_correct,
@@ -307,12 +347,28 @@ def main():
             construction_sentence_count[c] += 1
         construction_sentence_count["overall"] += 1
 
-        # Predict (with optional retrieval bias)
+        # Predict (with optional retrieval bias OR structural reasoning)
+        retrieval_trace = None
         if pred_retrieval is not None:
             result, retrieval_trace = pred_retrieval.predict_sentence(sent)
         else:
             result = pred.predict_sentence(sent)
-            retrieval_trace = None
+        # Optional trace dump for Phase R2
+        if trace_fh is not None and retrieval_trace is not None and hasattr(retrieval_trace, "span_traces"):
+            trace_fh.write(json.dumps({
+                "sentence": sent,
+                "n_constructions_detected": retrieval_trace.n_constructions_detected,
+                "n_overrides": retrieval_trace.n_overrides,
+                "n_strong_bias": retrieval_trace.n_strong_bias,
+                "n_fallback": retrieval_trace.n_fallback,
+                "spans": [{
+                    "span": list(t.span), "family": t.family,
+                    "particle_group": t.particle_group, "particle_surface": t.particle_surface,
+                    "n_hits": t.n_hits, "confidence": round(t.confidence, 3),
+                    "consensus_rate": round(t.consensus_rate, 3), "tier": t.tier,
+                    "rule": t.rule, "predicted": t.predicted,
+                } for t in retrieval_trace.span_traces],
+            }, ensure_ascii=False) + "\n")
         # Align preds to gold by surface match (with normalisation fallback)
         pred_dicts = []
         for w in result.items:
@@ -450,6 +506,9 @@ def main():
 
     md_path = out_dir / "per_construction_summary.md"
     md_path.write_text("\n".join(md))
+
+    if trace_fh is not None:
+        trace_fh.close()
 
     print(f"\n=== {args.eval} per-construction summary ===")
     for c in CONSTRUCTION_LABELS:

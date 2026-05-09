@@ -297,6 +297,68 @@ Stanza alignment succeeded on only 70\% of distill\_v2 records (Stanza's Arabic 
 
 The Phase 1 $\rightarrow$ Phase 4a $\rightarrow$ Phase 2 $\rightarrow$ Phase 3 sequence delivers a clean lesson: \textbf{at 296M / 6 epochs, parametric capacity is not the bottleneck --- orthogonal information sources are.} Adding more parallel heads on the same supervision plateaus (Phase 4a substitutability); rearranging the form of morph$\rightarrow$iʿrāb interaction plateaus (Phase 2 joint dynamics); adding a genuinely different supervision unlocks measurable gain (Phase 3 dep features).
 
+\paragraph{Phase R, Phase R2, and the forward-path correction (negative result; the evaluator fix is the real contribution).}
+\label{sec:phaseR2}
+After Phase 3-A shipped, we tested whether \emph{inference-side} mechanisms could lift Phase 3-A further on the catastrophic Gazelle constructions. The per-construction breakdown of Phase 3-A revealed the bottleneck was localised: kāna sisters $0/7$ \emph{fully} with calibration gap $-0.533$, istithnāʾ $0/5$ \emph{fully}, while iḍāfa was already well-handled ($33\%$ \emph{fully}, better than overall $25\%$). \textbf{Phase R-C} built a 18,839-instance grammar memory across 7 construction families, retrieved top-$k$ analogues by FAISS cosine over Phase 3-A's pooled embeddings, and added $\lambda \cdot \log(\text{prior})$ to the iʿrāb logits. R-C lifted MASAQ uniformly ($+0.7$ \emph{fully}, $+8.5$\,pp on \texttt{idafa\_multi}) but failed every Gazelle gate (kāna $0\% \rightarrow 0\%$, calibration worsened $-0.533 \rightarrow -0.884$). \textbf{Phase R2} added per-construction reasoners with three-tier confidence gating (override / strong-bias / fallback), a canonical case rule for kāna and inna families, base-confidence guards, and harf-particle protection. Four iterations were tested; the best variant (R2 v2.1) appeared to lift Gazelle overall \emph{fully} by $+1.0$ pp and MASAQ kāna \emph{fully} by $+0.7$ pp.
+
+A collateral diagnostic on Gazelle revealed that \emph{all 10 word-level prediction flips} between Phase 3-A and R2-v2.1 occurred outside detected construction spans (\texttt{in\_kana\_span=False}). Inspection found that the R2 predictor was re-implementing the encoder forward path manually (calling \texttt{model.encoder(...)} then \texttt{\_word\_first\_pool(...)} directly) instead of \texttt{model.forward(...)} (which uses \texttt{\_encode\_and\_pool(...)} and applies a final dropout). The two paths produced subtly different logits even with dropout disabled in eval mode. \textbf{Replacing the manual forward with \texttt{model.forward(...)} caused all R2 gains and all R2 collateral to vanish to $0.0$ on every metric on every construction on both Gazelle and MASAQ.} The KanaReasoner override fires on detected spans (2 on Gazelle, 33 on MASAQ), but its consensus labels match what Phase 3-A is already producing on those words. Net signal contributed by the inference-side reasoner: zero.
+
+The real contribution from this debugging cycle is the \textbf{evaluator fix}. The Phase 3-A per-construction baseline reported $\texttt{kana\_sisters}$ \emph{fully}~$=0\%$ on Gazelle. The cause was not the model but the gold extractor in \texttt{evaluation/structural.py}, which matched only literal ``\textarabic{اسم كان}'' / ``\textarabic{خبر كان}'' prose, while Gazelle uses particle-specific phrasing (``\textarabic{اسم ليس}'', ``\textarabic{اسم صار}'', ``\textarabic{خبر (ليس)}''). 4 of 6 Gazelle kāna span words had $\texttt{gold\_role}=$\texttt{None}, blocking \emph{fully} at $0\%$ regardless of model performance. We added a \texttt{\_detect\_kana\_role()} pre-pass that recognizes ``\textarabic{اسم/خبر} \texttt{<kana\_particle>}'' for any of 12 kāna-family particles (with optional parenthesized form) and takes priority over surface-case roles like \emph{ism majrūr} (so ``\textarabic{اسم مجرور لفظا، منصوب محلا على أنه خبر (ليس)}'' now correctly produces \texttt{khabar\_kana}, the operative grammatical role, not the surface case description). With the same Phase 3-A checkpoint and the corrected evaluator, Gazelle $\texttt{kana\_sisters}$ \emph{fully} moves from artificial $0\%$ to $\mathbf{14.3\%}$ and role from $0\%$ to $\mathbf{57.1\%}$; calibration gap improves from $-0.533$ to $-0.189$. The model has been doing kāna reasoning correctly all along; the evaluator was hiding it.
+
+\medskip\noindent\textbf{Final corrected per-construction metrics (Phase 3-A on FIXED evaluator):}
+
+\begin{tabular}{l r r r r r r}
+\toprule
+\textit{Gazelle (n=107)} & n & case & role & marker & \emph{fully} & calib\_gap \\
+\midrule
+\texttt{kana\_sisters} & 7 & 71.4 & 57.1 & 14.3 & $\mathbf{14.3}$ & $-0.189$ \\
+\texttt{inna\_sisters} & 11 & 90.9 & 27.3 & 72.7 & 27.3 & $-0.132$ \\
+\texttt{istithna} & 5 & 80.0 & 40.0 & 20.0 & 0.0 & $-0.291$ \\
+\texttt{idafa} & 48 & 81.2 & 47.9 & 62.5 & 33.3 & $-0.127$ \\
+\texttt{quranic\_proxy} & 8 & 37.5 & 12.5 & 62.5 & 0.0 & $+0.245$ \\
+\textbf{overall} & \textbf{107} & \textbf{72.0} & \textbf{40.2} & \textbf{62.6} & \textbf{25.2} & $-0.101$ \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\begin{tabular}{l r r r r r r}
+\toprule
+\textit{MASAQ (n=5,007)} & n & case & role & marker & \emph{fully} & calib\_gap \\
+\midrule
+\texttt{kana\_sisters} & 299 & 86.6 & 12.0 & 31.1 & $\mathbf{11.0}$ & $-0.063$ \\
+\texttt{idafa\_multi} & 47 & 89.4 & 44.7 & 48.9 & 29.8 & $+0.045$ \\
+\texttt{idafa} & 1{,}606 & 86.4 & 26.8 & 41.0 & 24.2 & $+0.050$ \\
+\texttt{inna\_sisters} & 1{,}440 & 85.3 & 15.0 & 33.9 & 13.5 & $+0.031$ \\
+\texttt{istithna} & 602 & 88.2 & 14.4 & 29.4 & 12.5 & $+0.084$ \\
+\texttt{quranic\_proxy} & 565 & 88.5 & 13.3 & 26.0 & 11.3 & $+0.049$ \\
+\textbf{overall} & \textbf{5{,}007} & \textbf{85.8} & \textbf{17.1} & \textbf{33.0} & \textbf{14.9} & $+0.048$ \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\noindent\textbf{Final synthesis: what works versus what plateaus at this scale.}
+
+\begin{tabular}{l l l}
+\toprule
+intervention & category & result vs Phase 3-A \\
+\midrule
+Phase 1 morphology supervision & orthogonal info & \textbf{+5.4 role-F1, +1.5 \emph{fully}} ✓ \\
+Phase 3 static UD dep features & orthogonal info & \textbf{+3.0 case, +3.8 marker, +0.7 \emph{fully}} ✓ \\
+Evaluator fix (kāna role extraction) & measurement & \textbf{+14.3 Gazelle kāna \emph{fully}} ✓ (model unchanged) \\
+Phase 4a taxonomy expansion & rearrangement & flat / partial substitution \\
+Phase 2 soft conditioning & rearrangement & flat / regress \\
+Phase 5 hierarchical case decoder & rearrangement & flat / regress (0/3 wins) \\
+Phase 6 hierarchical marker decoder & rearrangement & flat / regress (0/3 wins) \\
+Phase 3.1 dynamic relational attention & rearrangement & flat / regress \\
+Phase 39 synthetic augmentation & dist mismatch & Gazelle $-12.9$ role, MASAQ $+0.4$ \\
+Phase R-C retrieval + soft logit bias & inference-side & Gazelle regress, MASAQ partial \\
+Phase R2 reasoning + override & inference-side & \textbf{0.0 everywhere} (post forward-path fix) \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\noindent Two interventions produced robust gains: morphology supervision (Phase 1) and dependency features (Phase 3). Both add orthogonal linguistic information to the encoder input. Eight interventions (taxonomy, conditioning, hierarchy, relational attention, synthetic-mismatch, retrieval-only, inference-side reasoning) plateau or regress. The R2 framework is internally consistent (no collateral, no regression with the corrected forward path) but provides zero measurable benefit on top of Phase 3-A at this scale. We document this as a strict negative result: at 296M parameters / 6 epochs / a $\sim$7K-sentence supervised corpus, both training-time rearrangement and inference-time symbolic reasoning have been thoroughly explored, and the productive lever lies elsewhere --- in the orthogonal-information directions outlined in \S\ref{sec:future}.
+
 \paragraph{Phases 5 + 6 --- hierarchical case and marker decoders (closing the architectural case study).}
 \label{sec:phase56}
 We close the architectural ablation with two output-side conditioning experiments layered on Phase 3-A. Phase 5 conditions the case head on role softmax via $\texttt{case\_logits} \mathrel{+}= W_{r\rightarrow c}\,\sigma(\texttt{role\_logits})$ with $W_{r\rightarrow c}$ a $25 \times 5$ zero-initialised matrix. Phase 6 conditions the marker head on case+role softmax similarly: $\texttt{marker\_logits} \mathrel{+}= W_{cr\rightarrow m}\,\sigma([\texttt{case\_logits};\texttt{role\_logits}])$. Both joint-trained.
@@ -343,7 +405,22 @@ Across 296M, 792M, and 13B Arabic-pretrained models trained on the same Haiku-di
 The interpretable rebuild (\S\ref{sec:rebuild}) contributes a third lens. Two follow-on phases on the rev 2 baseline (Phase 1 morphology supervision, Phase 4a 25 $\rightarrow$ 34 taxonomy) each independently lift Gazelle role-F1 by $+5$--$7$\,pp, but stacking them yields only $+5.7$\,pp combined --- they are partially substitutable, not additive. Granularity wins on case + marker; morphology wins on \emph{fully}. \textbf{Phase 2} (\S\ref{sec:phase2}) tests the natural follow-on, \emph{hierarchical conditioning}, across three mechanisms; all three fail the strict ship gate, and the failure mode tells us why. FiLM-joint regresses all four metrics; FiLM-detached and additive-joint preserve case + marker + \emph{fully} and degrade only role-F1 by 1--3\,pp. The bottleneck is \emph{joint optimisation dynamics}, not the form of the conditioning interaction --- the morph head representation drifts under joint training, and the iʿrāb heads chase the moving target. Phase 4a + Phase 2 together push the production architecture lever decisively away from rearrangements of the existing morph + taxonomy supervision and toward an \emph{independent signal source} --- the natural next candidate is dependency-aware reasoning, where UD dependency edges contribute relational structure that morphology and taxonomy cannot capture.
 
 \paragraph{Future work.}
-The substitutability and joint-dynamics findings (\S\ref{sec:phase4a:synthesis}, \S\ref{sec:phase2}) reframe the most concrete next step. The natural follow-on after Phase 2's negative result is \textbf{dependency-aware reasoning} (Phase 3): integrating UD dependency edges (for example, via a Stanza-parsed corpus) as input features to the iʿrāb decoders, providing relational structure that morphology and taxonomy cannot capture. A second viable revival is the \emph{staged Phase 1 $\rightarrow$ Phase 2.5 schedule} sketched in \S\ref{sec:phase2}: train Phase 1, freeze morph heads, then train only the conditioning module + iʿrāb heads in a second pass --- avoiding the joint-training-dynamics issue that drove Phase 2's regression. The cleanest test of whether the open-weight capacity null is teacher-bound is a Sonnet-distilled re-training: an inexpensive single-batch re-distillation that lifts the teacher case ceiling from $67.2\%$ to $73.9\%$ would either keep the open-weight gap null (strong claim) or break it (which would tell us the present null is teacher-bound, not capacity-insensitive). Two further directions follow from \S\ref{sec:limitations}: expanding Gazelle to a manually-validated 200-sentence MSA benchmark (cuts the smallest-detectable-$\Delta$ floor from $7$\,pp to $\sim 3$\,pp and would let several of our currently-non-significant deltas resolve), and integrating CamelTB / Extended Quranic Treebank into a cross-register training corpus to test whether the cross-register effect is solvable or structural. \cite{aldallal2025sadeed} shows that small fine-tuned Arabic models can be state-of-the-art on diacritization with curated data; the structural connection between diacritization and \irab{} (the case marker determines the final vowel; our self-consistency analysis suggests grammatical reasoning constrains diacritization in $\sim 96\%$ of cases) makes a Sadeed-style multi-task formulation a natural extension we leave for future work.
+\label{sec:future}
+The Phase 1 $\rightarrow$ Phase 4a $\rightarrow$ Phase 2 $\rightarrow$ Phase 3 $\rightarrow$ Phase 3.1 $\rightarrow$ Phase 5 $\rightarrow$ Phase 6 $\rightarrow$ Phase 39 $\rightarrow$ Phase R-C $\rightarrow$ Phase R2 sequence has thoroughly explored architectural and inference-side levers at the 296M / 6-epoch / $\sim$7K-sentence-corpus envelope. The empirical pattern (\S\ref{sec:phaseR2}) is overwhelming: rearrangement plateaus, inference-side reasoning is neutral, distribution-mismatched data hurts. At this scale, further gains require \textbf{information coverage and supervision quality}, not architectural rearrangement. We deliberately do \emph{not} include further architectural variants (additional heads, conditioning experiments, hierarchy variants, structural override mechanisms) in the future-work agenda; the empirical evidence in \S\ref{sec:phaseR2} is overwhelming that this lever is exhausted at the current scale. The directions below are ordered by expected leverage.
+
+\textbf{(1) Larger and richer corpora.} The training corpus is 77K Haiku-distilled word-rows from $\sim$5K MSA sentences. The Haiku-distillation ceiling (case $67.2\%$) caps every open-weight student trained on it. A Sonnet-distilled corpus at the same scale ($\sim$\$15--20 for 5K rows) would test whether the parametric capacity null result is teacher-bound. Integrating CamelTB ($\sim$188K multi-register words), I3rab (601 MSA sentences), and the Extended Quranic Treebank ($\sim$132K Quranic tokens) after schema conversion from CATiB to (case, role, marker) tuples would yield $\sim$150--250K MSA $+$ $\sim$80--130K Quranic words. The cross-register asymmetry (Phase 39, R-C, R2) is the strongest single signal that distribution coverage is the binding constraint.
+
+\textbf{(2) Richer annotation.} The 25-label canonical role taxonomy is a deliberate collapse of 590 distinct gold strings. Hand-curated annotation that preserves the long-tail role surface forms would close the residual $\sim$6--10\,pp gap to seq2seq prose decoding. Per-word morph + dep + role + marker annotation on 1--2K Gazelle-style MSA sentences would also enable construction-stratified analysis above the $n{=}134$ detectability floor.
+
+\textbf{(3) Broader rare-construction coverage.} Even after the evaluator fix, \emph{istithnāʾ} and \texttt{quranic\_proxy} remain at $0\%$ \emph{fully} on Gazelle ($5+8$ words). Phase 39 attempted template-based synthetic augmentation, but the narrow templates at $22\%$ mix overfit the role head and hurt Gazelle in-distribution metrics. A targeted $\sim$500 hand-annotated examples per failing construction (kāna sisters, istithnāʾ, mawṣūl, quranic-proxy verbal patterns) added to the training corpus --- without templating --- would directly probe whether these failures are coverage-bound or structurally harder.
+
+\textbf{(4) Better dependency quality.} Phase 3-A uses Stanza's Arabic UD parser (UAS $\approx 84\%$) and the alignment script keeps records where $\geq 50\%$ of whitespace tokens align to UD tokens; only $70\%$ of distill\_v2 records have \texttt{has\_dep=True}. Three concrete improvements: drop the alignment threshold to $30\%$ to lift coverage; add gold UD-PADT dep on the morph-only half of the corpus; run Stanza at inference time on Gazelle/MASAQ inputs. The fact that even noisy 70\%-coverage Stanza dep features produced $+3.0$\,pp case improvement suggests cleaner dep coverage would compound the gain.
+
+\textbf{(5) Stronger pretrained Arabic encoders.} Phase 3-A uses AraT5v2-base (296M, MSA-pretrained). Two architectures emerged that warrant testing: AraBART (139M, encoder-decoder, multi-dialect pretraining) and CAMeLBERT-CA ($\sim$135M, classical-Arabic-specialized). For the per-word classification setup, classical-Arabic specialization should lift MASAQ Quranic role-F1 (currently $17.1\%$) materially. Since the Phase 1 + Phase 3 supervision recipe transfers cleanly across encoders, this is a pure-substitution experiment.
+
+\textbf{(6) Longer training schedules.} Every checkpoint trained for 6 epochs on $\sim$77K rows. The CRF stress test plateaued at NLL $\approx 14$, suggesting structured losses need more epochs to saturate. A 12--18 epoch retrain of Phase 3-A would test whether supervision saturation rather than architecture is the role-F1 ceiling.
+
+\textbf{(7) Larger-scale supervision via multi-task learning.} Diacritization \cite{aldallal2025sadeed} and \irab{} are structurally linked: the case marker predicted in \irab{} directly determines a word's final vowel. Our self-consistency analysis suggests grammatical reasoning constrains diacritization in approximately $96\%$ of cases. A multi-task formulation that jointly optimizes diacritization and \irab{} objectives --- exposing the model to $\sim$10--100$\times$ more diacritized text --- could lift the encoder representation in a way that orthogonally complements the morph + dep input augmentations validated here.
 
 % =====================================================================
 \section{Limitations}

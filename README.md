@@ -1,9 +1,26 @@
-# I'rāb-Guided Arabic Diacritization
+# Per-Word Arabic Iʿrāb Generation — Research Repository
 
-An explainable Arabic NLP system that jointly predicts:
+**📍 Current state (2026-05-09):** experimentation is complete. The
+production system is **Phase 3-A** (AraT5v2-base + morphology + UD dep
+features); see [`docs/CURRENT_STATE.md`](docs/CURRENT_STATE.md) for
+production paths, archival experiments, evaluation utilities, final
+tables, and the frozen architecture policy.
+
+The full research report is in [`docs/REPORT.md`](docs/REPORT.md) and
+the paper LaTeX source is in [`docs/paper/REPORT.tex`](docs/paper/REPORT.tex).
+
+---
+
+## Project history (legacy README, kept for context)
+
+The original project framing was an explainable Arabic NLP system that jointly predicted:
 1. **Tashkīl** (diacritics) — `ذهب` → `ذَهَبَ`
 2. **I'rāb** (grammatical role) — `ذهب` → *verb, past tense, indeclinable*
 3. **Errors** (orthographic + grammatical) — flagging `الى` → `إلى`
+
+The current scope narrowed to per-word iʿrāb generation only — see
+`docs/REPORT.md` for the empirical case study and the path that led
+to Phase 3-A.
 
 Unlike pure neural diacritizers (CATT, Sadeed, CAMeL-BERT), this system attaches a **grammatical justification** to every diacritic it predicts. The i'rāb head acts both as an auxiliary training signal (regularizing the encoder) and as an interpretability layer (exposing the model's syntactic reasoning).
 
