@@ -45,6 +45,12 @@ def compute_multi_head_loss(
             return None
         log = logits[name]
         lab = labels[name]
+        # Skip if no valid labels in batch — F.cross_entropy returns
+        # NaN when every position is ignore_index, poisoning total loss.
+        # Common when a head's supervision is sparse across sources
+        # (e.g., morph labels absent on distill_v2 records).
+        if (lab != -100).sum().item() == 0:
+            return None
         return F.cross_entropy(
             log.reshape(-1, log.size(-1)), lab.reshape(-1),
             ignore_index=-100,

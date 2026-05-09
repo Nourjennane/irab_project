@@ -54,6 +54,8 @@ def main():
     ap.add_argument("--eval_every", type=int, default=200)
     ap.add_argument("--limit_corpus", type=int, default=None,
                     help="Limit total sentences (debug)")
+    ap.add_argument("--eval_max_sentences", type=int, default=200,
+                    help="Cap eval set to keep periodic gate-checks cheap")
     ap.add_argument("--encoder_name", default="UBC-NLP/AraT5v2-base-1024")
     args = ap.parse_args()
 
@@ -108,8 +110,13 @@ def main():
     # eval-set; the per-stage metric breakdown distinguishes them.
     eval_sentences = [s for s in sentences
                       if s.metadata.source in ("gazelle_test", "masaq_quranic")]
+    if args.eval_max_sentences and len(eval_sentences) > args.eval_max_sentences:
+        # Deterministic: sort by id, take prefix. Keeps gazelle_test
+        # entirely (only 30 sentences) and samples MASAQ.
+        eval_sentences.sort(key=lambda s: s.sentence_id)
+        eval_sentences = eval_sentences[: args.eval_max_sentences]
     print(f"  eval set: {len(eval_sentences)} sentences "
-          f"(gazelle_test + masaq_quranic)")
+          f"(gazelle_test + masaq_quranic, capped)")
 
     # ----- Tokeniser + model -----
     print("\n[3/5] Loading tokeniser + warm-start checkpoint...")

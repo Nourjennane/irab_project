@@ -24,14 +24,18 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 
 # Run for a single 4-hour SLURM slot. Re-submit to continue across stages.
+# Note: fp32 warm-start (Phase 3-A trained in fp32). Use of --bf16 caused
+# NaN loss in 491616. Stick with fp32 unless we re-train Phase 3-A in bf16.
+# Lower LR (1e-5) since we're warm-starting from a converged checkpoint;
+# at 5e-5 the optimiser can blow up when paired with the new head weighting.
 PYTHONPATH=src python -u scripts/training_v2/train_curriculum.py \
     --output_root runs/nextgen \
     --warm_start  runs/phase3a_491240/final \
-    --batch_size  32 \
-    --lr          5e-5 \
-    --bf16 \
+    --batch_size  16 \
+    --lr          1e-5 \
     --eval_every  200 \
-    --max_total_steps 60000
+    --max_total_steps 60000 \
+    --eval_max_sentences 100
 
 echo "=== nextgen curriculum training step finished ==="
 ls -la runs/nextgen/ 2>&1
