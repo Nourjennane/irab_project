@@ -1,91 +1,155 @@
 # Limitations
 
-This document is a deliberate record of what the validated nextgen
-**recovery** model (`runs/validated_nextgen_recovery/`) does not do
-well. It is mandatory reading before deploying or comparing.
+This document is a deliberate, exhaustive record of what the validated
+nextgen-recovery model (`runs/validated_nextgen_recovery/`) does not
+do well, and where the project's current evidence is genuinely thin.
+We list everything we are aware of. Anything missing here is by
+oversight, not by design.
 
-## Modest absolute gains over Phase 3-A
+## 1 · Held-out sample sizes are small
 
-The honest improvements are:
+- **Gazelle** (the cleanest MSA gold) has only **30 sentences / 134
+  words / 61 fully-observable tokens.** Differences ≤ 0.05 fully
+  on Gazelle are inside the noise band. We do not draw conclusions
+  from Gazelle deltas alone.
+- **MASAQ Quranic** is larger (624 sentences / 5,007 words / 999
+  fully-observable tokens) but is restricted to Quranic Arabic,
+  not modern Arabic.
+- The held-out totality is **1,334 sentences across all sources**.
 
-- MASAQ Quranic: fully +0.036 (0.675 → 0.711), role +0.029
-- Gazelle: role +0.038, fully +0.000 (unchanged), marker −0.031
+## 2 · UD-PADT-test contamination
 
-These are *real* but small. Phase 3-A was already a strong local optimum;
-the curriculum + regularization patch produced incremental gains, not
-a step change.
+`ud_padt_test` shares **17 exact** and **21 normalised** sentence
+duplicates with `distill_v2`, plus 16/16 with `ud_padt_train`. We
+report UD-PADT numbers for completeness only; they cannot be used
+as a clean held-out signal. Detection methodology and tables in
+[`leakage_audit/leakage_report.md`](leakage_audit/leakage_report.md).
 
-## Calibration: better on Gazelle, slightly worse on MASAQ
+## 3 · Calibration is severe
 
-`calib_gap` (mean role-confidence on correct − mean on wrong) on
-**Gazelle** improved from +0.021 (Phase 3-A) to −0.052 (recovery) — the
-model is now slightly *under*-confident on correct predictions, which
-is healthier than the overconfidence we observed in the leaked variant
-(calib gap = 0.999 — a memorization artefact).
+ECE on failures (validated_recovery): case **0.42**, role **0.49**,
+marker **0.60**. The model is confidently wrong far too often.
+Specifically, in the [0.9, 1.0) confidence bin (where the model says
+"I'm 90 %+ sure"), per-axis accuracy is only ~0.5–0.55 on case,
+~0.37 on role, and ~0.29 on marker.
 
-On **MASAQ**, calib_gap rose modestly (0.087 → 0.124). ECE remained in
-the 0.10–0.13 range across training, an order of magnitude better than
-the leaked stage_7's 0.218.
+Mitigation infrastructure exists but is not yet applied:
 
-## Held-out sample sizes
+- `src/irab_tashkeel/calibration/temperature_scaling.py` — post-hoc T fit
+- `src/irab_tashkeel/calibration/focal_loss.py` — training-time focal loss + confidence penalty
 
-The two clean held-out sources are small:
+A held-out shard would need to be carved out before applying T-scaling
+to avoid recalibrating on the test set.
 
-- Gazelle: 30 sentences / ~290 tokens
-- MASAQ Quranic: 624 sentences / ~5–6k tokens (Quranic only)
+## 4 · No cross-dialect coverage
 
-Confidence intervals on Gazelle metrics are wide. The MASAQ sample is
-domain-restricted to Quranic Arabic; modern dialect performance is not
-measured.
+All training and evaluation data is MSA or classical/Quranic Arabic.
+Performance on dialects (Egyptian, Levantine, Gulf, Maghrebi) is
+**undefined**. Assume it is bad. Do not deploy on dialect input
+without a separate evaluation step.
 
-## UD-PADT contamination
+## 5 · Idafa-attachment confusion is unresolved
 
-`ud_padt_test` shares 17–21 sentences with `distill_v2` (the bulk
-training source). Numbers reported on UD-PADT are for completeness, not
-as headline metrics. See [`docs/leakage_audit/leakage_report.md`](leakage_audit/leakage_report.md).
+The dominant residual failure family is the
+*mudaaf_ilayh* ↔ *mafoul_bih* ↔ *ism_majrur* confusion — three roles
+with near-identical surface signature. The graph and governor
+experiments **did not** displace this confusion; structural
+supervision alone cannot resolve it.
 
-## Reasoning trace is template-based
+The expected resolution path is **lexical-semantic supervision**
+(verb-argument structures) plus **alternative-analysis annotations**
+(genuinely ambiguous tokens marked permissively). The infrastructure
+for both is in the repo; the annotation work is pending.
 
-[`src/irab_tashkeel/reasoning/`](../src/irab_tashkeel/reasoning/) renders
-explanations from structured labels using deterministic templates. It
-**does not generate free-form prose**, by design — generative reasoning
-would re-introduce hallucination risk.
+## 6 · Reasoning trace is template-based
 
-Consequence: explanations exist only for constructions defined in
-`data_v2/constructions/`. Sentences with rare or novel constructions get
-a degraded fallback (just labels, no narrative).
+[`src/irab_tashkeel/reasoning/`](../src/irab_tashkeel/reasoning) renders
+explanations from structured labels using deterministic templates.
+This is a deliberate design choice (it prevents hallucination), but
+sentences with rare or novel constructions get a degraded fallback
+(labels only, no narrative). Free-form Arabic-prose explanation is
+explicitly **out of scope**.
 
-## Construction-detection F1 is 0 in eval
+## 7 · Construction-detection F1 is not measured
 
-The training-time eval did not emit `ConstructionPrediction` records, so
-`construction_f1_macro` reads 0 throughout. This is an evaluator gap,
-not a model failure — the model uses construction features internally
-and benefits from them. Fixing the evaluator to surface construction
-predictions is on the roadmap.
+The training-time evaluator does not emit `ConstructionPrediction`
+records, so `construction_f1_macro` reads 0 throughout training.
+This is an evaluator gap, not a model failure — the model uses
+construction features and benefits from them — but it means we
+cannot directly measure how well construction membership is
+predicted. Fixing the evaluator to surface construction predictions
+is on the roadmap.
 
-## No cross-dialect validation
+## 8 · Single-seed numbers throughout
 
-All training and eval data are MSA or classical Arabic. Egyptian, Gulf,
-Maghrebi, etc. are not represented. Performance on dialect input is
-undefined.
+We have not run multi-seed ablations. All headline numbers are
+single-run results. Differences ≤ 0.005 on MASAQ fully or ≤ 0.02
+on Gazelle fully are within plausible single-seed noise and should
+not be over-interpreted.
 
-## Single-encoder architecture
+## 9 · Long-sentence failures
 
-The model uses one shared AraT5v2-base encoder. We did not run a full
-backbone benchmark before validating; the registry in
-[`src/irab_tashkeel/backbones/registry.py`](../src/irab_tashkeel/backbones/registry.py)
-exists for future comparison work but is not yet exercised.
+Performance degrades on sentences past ~40 tokens. The
+DepAwareStructuredModel's word-pooling is fixed at training-time
+configuration; beyond ~40 tokens the encoder's positional information
+begins to wash out. For production, segment longer inputs.
 
-## Compute
+## 10 · Negative architectural results
 
-Training was performed on a single NVIDIA RTX 4060 (HPC node) over ~4
-hours for 45 000 curriculum steps. We have no large-scale ablation budget;
-single-seed numbers only.
+Two architectural extensions were tried and **did not** improve over
+validated_recovery:
 
-## Eval slice cap was used during training
+- **Graph integration** ([`final_graph_negative_result/`](final_graph_negative_result)):
+  gated 2-layer graph refiner over word states. Tied with recovery on
+  all clean held-out metrics (within ±0.005).
+- **Governor head** ([`final_governor_negative_result/`](final_governor_negative_result)):
+  biaffine head + 0.1×attachment-contrastive triplet loss. Tied with
+  recovery on the headline; idafa-confusion family unchanged.
 
-The training-time gate evaluator was capped at 100 sentences per eval
-call (`--eval_max_sentences 100`). This cap is **why** the dramatic
-gates fired so easily — quranic_fully=1.0 is on a 100-sample slice, not
-the full MASAQ. The Phase A independent evaluator runs on the full sets
-to recover the honest numbers.
+Both are documented as clean reproducible negative results, not as
+failures. They constrain the search space.
+
+## 11 · Annotated semantic-ambiguity layer is empty
+
+The `AmbiguityExample` schema and the 4,233 auto-mined candidate
+ambiguities exist (`data_v2/ambiguity_corpus/`), but **no human
+annotator has confirmed any of them yet**. Until that work is done:
+
+- Permissive scoring via `eval_v3.evaluate_with_ambiguity` will return
+  the same as strict scoring (no `secondary_analyses` to consult).
+- The annotation server (`src/irab_tashkeel/annotation/annotation_server.py`)
+  is deployable but unused.
+
+## 12 · No discourse-level reasoning
+
+The model operates on single sentences. Coreference, topic continuation,
+rhetorical relations across sentence boundaries are not modelled.
+Sentences whose iʿrāb genuinely depends on prior context (omitted
+subject in Quranic verses, e.g.) are out of distribution.
+
+## 13 · No public Arabic LLM-scale pretraining
+
+The encoder is `UBC-NLP/AraT5v2-base-1024` — a moderate-scale Arabic
+T5. We did not pretrain a larger encoder on a wider Arabic corpus.
+A larger Arabic foundation model would likely move the ceiling of
+this work, but it is a separate project.
+
+## 14 · Compute and data scale are modest
+
+Training was performed on a single GPU (Bocconi HPC stud QoS) over
+~25–45 minutes per run. The full training corpus is ~18,366
+non-test sentences. Both compute and data are modest by current
+standards. Strong claims about general Arabic grammatical reasoning
+should not be drawn from this scale.
+
+## 15 · Eval-time fully-observable subsets are tiny
+
+For the most-honest "fully-observable" headline numbers:
+
+- Gazelle fully-observable: **61 tokens**
+- MASAQ fully-observable: **999 tokens**
+
+This means a single misclassified token shifts Gazelle fully by
+**1.6 percentage points**. Headline deltas under 0.03 on Gazelle
+should be treated as informative trend signal, not significant
+result.

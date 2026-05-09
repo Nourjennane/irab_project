@@ -306,40 +306,114 @@ of training-on-test contamination — a model trained without leakage
 cannot post these numbers on this sample size. We document this case
 study in §9.
 
+### 8.6 Negative result — graph integration
+
+A two-layer gated graph refiner with edge-aware attention bias was
+wired end-to-end into the model forward path, with per-stage edge-type
+curriculum, gate logit init at −2 (sigmoid ≈ 0.119), encoder freeze
+for 2,000 steps, edge dropout, and an ablation evaluator that scored
+fully accuracy with the graph signal masked off.
+
+Training was stable and the training-time ablation delta was a
+consistent +0.006…+0.013. On the full uncapped held-out sets the
+graph candidate did **not** exceed the regularization-only recovery
+checkpoint (Gazelle fully tied at 0.459; MASAQ fully 0.707 vs 0.711).
+Documented at `docs/final_graph_negative_result/`.
+
+### 8.7 Negative result — biaffine governor head
+
+A biaffine governor head plus 0.1 × attachment-contrastive triplet
+loss was wired and trained from the validated_recovery warm-start.
+Governor CE descended from random (~3) to ~0.5; the attachment loss
+spiked properly on nested-syntax data.
+
+On the held-out sets the dominant idafa confusions were unchanged:
+
+| Confusion | recovery | governor |
+|---|---|---|
+| mudaaf_ilayh → mafoul_bih | 32 | 32 |
+| mudaaf_ilayh → mubtada    | 29 | 29 |
+| mudaaf_ilayh → ism_majrur | 13 | 13 |
+
+Documented at `docs/final_governor_negative_result/`.
+
+### 8.8 Convergent finding — the bottleneck is lexical-semantic
+
+Two architectural attacks targeted at the same dominant failure
+family (graph message-passing along dep + construction edges; explicit
+biaffine governor prediction) both produced clean negative results
+on the same fully metric. Combined with the failure-analysis evidence
+(§ 8.4) we conclude the residual gap is not architectural at our
+data scale. Three labels with identical surface signature
+(*mudaaf_ilayh*, *mafoul_bih*, *ism_majrur*) cannot be resolved by
+structural features alone — the decision requires verb-argument
+knowledge or permissive ambiguity annotation, neither of which is
+present in current training corpora.
+
 ## 9. Ablations and history
 
 | Variant | Outcome | Notes |
 |---|---|---|
-| Phase 1 morph | shipped | first morph ship |
-| Phase 2 FiLM/additive/concat | dropped | joint training under conditioning was the bottleneck |
-| Phase 3-A dep features | shipped | current baseline |
-| Phase 3.1 / R-C / R2 | dropped | output-hierarchy / CRF / hard-constraint stacking did not help |
-| Phase 4a taxonomy | dropped | role expansion alone did not generalize |
-| Nextgen stage_7 | shipped | this paper's candidate |
+| Phase 1 morph | ✅ shipped | first morph ship |
+| Phase 2 FiLM / additive / concat | ✗ dropped | joint training under conditioning was the bottleneck |
+| Phase 3-A dep features | ✅ shipped | warm-start baseline |
+| Phase 3.1 / R-C / R2 | ✗ dropped | output-hierarchy / CRF / hard-constraint stacking did not help |
+| Phase 4a taxonomy | ✗ dropped | role expansion alone did not generalize |
+| Nextgen leaked stage_7 | ✗ contamination | gazelle_test + masaq_quranic in training pool |
+| **Nextgen recovery** | ✅ **shipped (production)** | leak-free retraining + 14-item recovery patch |
+| Graph refiner | ✗ documented negative result | tied with recovery at our data scale |
+| Governor head | ✗ documented negative result | idafa confusion unchanged |
 
-The R2 loop produced apparent gains that vanished after a
-forward-path drift bug was fixed; the only persistent improvement
-that cycle was the evaluator fix (kana fully Gazelle 0% → 14.3%, model
-unchanged). This is documented in `memory/project_phaseR2_outcome.md`.
+The R2 loop earlier in project history produced apparent gains that
+vanished after a forward-path drift bug was fixed; the only persistent
+improvement that cycle was an evaluator fix (kana fully on Gazelle
+went 0 % → 14.3 %, model itself unchanged). Documented in
+`memory/project_phaseR2_outcome.md`.
 
 ## 10. Limitations
 
-- 30-sentence Gazelle sample → wide confidence intervals
-- Calibration drift at late curriculum stages
-- No cross-dialect evaluation (MSA + Quranic only)
-- Single-seed numbers (no ablation budget)
-- Reasoning trace is template-based, not generative
-- Construction-detection F1 is an evaluator gap (zero in current eval)
+The full enumerated list is in `docs/LIMITATIONS.md`. The most
+important items for interpreting this paper:
 
-Full list: `docs/LIMITATIONS.md`.
+- **Held-out sample sizes are small**: Gazelle has 30 sentences /
+  61 fully-observable tokens. Differences ≤ 0.05 fully are within
+  noise; differences ≤ 0.03 are not interpretable.
+- **Severe calibration**: ECE on failures = 0.42 / 0.49 / 0.60 across
+  case / role / marker. Temperature scaling infrastructure exists
+  but has not yet been applied (a held-out shard must first be
+  carved out).
+- **No cross-dialect coverage**: Egyptian, Gulf, Maghrebi performance
+  is undefined. The model is MSA + Quranic only.
+- **Single-seed numbers throughout**: deltas ≤ 0.01 fully are
+  plausible single-seed noise.
+- **Reasoning trace is template-based by design** (no hallucination
+  risk) but limited to known constructions.
+- **Annotation queue is unannotated**: 4,233 mined ambiguity
+  candidates exist but no human grammarian has labelled them yet,
+  so the permissive evaluator is not yet active.
 
 ## 11. Future work
 
-- Temperature-scaled calibration on a held-out shard
-- Multi-seed ablations for noise estimation
-- Cross-dialect held-out (Egyptian, Gulf, Maghrebi)
-- Direct construction-prediction emission in the eval path
-- Larger backbone benchmark (registry exists but not yet exercised)
+The roadmap pivots from architecture to data quality. In priority
+order:
+
+1. **Annotate the mined ambiguity candidates**, especially the 684
+   `idafa_attachment` and 530 `preposition_vs_idafa` cases that
+   directly target the dominant confusion family. Permissive scoring
+   then plausibly moves Gazelle role +0.05 to +0.10 *without changing
+   the model*.
+2. **Temperature-scaled calibration on a held-out shard.** ECE
+   reduction from 0.49 → < 0.10 on role is achievable with post-hoc
+   T-fit (one scalar parameter).
+3. **Multi-seed ablations.** Required for noise quantification on
+   the small Gazelle held-out.
+4. **Cross-dialect held-out corpora**: Egyptian, Gulf, Levantine,
+   Maghrebi. Currently zero coverage outside MSA + Quranic.
+5. **Verb-argument structure annotations** on `distill_v2`, since
+   the convergent negative results above point at lexical-semantic
+   knowledge as the remaining bottleneck.
+6. **Larger Arabic foundation model.** A separate project; not in
+   scope here.
 
 ## Appendix A — Reproducibility manifest
 

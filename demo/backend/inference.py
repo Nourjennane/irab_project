@@ -164,9 +164,11 @@ def analyze_sentence(holder: ModelHolder, text: str,
 
 
 def compare_sentence(holder: ModelHolder, text: str) -> Dict[str, Any]:
-    """Run the same sentence through both checkpoints and zip results."""
+    """Run the same sentence through every available checkpoint and
+    return the per-checkpoint analysis. The frontend currently shows
+    recovery / phase3a / stage7 side-by-side."""
     out: Dict[str, Any] = {"text": text, "available": holder.available_checkpoints()}
-    for name in ("phase3a", "stage7"):
+    for name in ("recovery", "phase3a", "stage7"):
         try:
             out[name] = analyze_sentence(holder, text, checkpoint=name)
         except FileNotFoundError as e:

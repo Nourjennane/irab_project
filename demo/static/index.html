@@ -27,18 +27,21 @@
 <body class="bg-slate-50 min-h-screen">
 <header class="bg-white border-b shadow-sm">
   <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-    <h1 class="text-xl font-semibold">Arabic Iʿrāb · Validated Nextgen Stage 7</h1>
+    <h1 class="text-xl font-semibold">Arabic Iʿrāb · Validated Nextgen Recovery</h1>
     <div class="flex gap-2">
       <button id="darkToggle" class="text-sm px-3 py-1 border rounded">🌙</button>
     </div>
   </div>
-  <nav class="max-w-7xl mx-auto px-4 flex gap-4 text-sm">
-    <button class="tab active py-2 px-1" data-tab="analyze">Sentence Analysis</button>
-    <button class="tab py-2 px-1" data-tab="graph">Grammar Graph</button>
-    <button class="tab py-2 px-1" data-tab="reasoning">Reasoning Trace</button>
-    <button class="tab py-2 px-1" data-tab="construction">Construction Breakdown</button>
-    <button class="tab py-2 px-1" data-tab="eval">Evaluation Dashboard</button>
-    <button class="tab py-2 px-1" data-tab="compare">Model Comparison</button>
+  <nav class="max-w-7xl mx-auto px-4 flex gap-2 text-sm flex-wrap">
+    <button class="tab active py-2 px-2" data-tab="analyze">Sentence Analysis</button>
+    <button class="tab py-2 px-2" data-tab="graph">Grammar Graph</button>
+    <button class="tab py-2 px-2" data-tab="reasoning">Reasoning Trace</button>
+    <button class="tab py-2 px-2" data-tab="construction">Constructions</button>
+    <button class="tab py-2 px-2" data-tab="eval">Evaluation Dashboard</button>
+    <button class="tab py-2 px-2" data-tab="compare">Model Comparison</button>
+    <button class="tab py-2 px-2" data-tab="hard">Hard Examples</button>
+    <button class="tab py-2 px-2" data-tab="failures">Known Failures</button>
+    <button class="tab py-2 px-2" data-tab="leakage">Leakage Case Study</button>
   </nav>
 </header>
 
@@ -106,9 +109,108 @@
 <!-- Compare tab -->
 <section id="tab-compare" class="tab-pane hidden">
   <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Phase 3-A baseline vs stage_7 — same sentence</h2>
+    <h2 class="font-medium mb-2">Phase 3-A baseline vs validated recovery vs leaked stage_7</h2>
+    <p class="text-xs text-slate-500 mb-3">
+      Predict the same sentence with three checkpoints. The third is the
+      contaminated stage_7 — kept reachable as a teaching example, not as
+      a candidate.
+    </p>
     <button id="compareBtn" class="bg-emerald-500 text-white px-3 py-1.5 rounded text-sm">Compare</button>
-    <div id="compareOut" class="grid md:grid-cols-2 gap-4 mt-4"></div>
+    <div id="compareOut" class="grid md:grid-cols-3 gap-4 mt-4"></div>
+  </div>
+</section>
+
+<!-- Hard examples tab -->
+<section id="tab-hard" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Hard examples</h2>
+    <p class="text-xs text-slate-500 mb-3">
+      Sentences from the held-out hard-eval buckets (<code>data_v2/hard_eval/</code>):
+      long_range, nested_clause, overlap, ambiguity, quranic_hard,
+      rare_constructions. Click any to send it to the analyzer.
+    </p>
+    <div class="text-xs mb-2">
+      Recovery model fully accuracy by bucket:
+      <span class="pill case-jarr">ambiguity 0.736</span>
+      <span class="pill case-jarr">quranic_hard 0.722</span>
+      <span class="pill case-nasb">overlap 0.668</span>
+      <span class="pill case-nasb">rare 0.182</span>
+    </div>
+    <div id="hardList" class="mt-2 space-y-2"></div>
+  </div>
+</section>
+
+<!-- Known failures tab -->
+<section id="tab-failures" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Known failure cases — the <code>mudaaf_ilayh</code> family</h2>
+    <p class="text-xs text-slate-500 mb-3">
+      The dominant role-confusion family. Three labels share an
+      identical surface signature; the model cannot reliably
+      distinguish them at the current data scale. See
+      <code>docs/failure_analysis/FINDINGS.md</code> for the full analysis.
+    </p>
+    <table class="text-xs w-full mt-3">
+      <thead class="bg-slate-100"><tr>
+        <th class="px-2 py-1 text-left">Gold</th>
+        <th class="px-2 py-1 text-left">Predicted</th>
+        <th class="px-2 py-1 text-right">Count on held-out</th>
+      </tr></thead>
+      <tbody id="failuresTable"></tbody>
+    </table>
+    <div class="mt-4 text-xs text-amber-700 panel p-3 rounded">
+      <b>Why the model gets these wrong:</b> the second noun in a noun-noun
+      sequence can be (a) a <code>mudaaf_ilayh</code> (idafa partner — set by
+      the first noun), (b) a <code>mafoul_bih</code> (direct object — set by
+      an upstream verb), or (c) an <code>ism_majrur</code> (set by a
+      preposition). All three surface as the same case (jarr) with the same
+      marker (kasra). Resolving them requires verb-argument knowledge,
+      which is beyond what the model is trained on.
+    </div>
+  </div>
+</section>
+
+<!-- Leakage case study tab -->
+<section id="tab-leakage" class="tab-pane hidden">
+  <div class="panel rounded-lg p-4">
+    <h2 class="font-medium mb-2">Leakage case study</h2>
+    <p class="text-xs text-slate-500 mb-3">
+      An earlier curriculum run reported an apparent <b>0.999 MASAQ fully</b>
+      accuracy. The independent eval traced the result to
+      <code>gazelle_test</code> and <code>masaq_quranic</code> being silently
+      present in the curriculum's training pool — the model had memorised
+      the test set. The leak-free retraining produced the validated
+      recovery checkpoint that ships today.
+    </p>
+    <table class="text-xs w-full mt-2 mb-3">
+      <thead class="bg-slate-100"><tr>
+        <th class="px-2 py-1 text-left">Metric</th>
+        <th class="px-2 py-1 text-right">Phase 3-A</th>
+        <th class="px-2 py-1 text-right">Recovery (clean)</th>
+        <th class="px-2 py-1 text-right">Leaked stage_7</th>
+      </tr></thead>
+      <tbody class="font-mono">
+        <tr><td class="px-2 py-1">MASAQ fully</td>
+            <td class="px-2 py-1 text-right">0.675</td>
+            <td class="px-2 py-1 text-right text-emerald-700">0.711</td>
+            <td class="px-2 py-1 text-right text-red-700">0.999 ← memorisation</td></tr>
+        <tr><td class="px-2 py-1">MASAQ calib_gap</td>
+            <td class="px-2 py-1 text-right">0.087</td>
+            <td class="px-2 py-1 text-right">0.124</td>
+            <td class="px-2 py-1 text-right text-red-700">0.9998 ← memorisation</td></tr>
+        <tr><td class="px-2 py-1">Gazelle fully</td>
+            <td class="px-2 py-1 text-right">0.459</td>
+            <td class="px-2 py-1 text-right">0.459</td>
+            <td class="px-2 py-1 text-right text-red-700">0.377 ← regressed</td></tr>
+      </tbody>
+    </table>
+    <div class="text-xs text-slate-700 panel p-3 rounded">
+      <b>Three runtime assertions</b> now refuse to load any test source
+      into the training pool: at module load, at pool build, at sentence
+      eligibility. Plus a <b>provenance manifest</b> with declared
+      <code>split_role</code> per source. See
+      <code>src/irab_tashkeel/curriculum/config.py:TEST_SOURCES</code>.
+    </div>
   </div>
 </section>
 
@@ -125,8 +227,53 @@ $$(".tab").forEach(b => b.addEventListener("click", () => {
   const id = b.dataset.tab;
   $$(".tab-pane").forEach(p => p.classList.add("hidden"));
   $("#tab-" + id).classList.remove("hidden");
-  if (id === "eval") loadEvalDashboard();
+  if (id === "eval")     loadEvalDashboard();
+  if (id === "hard")     loadHard();
+  if (id === "failures") loadFailures();
 }));
+
+// Hard-examples list (curated client-side; the backend doesn't need a route)
+const HARD_EXAMPLES = [
+  {tag: "nested",    text: "إنَّ الكتابَ الذي قرأهُ الطالبُ مفيدٌ"},
+  {tag: "overlap",   text: "كان أبو الطفلِ معلِّمًا"},
+  {tag: "ambiguity", text: "أكلَ الطفلُ التفاحةَ"},
+  {tag: "ambiguity", text: "في البيتِ رجلٌ"},
+  {tag: "quranic",   text: "بسم الله الرحمن الرحيم"},
+  {tag: "quranic",   text: "الحمد لله رب العالمين"},
+  {tag: "long",      text: "ذهب الطلابُ المجتهدونَ في المدرسةِ القريبةِ من الجامعةِ إلى الحديقةِ الجميلةِ"},
+];
+
+function loadHard() {
+  $("#hardList").innerHTML = HARD_EXAMPLES.map(e => `
+    <div class="border rounded p-2 cursor-pointer hover:bg-slate-50"
+         onclick="document.querySelector('#inputText').value='${e.text}';
+                  document.querySelector('[data-tab=\\'analyze\\']').click();">
+      <div class="text-xs text-slate-500">${e.tag}</div>
+      <div class="arabic">${e.text}</div>
+    </div>`).join("");
+}
+
+const FAILURE_ROWS = [
+  ["mudaaf_ilayh", "mafoul_bih", 32],
+  ["mudaaf_ilayh", "mubtada", 29],
+  ["ism_majrur", "matuf", 21],
+  ["mudaaf_ilayh", "fail", 13],
+  ["mudaaf_ilayh", "ism_majrur", 13],
+  ["mafoul_bih", "fail", 12],
+  ["ism_majrur", "mubtada", 8],
+  ["mudaaf_ilayh", "ism_inna", 7],
+  ["ism_majrur", "naat", 7],
+  ["mudaaf_ilayh", "khabar_inna", 6],
+];
+
+function loadFailures() {
+  $("#failuresTable").innerHTML = FAILURE_ROWS.map(([g, p, n]) => `
+    <tr class="border-b">
+      <td class="px-2 py-1 font-mono">${g}</td>
+      <td class="px-2 py-1 font-mono">${p}</td>
+      <td class="px-2 py-1 text-right">${n}</td>
+    </tr>`).join("");
+}
 
 // Dark toggle
 $("#darkToggle").addEventListener("click", () => document.body.classList.toggle("dark"));
@@ -250,21 +397,29 @@ async function loadEvalDashboard() {
 $("#compareBtn").addEventListener("click", async () => {
   const text = $("#inputText").value.trim();
   if (!text) return;
+  $("#compareOut").innerHTML = '<div class="text-slate-500 text-sm">Comparing...</div>';
   const r = await fetch("/api/compare", {
     method: "POST", headers: {"content-type": "application/json"},
     body: JSON.stringify({text}),
   }).then(r => r.json());
-  const renderSide = (name, d) => {
+  const renderSide = (name, d, banner) => {
     if (!d || d.error) return `<div class="panel rounded p-3 text-sm text-red-600">${name}: ${d?.error || "unavailable"}</div>`;
     const grid = d.tokens.map(t => `
-      <div class="border rounded p-1 inline-block m-0.5 text-center" style="min-width:75px">
+      <div class="border rounded p-1 inline-block m-0.5 text-center" style="min-width:70px">
         <div class="arabic" style="font-size:1rem">${t.surface}</div>
         <div class="text-xs"><span class="pill ${caseClass(t.case)}">${t.case || "—"}</span></div>
         <div class="text-[10px] text-slate-500">${t.role || "—"}</div>
       </div>`).join("");
-    return `<div class="panel rounded p-3"><h3 class="font-medium mb-2">${name}</h3><div class="flex flex-wrap" dir="rtl">${grid}</div></div>`;
+    return `<div class="panel rounded p-3">
+              <h3 class="font-medium mb-1">${name}</h3>
+              <div class="text-[10px] text-slate-500 mb-2">${banner}</div>
+              <div class="flex flex-wrap" dir="rtl">${grid}</div>
+            </div>`;
   };
-  $("#compareOut").innerHTML = renderSide("phase3a", r.phase3a) + renderSide("stage7", r.stage7);
+  $("#compareOut").innerHTML =
+      renderSide("recovery (validated)", r.recovery, "production checkpoint")
+    + renderSide("phase3a (baseline)",   r.phase3a, "warm-start baseline")
+    + renderSide("stage7 (leaked)",      r.stage7,  "contamination case study — do not deploy");
 });
 </script>
 </body>
