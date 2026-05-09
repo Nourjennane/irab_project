@@ -16,13 +16,22 @@ fixes** and **infrastructure improvements**, audit train/test leakage
 before claiming any result, and report on both clean
 (Gazelle, MASAQ-Quranic) and contaminated (UD-PADT-test) held-out sets.
 
-On the clean held-out sets, the curriculum-trained model improves
-*fully-correct accuracy* by *Δ X.XX* points over the Phase 3-A
-baseline; calibration, however, drifts unfavourably during late-stage
-training, and we discuss this trade-off explicitly. Our contribution is
-not only the model but a **reproducibility-first methodology**:
-single-evaluator comparison, leakage audit before headline numbers, and
-fully-observable vs full-noisy reporting side-by-side.
+On the clean held-out sets, the curriculum-trained recovery model
+improves MASAQ Quranic `fully` by **+0.036 (0.675 → 0.711)** and
+Gazelle `role_f1` by **+0.038 (0.575 → 0.613)** over the Phase 3-A
+baseline, with calibration that is meaningfully healthier than the
+overconfident leaked variant. The improvements are honest and modest;
+this paper also documents an instructive **case study of training data
+contamination**, where an early curriculum run with held-out sources
+accidentally in the training pool produced "perfect" 0.999 MASAQ
+scores that vanished entirely once the leakage was removed and the
+training script's source list was strictly disjoint from the eval set.
+
+Our contribution is not only the model but a **reproducibility-first
+methodology**: single-evaluator comparison, leakage audit before
+headline numbers, fully-observable vs full-noisy reporting side-by-side,
+and three independent runtime assertions enforcing the train/test
+split.
 
 ## 1. Introduction
 
@@ -160,41 +169,84 @@ contamination caveat, not as a headline.
 
 ## 8. Results
 
-### 8.1 Headline (clean held-out)
+We report two model variants:
 
-| Dataset | Metric | Phase 3-A | Stage 7 | Δ |
+- **stage_7-leaked** — original 7-stage curriculum with `gazelle_test`
+  and `masaq_quranic` accidentally in the training pool. Numbers
+  reported for transparency only; not the headline candidate.
+- **recovery** — leak-free retraining (job 491875) where the held-out
+  sources are *forbidden* in any training, rehearsal, or hard-negative
+  pool. Three independent assertions enforce this. This is the
+  validated candidate.
+
+Both models are scored by the *same* `eval_v2` evaluator on the *full*
+uncapped test sets.
+
+### 8.1 Headline (clean held-out, full noisy evaluation)
+
+| Dataset | Metric | Phase 3-A | Recovery | Δ |
 |---|---|---|---|---|
-| Gazelle | case_acc | *X.XX* | *Y.YY* | *Δ* |
-| Gazelle | role_f1 | *X.XX* | *Y.YY* | *Δ* |
-| Gazelle | marker_em | *X.XX* | *Y.YY* | *Δ* |
-| Gazelle | fully | *X.XX* | *Y.YY* | *Δ* |
-| MASAQ | case_acc | *X.XX* | *Y.YY* | *Δ* |
-| MASAQ | role_f1 | *X.XX* | *Y.YY* | *Δ* |
-| MASAQ | marker_em | *X.XX* | *Y.YY* | *Δ* |
-| MASAQ | fully | *X.XX* | *Y.YY* | *Δ* |
-| MASAQ | quranic_fully | *X.XX* | *Y.YY* | *Δ* |
-
-(Numbers populated automatically by `scripts/eval/aggregate_full_eval.py`
-into `docs/final_eval/final_eval_report.md`; this draft cites that
-report.)
+| Gazelle | case_acc | 0.638 | 0.646 | +0.008 |
+| Gazelle | role_f1  | 0.575 | 0.613 | **+0.038** |
+| Gazelle | marker_em | 0.684 | 0.653 | −0.031 |
+| Gazelle | fully    | **0.459** | **0.459** | +0.000 |
+| MASAQ   | case_acc | 0.835 | 0.848 | +0.014 |
+| MASAQ   | role_f1  | 0.778 | 0.807 | **+0.029** |
+| MASAQ   | marker_em | 0.718 | 0.710 | −0.008 |
+| MASAQ   | fully    | **0.675** | **0.711** | **+0.036** |
 
 ### 8.2 UD-PADT-test (with contamination caveat)
 
-Reported only because the UD comparison is conventionally expected.
-*Δ X.XX* points but fundamentally inflated by 17 exact-duplicate
-sentences in `distill_v2` and 16 in `ud_padt_train`.
+`ud_padt_test` shares 17 exact-duplicate and 21 normalised-duplicate
+sentences with `distill_v2`, and 16 / 16 with `ud_padt_train`. UD
+numbers are reported for completeness only; not headline. Recovery
+is essentially flat vs Phase 3-A on UD case_acc (−0.008), and
+role/marker/fully are all 0 on UD because UD gold does not populate
+iʿrāb labels.
 
 ### 8.3 Calibration
 
-Calibration gap rose from *0.025 (Phase 3-A)* to *0.20 (stage_7)*. The
-curriculum-trained model is **more accurate but more overconfident**.
-Section 9 attributes this to the head-loss reweighting at later
-curriculum stages.
+The recovery model's calibration on Gazelle improved meaningfully:
+calibration gap moved from **+0.021 (Phase 3-A)** to **−0.052
+(recovery)**. The negative sign indicates the model now sometimes
+*understates* its confidence on correct predictions, which is healthier
+than the contamination-induced overconfidence we observed in
+`stage_7-leaked` (calib gap = 0.999, ECE = 0.218 — direct memorization
+artefacts).
 
-### 8.4 Per-construction breakdown
+On MASAQ, calibration gap rose slightly (0.087 → 0.124) but ECE was
+0.10–0.13 throughout training, an order of magnitude better than the
+0.218 the leaked model produced.
 
-Largest gains: *kana_sisters*, *inna_sisters* — see
-`docs/final_eval/final_eval_tables.json`.
+### 8.4 What did *not* improve
+
+- Marker EM regressed by −0.031 on Gazelle and −0.008 on MASAQ.
+  The label-smoothing + entropy regularization pushed the marker head
+  toward more conservative predictions. A future revision could leave
+  the marker head un-smoothed.
+- Gazelle `fully` is unchanged at 0.459. The 30-sentence sample is
+  small enough that the +0.038 role gain doesn't compound into
+  exact-match wins — different errors fire on different tokens.
+- `construction_f1_macro` is 0.0 on every eval. The training-time
+  evaluator does not emit `ConstructionPrediction` records, so this
+  metric is a known evaluator gap, not a model failure.
+
+### 8.5 Comparison against the leaked stage_7
+
+For full transparency, the contaminated `stage_7-leaked` model from
+the original curriculum run reports (on the same evaluator):
+
+| Dataset | Metric | Phase 3-A | stage_7-leaked | Δ |
+|---|---|---|---|---|
+| Gazelle | fully | 0.459 | 0.377 | −0.082 |
+| MASAQ | fully | 0.675 | **0.999** | +0.324 (memorization) |
+| MASAQ | calib_gap | 0.087 | **0.9998** | direct evidence of memorization |
+
+The leaked model's "perfect" MASAQ score (0.999 fully, 0.9998
+calibration gap, 1.000 quranic_fully) is the single clearest indicator
+of training-on-test contamination — a model trained without leakage
+cannot post these numbers on this sample size. We document this case
+study in §9.
 
 ## 9. Ablations and history
 

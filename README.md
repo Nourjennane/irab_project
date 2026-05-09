@@ -14,7 +14,27 @@
 
 This repository builds an end-to-end system that takes a raw Arabic sentence
 and produces, for each token, the canonical iʿrāb labels expected of a
-human reviewer:
+human reviewer.
+
+**Honest headline (`runs/validated_nextgen_recovery/`, vs Phase 3-A baseline,
+both scored on the same `eval_v2` over full uncapped held-out sets):**
+
+| Dataset | role_f1 | fully | Δ fully |
+|---|---|---|---|
+| Gazelle (30 sent, MSA gold) | 0.575 → **0.613** | 0.459 → 0.459 | +0.000 |
+| MASAQ Quranic (624 sent) | 0.778 → **0.807** | 0.675 → **0.711** | **+0.036** |
+
+Calibration on Gazelle: gap moved from +0.021 (Phase 3-A) to −0.052 (recovery)
+— the recovery model is *less* overconfident, which is a real generalization
+improvement.
+
+We also report an early curriculum run that produced an apparent "0.999 MASAQ
+fully" — that result was caused by `gazelle_test` and `masaq_quranic` accidentally
+appearing in the training pool. We document the discovery and the leak-free
+re-run in `docs/paper/PAPER.md` § 8.5 and `docs/leakage_audit/`.
+
+**Per-token outputs:**
+
 
 - **Case** (raf / nasb / jarr / jazm / mabni)
 - **Syntactic role** (mubtada, fail, mafoul_bih, ism_kana, ...)
@@ -22,7 +42,7 @@ human reviewer:
 - **Morphology** (gender, number, definiteness, person, aspect, mood, voice)
 - **Construction membership** (kana sisters, inna sisters, idafa, …)
 
-The current production model is `runs/validated_nextgen_stage7/` — a
+The current production model is `runs/validated_nextgen_recovery/` — a
 curriculum-trained extension of the Phase 3-A baseline that adds
 hierarchical reasoning over morphology → dependency → role → case →
 marker. See [`docs/final_eval/final_eval_report.md`](docs/final_eval/final_eval_report.md)
@@ -196,7 +216,7 @@ from irab_tashkeel.morphology.dep_aware_model import DepAwareStructuredModel
 from transformers import AutoTokenizer
 import torch
 
-ckpt = "runs/validated_nextgen_stage7"
+ckpt = "runs/validated_nextgen_recovery"
 tokenizer = AutoTokenizer.from_pretrained(ckpt)
 model = DepAwareStructuredModel(
     encoder_name="UBC-NLP/AraT5v2-base-1024",
@@ -209,11 +229,11 @@ model.eval()
 # … prepare word_starts/word_ends from tokenized words → forward → argmax
 ```
 
-For ONNX / TorchScript inference, see [`runs/validated_nextgen_stage7/`](runs/validated_nextgen_stage7/).
+For ONNX / TorchScript inference, see [`runs/validated_nextgen_recovery/`](runs/validated_nextgen_recovery/).
 
 ## Reproducibility
 
-[`runs/validated_nextgen_stage7/REPRODUCIBILITY_MANIFEST.json`](runs/validated_nextgen_stage7/REPRODUCIBILITY_MANIFEST.json)
+[`runs/validated_nextgen_recovery/REPRODUCIBILITY_MANIFEST.json`](runs/validated_nextgen_recovery/REPRODUCIBILITY_MANIFEST.json)
 captures git commit, env versions, and dataset SHAs at training time. To
 regenerate the validated model from scratch:
 

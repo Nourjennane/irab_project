@@ -1,14 +1,15 @@
-# Model Card — Validated Nextgen Stage 7
+# Model Card — Validated Nextgen Recovery
 
 ## Overview
 
-- **Name:** validated_nextgen_stage7
+- **Name:** validated_nextgen_recovery
 - **Architecture:** DepAwareStructuredModel (AraT5v2-base encoder + multi-head structured prediction + UD dep-feature input augmentation)
-- **Trained:** 2026-05-09
-- **Training procedure:** 7-stage curriculum, 45,000 steps, lr=1e-5, batch=16, fp32
+- **Trained:** 2026-05-09 (recovery run, leak-free)
+- **Training procedure:** 7-stage curriculum, 7,400 steps, lr=1e-5 with layer-wise decay 0.85, batch=16, fp32, label smoothing 0.05, structured-consistency penalty, exact-fully aux loss, hard-failure sampler, EMA, SWA. Early stop on `strict_unseen_fully` patience 3.
 - **Warm-start:** Phase 3-A baseline (`runs/phase3a_491240/final/`)
-- **Compute:** 1× NVIDIA GPU (Bocconi HPC stud QoS), ~4 hours wall-clock
-- **Frozen at:** `runs/validated_nextgen_stage7/`
+- **Compute:** 1× NVIDIA GPU (Bocconi HPC stud QoS), ~27 minutes wall-clock
+- **Frozen at:** `runs/validated_nextgen_recovery/`
+- **Leakage policy:** `gazelle_test`, `masaq_quranic`, `ud_padt_test` are forbidden from any training, rehearsal, hard-negative, or graph-construction pool. Three independent runtime assertions enforce this. See `src/irab_tashkeel/curriculum/config.py:TEST_SOURCES`.
 
 ## Inputs and outputs
 

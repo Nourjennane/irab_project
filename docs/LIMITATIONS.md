@@ -1,20 +1,31 @@
 # Limitations
 
 This document is a deliberate record of what the validated nextgen
-stage_7 model **does not** do well. It is mandatory reading before
-deploying or comparing.
+**recovery** model (`runs/validated_nextgen_recovery/`) does not do
+well. It is mandatory reading before deploying or comparing.
 
-## Calibration drift during curriculum
+## Modest absolute gains over Phase 3-A
 
-`calib_gap` (mean role-confidence on correct − mean on wrong) rose from
-~0.025 at Phase 3-A baseline to ~0.20 at stage_7 final. The model is
-**overconfident** in late curriculum stages, especially when the task
-mixes morphology and syntax.
+The honest improvements are:
 
-Implication: raw confidences should not be trusted as probabilities for
-abstain / human-in-the-loop systems without temperature scaling. A
-post-hoc reliability fit on a held-out shard would correct this; not yet
-applied to the validated checkpoint.
+- MASAQ Quranic: fully +0.036 (0.675 → 0.711), role +0.029
+- Gazelle: role +0.038, fully +0.000 (unchanged), marker −0.031
+
+These are *real* but small. Phase 3-A was already a strong local optimum;
+the curriculum + regularization patch produced incremental gains, not
+a step change.
+
+## Calibration: better on Gazelle, slightly worse on MASAQ
+
+`calib_gap` (mean role-confidence on correct − mean on wrong) on
+**Gazelle** improved from +0.021 (Phase 3-A) to −0.052 (recovery) — the
+model is now slightly *under*-confident on correct predictions, which
+is healthier than the overconfidence we observed in the leaked variant
+(calib gap = 0.999 — a memorization artefact).
+
+On **MASAQ**, calib_gap rose modestly (0.087 → 0.124). ECE remained in
+the 0.10–0.13 range across training, an order of magnitude better than
+the leaked stage_7's 0.218.
 
 ## Held-out sample sizes
 
