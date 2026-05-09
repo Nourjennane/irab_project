@@ -88,6 +88,17 @@ def main():
                     help="Layer-wise LR decay (encoder slower than heads)")
     ap.add_argument("--llrd_decay", type=float, default=0.85,
                     help="LLRD per-layer decay factor")
+    # Step-7 structural reasoning upgrade
+    ap.add_argument("--graph_freeze_encoder_steps", type=int, default=2000,
+                    help="Freeze encoder weights for first N steps when "
+                         "graph refiner is enabled (item 4 of structural "
+                         "reasoning upgrade)")
+    ap.add_argument("--graph_lr", type=float, default=3e-4,
+                    help="Learning rate for graph_refiner + graph_gate "
+                         "(while encoder is frozen)")
+    ap.add_argument("--edge_dropout_p", type=float, default=0.15,
+                    help="Probability of dropping each dep / construction "
+                         "edge during training")
     args = ap.parse_args()
 
     print("=" * 70)
@@ -120,11 +131,17 @@ def main():
     # gazelle_test, masaq_quranic, ud_padt_test must NEVER enter the
     # training pool. They appear ONLY in the held-out eval set.
     from irab_tashkeel.curriculum.config import TEST_SOURCES, assert_no_test_sources
+    from irab_tashkeel.data_v2.provenance import (
+        ProvenanceManifest, check_split_disjoint,
+    )
+    provenance = ProvenanceManifest.load()
 
     print("\n[1/5] Loading corpus...")
     sentences = []
     train_sources = ["distill_v2", "ud_padt_train", "ud_padt_dev"]
     assert_no_test_sources(train_sources, where="train_curriculum.train_sources")
+    for src in train_sources:
+        provenance.assert_can_load(src, "train")
     for src in train_sources:
         p = ROOT / "data_v2" / "annotated" / src / "all.jsonl"
         if p.exists():
@@ -176,11 +193,13 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(
         args.warm_start if Path(args.warm_start).exists() else args.encoder_name,
     )
-    # Rebuild the DepAwareStructuredModel with the same flags as Phase 3-A
+    # Rebuild the DepAwareStructuredModel with the same flags as Phase 3-A,
+    # plus optional graph refiner (Step-7 structural-reasoning upgrade).
     model = DepAwareStructuredModel(
         encoder_name=args.encoder_name,
         enable_morph_heads=True, morph_heads_enabled=None,
         enable_dep_features=True,
+        enable_graph_refiner=args.enable_graph_refiner,
     )
     if Path(args.warm_start).exists():
         sd = torch.load(Path(args.warm_start) / "pytorch_model.bin",
@@ -193,7 +212,21 @@ def main():
     model.train()
 
     # ----- DataLoader machinery -----
-    collator = SchemaV2Collator(tokenizer)
+    from irab_tashkeel.training_v2.collator import CollatorConfig
+    coll_cfg = CollatorConfig(
+        pad_token_id=tokenizer.pad_token_id or 0,
+        emit_graph=args.enable_graph_refiner,
+    )
+    collator = SchemaV2Collator(tokenizer, config=coll_cfg)
+
+    # Step-4 — encoder freeze for first N steps when graph training begins.
+    if args.enable_graph_refiner and args.graph_freeze_encoder_steps > 0:
+        print(f"  [graph] freezing encoder for first "
+              f"{args.graph_freeze_encoder_steps} steps")
+        for n, p in model.named_parameters():
+            if any(n.startswith(pre) for pre in
+                    ("encoder.", "shared.", "model.encoder.")):
+                p.requires_grad = False
     cfg = TrainerConfig(
         encoder_name=args.encoder_name,
         warm_start_checkpoint=args.warm_start,
@@ -244,10 +277,40 @@ def main():
     # ----- Training loop -----
     print("\n[4/5] Starting curriculum training loop")
     global_step = 0
+    # Step-6 — graph curriculum: which edge types are visible per stage.
+    # Early stages: dep only; middle: + construction + agreement; late: all.
+    GRAPH_CURRICULUM = {
+        1: {1},                            # dep only
+        2: {1},                            # dep only
+        3: {1, 2, 3},                      # + agreement + construction_member
+        4: {1, 2, 3, 4},                   # + clause_member
+        5: {1, 2, 3, 4, 5, 6},             # + governor + overlap
+        6: {1, 2, 3, 4, 5, 6, 7},          # + discourse_link
+        7: None,                           # all (None = no filter)
+    }
+
     while not sched.is_done() and global_step < args.max_total_steps:
         stage_cfg = sched.current_config
         stage_id = sched.current_stage_id
         print(f"\n--- Stage {stage_id}: {stage_cfg.name} ---")
+
+        # Apply stage-specific graph curriculum
+        if args.enable_graph_refiner:
+            keep = GRAPH_CURRICULUM.get(stage_id)
+            collator.config.keep_edge_types = keep
+            print(f"  [graph] stage {stage_id} edge filter: "
+                  f"{'all' if keep is None else sorted(keep)}")
+
+        # Step-4 — unfreeze encoder once we've trained the graph_refiner
+        # for the configured number of steps.
+        if (args.enable_graph_refiner
+                and global_step >= args.graph_freeze_encoder_steps
+                and any(not p.requires_grad for n, p in model.named_parameters()
+                         if any(n.startswith(pre) for pre in
+                                 ("encoder.", "shared.", "model.encoder.")))):
+            print(f"  [graph] unfreezing encoder at step {global_step}")
+            for p in model.parameters():
+                p.requires_grad = True
         print(f"  eligible: {sched.current_pool.n}")
         if sched.current_pool.n == 0:
             print(f"  [skip] empty pool — advancing")
@@ -273,8 +336,20 @@ def main():
             collated = {k: (v.to(device) if hasattr(v, "to") else v)
                         for k, v in collated.items()}
 
+            # Step-5/6 edge dropout + curriculum filter on the dense edge
+            # matrix BEFORE the forward pass. Dep + construction edges get
+            # randomly dropped to prevent graph memorization.
+            edge_idx = collated.get("word_edge_index")
+            if edge_idx is not None and args.edge_dropout_p > 0:
+                from irab_tashkeel.training.augmentations import (
+                    construction_dropout, dep_dropout,
+                )
+                edge_idx = dep_dropout(edge_idx, p=args.edge_dropout_p)
+                edge_idx = construction_dropout(edge_idx, p=args.edge_dropout_p)
+                collated["word_edge_index"] = edge_idx
+
             # Forward + loss
-            out = model(
+            forward_kwargs = dict(
                 input_ids=collated["input_ids"],
                 attention_mask=collated["attention_mask"],
                 word_starts=collated["word_starts"],
@@ -282,6 +357,9 @@ def main():
                 word_mask=collated["word_mask"],
                 return_dict=True,
             )
+            if edge_idx is not None:
+                forward_kwargs["word_edge_index"] = edge_idx
+            out = model(**forward_kwargs)
             logits = {
                 "case":   out["case_logits"], "role":   out["role_logits"],
                 "marker": out["marker_logits"], "pos":   out["pos_logits"],

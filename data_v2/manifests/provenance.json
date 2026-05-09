@@ -1,0 +1,70 @@
+{
+  "sources": [
+    {
+      "name": "distill_v2",
+      "split_role": "train",
+      "provenance_id": "distill_v2:v1",
+      "n_sentences": 11382,
+      "sha256": "61eedb34b2c7d18cc63be3885c8b286be642a25a78e764bac9bb85b1fb13a72b",
+      "source_url": "",
+      "license": "",
+      "date_ingested": "2026-05-09",
+      "notes": ""
+    },
+    {
+      "name": "ud_padt_train",
+      "split_role": "train",
+      "provenance_id": "ud_padt_train:v1",
+      "n_sentences": 6075,
+      "sha256": "7b8583bd5c6077da2e12840cc1b3736248b58b32915e0d58fed2e2d9c5598f92",
+      "source_url": "",
+      "license": "",
+      "date_ingested": "2026-05-09",
+      "notes": ""
+    },
+    {
+      "name": "ud_padt_dev",
+      "split_role": "dev",
+      "provenance_id": "ud_padt_dev:v1",
+      "n_sentences": 909,
+      "sha256": "21ae6528980a7e201d9cacfc46a46ea0dfc20e39720a2243f0f893c58af96eab",
+      "source_url": "",
+      "license": "",
+      "date_ingested": "2026-05-09",
+      "notes": ""
+    },
+    {
+      "name": "ud_padt_test",
+      "split_role": "test",
+      "provenance_id": "ud_padt_test:v1",
+      "n_sentences": 680,
+      "sha256": "600deba71cc22cb44517604cb591c4b65f6f76aff87270615ffcd99e6208c1e3",
+      "source_url": "",
+      "license": "",
+      "date_ingested": "2026-05-09",
+      "notes": ""
+    },
+    {
+      "name": "gazelle_test",
+      "split_role": "test",
+      "provenance_id": "gazelle_test:v1",
+      "n_sentences": 30,
+      "sha256": "d289d2c702f87fb9dad0257385f120638c640e42dbc0912e5af4c7d4ffcaed73",
+      "source_url": "",
+      "license": "",
+      "date_ingested": "2026-05-09",
+      "notes": ""
+    },
+    {
+      "name": "masaq_quranic",
+      "split_role": "test",
+      "provenance_id": "masaq_quranic:v1",
+      "n_sentences": 624,
+      "sha256": "8118977c8d92b15f16f766a0b208cc77d968d418fde47871c827d889dad4ca3d",
+      "source_url": "",
+      "license": "",
+      "date_ingested": "2026-05-09",
+      "notes": ""
+    }
+  ]
+}

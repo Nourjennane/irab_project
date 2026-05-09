@@ -1,20 +1,31 @@
-# Hierarchical Neural-Symbolic Reasoning for Arabic Iʿrāb
-## A Curriculum-Trained Multi-Head Architecture with Construction-Aware Evaluation
+# Honest Bottlenecks in Arabic Iʿrāb Generation
+## A Methodology-First Case Study with Negative Architecture Result
 
-> **Status:** draft. Numbers in *italics* are placeholders to be filled
-> from `docs/final_eval/final_eval_tables.json` once Phase A finishes.
+> **Status:** draft. Reframed 2026-05-10 to centre the methodology and
+> the architecture-bottleneck negative result, not the absolute metric.
 
 ## Abstract
 
-We present a hierarchical neural-symbolic architecture for per-token
-Arabic iʿrāb (إعراب) generation. Building on a Phase 3-A baseline
-(AraT5v2-base + morphology + UD dependency features), we train a
-seven-stage curriculum over schema-aligned data to produce structured
-case / role / marker / morphology predictions with construction-aware
-inputs. We honestly distinguish **true model gains** from **evaluator
-fixes** and **infrastructure improvements**, audit train/test leakage
-before claiming any result, and report on both clean
-(Gazelle, MASAQ-Quranic) and contaminated (UD-PADT-test) held-out sets.
+We present a methodology-first case study of Arabic iʿrāb (إعراب)
+generation that centres four honest contributions over headline
+metrics: (1) a large-scale **leakage audit** that detects same-file
+contamination across training and evaluation pools, (2) a
+**curriculum + calibration recovery framework** that restores honest
+training after such contamination is found, (3) a **structural-reasoning
+negative result** showing that explicit graph integration on top of a
+dependency-aware encoder does not materially improve unseen
+generalization at our data scale, and (4) a **bottleneck identification**
+result that reframes the remaining gap as supervision density and
+ambiguity coverage, not architecture.
+
+We build on a Phase 3-A baseline (AraT5v2-base + morphology + UD
+dependency features) and train a seven-stage curriculum over
+schema-aligned data to produce structured case / role / marker /
+morphology predictions with construction-aware inputs. We honestly
+distinguish **true model gains** from **evaluator fixes** and
+**infrastructure improvements**, audit train/test leakage before
+claiming any result, and report on both clean (Gazelle, MASAQ-Quranic)
+and contaminated (UD-PADT-test) held-out sets.
 
 On the clean held-out sets, the curriculum-trained recovery model
 improves MASAQ Quranic `fully` by **+0.036 (0.675 → 0.711)** and
@@ -49,22 +60,36 @@ human-readable explanation.
 
 ### Contributions
 
-1. A hierarchical multi-head architecture combining morphology,
-   dependency, role, case, and marker prediction over a single shared
-   AraT5v2-base encoder.
-2. A seven-stage curriculum (morphology → local syntax → simple
-   constructions → nested syntax → semantic interactions →
-   discourse-sensitive → Quranic/classical) with stage-specific gates.
-3. An independent evaluation pipeline (`eval_v2`) reporting
-   construction-specific, ambiguity-robust, and completeness-aware
-   metrics — all computed by a single evaluator so baselines and
-   candidate models are scored bit-identically.
-4. A train/test leakage audit (Phase B) that surfaces *known
-   contamination* in UD-PADT-test before any headline number is
-   reported.
-5. An honest negative-result accounting: we list the variants that did
-   *not* improve over Phase 3-A (Phase 2 conditioning, Phase 4a taxonomy
-   expansion, Phases 3.1 / R-C / R2 output-hierarchy stacking).
+1. **Large-scale leakage audit** (Phase B + provenance enforcement):
+   exact / normalised / fuzzy / n-gram overlap detection plus
+   same-file-in-both-pools detection — the bug that produced an
+   apparent 0.999 MASAQ fully accuracy on a contaminated curriculum
+   run. Three runtime assertions in
+   `src/irab_tashkeel/curriculum/{config,sampler}.py` and a global
+   `provenance.json` manifest with load-time enforcement.
+2. **Curriculum + calibration recovery framework** that re-trains
+   from a Phase 3-A warm-start under strict no-leakage and recovers
+   honest gains: MASAQ fully +0.036, Gazelle role +0.038, calibration
+   gap on Gazelle moves from +0.021 to −0.052.
+3. **Structural-reasoning negative result**: a graph refiner with
+   edge-aware attention bias, gated residual fusion, and per-stage
+   edge-type curriculum trains stably and shows positive
+   training-time ablation deltas (+0.006 to +0.013), but does **not**
+   exceed the regularization-only recovery model on the full uncapped
+   held-out sets.
+4. **Bottleneck identification + supervision infrastructure**: a
+   failure-analysis engine, hard-case benchmark builder, active-learning
+   miner, semantic-ambiguity supervision schema with
+   `alternative_valid_analyses`, and construction-governor supervision
+   schema — all motivated by the negative graph result, all designed
+   to enable the next round of work to be data-quality-driven rather
+   than architecture-driven.
+5. **Honest evaluation methodology**: single-evaluator comparisons,
+   full-noisy + fully-observable side-by-side, per-construction
+   stratification, calibration with ECE + reliability bins, and a
+   negative-result accounting documenting failed variants
+   (Phase 2 conditioning, Phase 4a taxonomy, Phases 3.1 / R-C / R2
+   output-hierarchy stacking).
 
 ## 2. Related work
 

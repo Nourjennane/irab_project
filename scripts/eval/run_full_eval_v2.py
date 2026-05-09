@@ -73,13 +73,19 @@ def _load_model(ckpt_dir: Path, encoder_name: str, device):
     import torch
     from irab_tashkeel.morphology.dep_aware_model import DepAwareStructuredModel
 
+    sd = torch.load(ckpt_dir / "pytorch_model.bin", map_location="cpu",
+                    weights_only=True)
+    # Auto-detect whether the checkpoint was trained with the graph refiner:
+    # if any graph_refiner.* keys exist, enable it on construction so
+    # state_dict load matches.
+    has_graph = any(k.startswith("graph_refiner.") or k == "graph_gate"
+                    for k in sd)
     model = DepAwareStructuredModel(
         encoder_name=encoder_name,
         enable_morph_heads=True, morph_heads_enabled=None,
         enable_dep_features=True,
+        enable_graph_refiner=has_graph,
     )
-    sd = torch.load(ckpt_dir / "pytorch_model.bin", map_location="cpu",
-                    weights_only=True)
     missing, unexpected = model.load_state_dict(sd, strict=False)
     if missing:
         print(f"  [warn] missing keys: {len(missing)} (first 3: {missing[:3]})")
