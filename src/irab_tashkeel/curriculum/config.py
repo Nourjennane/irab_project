@@ -8,11 +8,41 @@ validation gate must pass before advancing.
 These configs are the contract between the corpus (data_v2) and
 the training pipeline. Modifying them changes the curriculum
 schedule directly without touching trainer code.
+
+Strict-leakage policy
+---------------------
+
+The constants ``TEST_SOURCES`` and ``DEV_SOURCES`` define names
+that may **never** appear in ``allowed_sources`` /
+``preferred_sources`` of any training stage. Code that builds
+training pools must assert against these.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
+
+
+# ---------------------------------------------------------------------------
+# Held-out source policy — sentences from these sources are FORBIDDEN
+# in any training pool, rehearsal pool, hard-negative pool, or graph
+# construction. They appear ONLY in the final eval set.
+# ---------------------------------------------------------------------------
+
+TEST_SOURCES = frozenset({"gazelle_test", "masaq_quranic", "ud_padt_test"})
+DEV_SOURCES  = frozenset({"ud_padt_dev"})
+
+
+def assert_no_test_sources(sources, where: str = ""):
+    """Hard assertion that no source in ``sources`` is a held-out test source."""
+    bad = [s for s in sources if s in TEST_SOURCES]
+    if bad:
+        raise AssertionError(
+            f"FORBIDDEN test source(s) {bad} appearing in {where!r}. "
+            f"TEST_SOURCES={sorted(TEST_SOURCES)} must NEVER enter the "
+            f"training/rehearsal/hard-negative pools. "
+            f"Re-check curriculum config and dataset-loading code."
+        )
 
 
 @dataclass
@@ -116,8 +146,7 @@ DEFAULT_STAGES: Dict[int, StageConfig] = {
                     "single kāna sister, single mawṣūl). Drop ambiguous.",
         difficulty_range=(1, 3),
         preferred_sources=["distill_v2", "ud_padt_train"],
-        allowed_sources=["distill_v2", "ud_padt_train", "ud_padt_dev",
-                          "masaq_quranic"],
+        allowed_sources=["distill_v2", "ud_padt_train", "ud_padt_dev"],
         max_semantic_pressure=1,
         drop_ambiguous_constructions=True,
         keep_edge_types=["dep", "construction_member", "agreement"],
@@ -131,8 +160,7 @@ DEFAULT_STAGES: Dict[int, StageConfig] = {
                     "sentences with overlap permitted.",
         difficulty_range=(1, 4),
         preferred_sources=["ud_padt_train", "distill_v2"],
-        allowed_sources=["ud_padt_train", "ud_padt_dev", "ud_padt_test",
-                          "distill_v2", "masaq_quranic"],
+        allowed_sources=["ud_padt_train", "ud_padt_dev", "distill_v2"],
         max_semantic_pressure=2,
         keep_edge_types=["dep", "construction_member", "agreement",
                           "clause_member"],
@@ -146,9 +174,8 @@ DEFAULT_STAGES: Dict[int, StageConfig] = {
                     "naʿt, istithnāʾ munqaṭiʿ vs muttaṣil, ambiguous "
                     "attachment.",
         difficulty_range=(1, 5),
-        preferred_sources=["distill_v2", "ud_padt_train", "masaq_quranic"],
-        allowed_sources=["distill_v2", "ud_padt_train", "ud_padt_dev",
-                          "ud_padt_test", "masaq_quranic"],
+        preferred_sources=["distill_v2", "ud_padt_train"],
+        allowed_sources=["distill_v2", "ud_padt_train", "ud_padt_dev"],
         min_semantic_pressure=2,
         keep_edge_types=["dep", "construction_member", "agreement",
                           "clause_member", "semantic_link"],
@@ -161,8 +188,8 @@ DEFAULT_STAGES: Dict[int, StageConfig] = {
         description="Sentences requiring cross-sentence context — pronoun "
                     "antecedents, topic continuation, rhetorical relations.",
         difficulty_range=(1, 6),
-        preferred_sources=["masaq_quranic", "distill_v2"],
-        allowed_sources=["distill_v2", "masaq_quranic", "ud_padt_train"],
+        preferred_sources=["distill_v2", "ud_padt_train"],
+        allowed_sources=["distill_v2", "ud_padt_train", "ud_padt_dev"],
         min_semantic_pressure=2,
         keep_edge_types=["dep", "construction_member", "agreement",
                           "clause_member", "semantic_link", "discourse_link",
@@ -173,18 +200,26 @@ DEFAULT_STAGES: Dict[int, StageConfig] = {
     ),
     7: StageConfig(
         stage_id=7, name="quranic_classical",
-        description="Quranic + classical Arabic complexity: omitted "
-                    "elements, archaic patterns, multi-construction "
-                    "overlap with semantic + discourse pressure.",
+        description="Hardest classical / nested / overlapping cases drawn "
+                    "from distill_v2 + UD train; the *evaluation* set "
+                    "carries the held-out Quranic split.",
         difficulty_range=(1, 7),
-        preferred_sources=["masaq_quranic"],
-        allowed_sources=["masaq_quranic", "distill_v2", "ud_padt_train"],
+        preferred_sources=["distill_v2", "ud_padt_train"],
+        allowed_sources=["distill_v2", "ud_padt_train", "ud_padt_dev"],
         keep_edge_types=None,                      # all edge types
         rehearsal_ratio=0.35,
-        gate_metric="quranic_fully", gate_threshold=0.20,
+        gate_metric="fully", gate_threshold=0.30,
         target_steps=4000, max_steps=20000,
     ),
 }
+
+
+# Sanity check at module load: no stage may carry a TEST_SOURCES name.
+for _sid, _cfg in DEFAULT_STAGES.items():
+    assert_no_test_sources(_cfg.allowed_sources,
+                           where=f"DEFAULT_STAGES[{_sid}].allowed_sources")
+    assert_no_test_sources(_cfg.preferred_sources,
+                           where=f"DEFAULT_STAGES[{_sid}].preferred_sources")
 
 
 def get_stage(stage_id: int) -> StageConfig:

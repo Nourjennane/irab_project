@@ -102,8 +102,23 @@ class CurriculumScheduler:
 
     # -- batch iteration -----------------------------------------------------
 
-    def make_sampler(self, batch_size: int = 32) -> StratifiedSampler:
-        """Return a sampler for the current stage."""
+    def make_sampler(self, batch_size: int = 32, *,
+                     hard_failure: bool = False) -> StratifiedSampler:
+        """Return a sampler for the current stage.
+
+        If ``hard_failure`` is True, returns a
+        :class:`HardFailureSampler` (item 2 of the recovery patch),
+        which upweights sentences carrying high-priority T-codes.
+        """
+        if hard_failure:
+            from ..training.hard_failure_sampler import HardFailureSampler
+            return HardFailureSampler(
+                current_pool=self.current_pool,
+                earlier_pools=self.earlier_pools(),
+                config=self.current_config,
+                batch_size=batch_size,
+                seed=self.seed + self.current_stage_id,
+            )
         return StratifiedSampler(
             current_pool=self.current_pool,
             earlier_pools=self.earlier_pools(),

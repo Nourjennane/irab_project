@@ -166,44 +166,81 @@ def _morph_macro_f1(model, tokenizer, sentences: List[Sentence],
     return sum(per_axis_acc) / len(per_axis_acc)
 
 
+def _outcomes_filter(outcomes, predicate):
+    return [o for o in outcomes if predicate(o)]
+
+
 def gate_metrics_for_stage(
     stage_id: int,
     model, tokenizer, eval_sentences: List[Sentence],
     *, batch_size: int = 32,
 ) -> Dict[str, float]:
-    """Compute the metric dict for the current stage's gate.
+    """Compute the full metric dict for the current stage's gate.
 
-    Stage gate metric mapping (from
-    :data:`curriculum.config.DEFAULT_STAGES`):
+    Item 13 — every eval reports:
 
-      stage 1 → morph_macro_f1
-      stage 2 → role_f1     (interpreted as role_acc)
-      stage 3 → construction_f1_macro
-      stages 4-6 → fully
-      stage 7 → quranic_fully
+      - overall fully + per-axis fully (case-only, role-only, marker-only)
+      - strict_unseen_fully (the headline anti-leakage metric)
+      - nested_fully  (clause depth ≥ 2)
+      - ambiguity_fully (high ambiguity score)
+      - long_range_fully (sentence length ≥ 25)
+      - overlap_fully (multi-construction sentences)
+      - calibration gap + ECE (already exposed)
+      - confidence_histogram (per-bin counts at 0.0..1.0 in 0.1 steps)
 
-    Returns a dict containing all of these so the scheduler can
-    look up whichever it needs.
+    Stage gate metric mapping unchanged at gate level; the recovery
+    patch (item 11) is implemented by the trainer's early-stop logic
+    consuming ``strict_unseen_fully`` from this dict.
     """
     if not eval_sentences:
         return {}
 
     metrics: Dict[str, float] = {}
 
-    # Always compute the per-field aggregates (cheap)
     preds = predict_for_eval(model, tokenizer, eval_sentences, batch_size=batch_size)
     outcomes = extract_outcomes(eval_sentences, preds)
+
+    # ---------------- overall ----------------
     agg = aggregate_outcomes(outcomes)
     metrics["case_acc"]   = agg["case_acc"]
-    metrics["role_f1"]    = agg["role_acc"]    # acc as F1 proxy
+    metrics["role_f1"]    = agg["role_acc"]
     metrics["role_acc"]   = agg["role_acc"]
     metrics["marker_em"]  = agg["marker_em"]
     metrics["fully"]      = agg["fully"]
     metrics["calib_gap"]  = agg["calib_gap"]
 
-    # Construction detection F1 — predictions don't yet emit
-    # ConstructionPrediction, so this returns zeros. Reserved for
-    # the future when the trainer's eval emits constructions.
+    # ---------------- strict unseen (item 11/13) ----------------
+    # Strict unseen = restrict to fully-observable tokens (where all 3
+    # gold labels are populated). This is the canonical anti-noise
+    # signal. The early-stop logic uses this metric.
+    strict = _outcomes_filter(outcomes, lambda o: o.is_fully_observable)
+    if strict:
+        s_agg = aggregate_outcomes(strict)
+        metrics["strict_unseen_fully"]  = s_agg["fully"]
+        metrics["strict_unseen_case"]   = s_agg["case_acc"]
+        metrics["strict_unseen_role"]   = s_agg["role_acc"]
+        metrics["strict_unseen_marker"] = s_agg["marker_em"]
+    else:
+        metrics["strict_unseen_fully"]  = 0.0
+        metrics["strict_unseen_case"]   = 0.0
+        metrics["strict_unseen_role"]   = 0.0
+        metrics["strict_unseen_marker"] = 0.0
+
+    # ---------------- nested / long-range / overlap / ambiguity ----------------
+    nested_o    = _outcomes_filter(outcomes, lambda o: o.clause_depth >= 2)
+    long_o      = _outcomes_filter(outcomes, lambda o: o.sentence_length >= 25)
+    overlap_o   = _outcomes_filter(outcomes, lambda o: len(o.construction_families) >= 2)
+    ambig_o     = _outcomes_filter(outcomes, lambda o: o.semantic_pressure >= 2)
+
+    for tag, sub in [("nested", nested_o), ("long_range", long_o),
+                      ("overlap", overlap_o), ("ambiguity", ambig_o)]:
+        if sub:
+            sub_agg = aggregate_outcomes(sub)
+            metrics[f"{tag}_fully"] = sub_agg["fully"]
+        else:
+            metrics[f"{tag}_fully"] = 0.0
+
+    # Construction detection F1 (placeholder — see eval_v2)
     cd = construction_detection_metrics(eval_sentences, preds)
     if cd:
         f1s = [m.f1 for m in cd.values()]
@@ -219,11 +256,46 @@ def gate_metrics_for_stage(
     else:
         metrics["quranic_fully"] = metrics["fully"]
 
-    # Stage-1: morph macro F1 (computed separately because morph
-    # heads aren't part of the SentencePrediction adapter)
+    # Stage-1: morph macro F1
     if stage_id == 1:
         metrics["morph_macro_f1"] = _morph_macro_f1(
             model, tokenizer, eval_sentences, batch_size=batch_size,
         )
+
+    # Confidence histogram (item 6 D / 13)
+    bins = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01]
+    hist = [0] * (len(bins) - 1)
+    confs = []
+    for o in outcomes:
+        for c in (o.pred_role_conf, o.pred_case_conf, o.pred_marker_conf):
+            if c is not None:
+                confs.append(c)
+    for c in confs:
+        for i in range(len(bins) - 1):
+            if bins[i] <= c < bins[i + 1]:
+                hist[i] += 1
+                break
+    metrics["_conf_hist"] = hist
+    metrics["_conf_n"] = len(confs)
+
+    # ECE (10-bin)
+    if confs:
+        bin_n = [0] * 10
+        bin_correct = [0] * 10
+        bin_conf = [0.0] * 10
+        for o in outcomes:
+            if o.pred_role_conf is None or o.role_correct is None:
+                continue
+            b = min(9, int(o.pred_role_conf * 10))
+            bin_n[b] += 1
+            bin_conf[b] += o.pred_role_conf
+            if o.role_correct:
+                bin_correct[b] += 1
+        n = sum(bin_n) or 1
+        ece = sum(bin_n[b] * abs(bin_conf[b] / max(bin_n[b], 1) - bin_correct[b] / max(bin_n[b], 1))
+                   for b in range(10)) / n
+        metrics["ece"] = round(ece, 4)
+    else:
+        metrics["ece"] = 0.0
 
     return metrics

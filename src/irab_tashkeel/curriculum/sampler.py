@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Iterator, List, Optional, Tuple
 
 from ..data_v2.schema_v2 import Sentence
-from .config import StageConfig
+from .config import StageConfig, TEST_SOURCES, assert_no_test_sources
 
 
 # ===========================================================================
@@ -32,7 +32,15 @@ from .config import StageConfig
 # ===========================================================================
 
 def stage_eligibility(s: Sentence, cfg: StageConfig) -> bool:
-    """Return True iff ``s`` is eligible for ``cfg`` per all filters."""
+    """Return True iff ``s`` is eligible for ``cfg`` per all filters.
+
+    Hard refuses any sentence whose ``metadata.source`` is in
+    ``TEST_SOURCES`` regardless of stage config — defence in depth
+    against accidentally-permissive ``allowed_sources``.
+    """
+    if s.metadata.source in TEST_SOURCES:
+        return False
+
     d = s.curriculum.difficulty_level
     if d < cfg.difficulty_range[0] or d > cfg.difficulty_range[1]:
         return False
@@ -78,7 +86,14 @@ class StagePool:
 
 
 def build_stage_pool(sentences: List[Sentence], cfg: StageConfig) -> StagePool:
-    """Filter sentences to those eligible for the stage; bucket by source."""
+    """Filter sentences to those eligible for the stage; bucket by source.
+
+    Asserts that the resulting pool contains no test-source sentences.
+    """
+    assert_no_test_sources(cfg.allowed_sources,
+                           where=f"build_stage_pool(stage={cfg.stage_id}).allowed_sources")
+    assert_no_test_sources(cfg.preferred_sources,
+                           where=f"build_stage_pool(stage={cfg.stage_id}).preferred_sources")
     eligible: List[Sentence] = []
     by_source: Dict[str, List[Sentence]] = {}
     for s in sentences:
@@ -86,6 +101,9 @@ def build_stage_pool(sentences: List[Sentence], cfg: StageConfig) -> StagePool:
             continue
         eligible.append(s)
         by_source.setdefault(s.metadata.source, []).append(s)
+    # Final assertion: no test-source ended up in the pool.
+    assert_no_test_sources(by_source.keys(),
+                           where=f"build_stage_pool(stage={cfg.stage_id}).result")
     return StagePool(stage_id=cfg.stage_id, sentences=eligible,
                      by_source=by_source)
 

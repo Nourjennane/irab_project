@@ -57,6 +57,37 @@ def main():
     ap.add_argument("--eval_max_sentences", type=int, default=200,
                     help="Cap eval set to keep periodic gate-checks cheap")
     ap.add_argument("--encoder_name", default="UBC-NLP/AraT5v2-base-1024")
+
+    # Recovery-patch ablation flags (item 14)
+    ap.add_argument("--use_hard_failure_sampler", action="store_true",
+                    help="item 2: WeightedRandomSampler over T-codes")
+    ap.add_argument("--contrastive_lambda", type=float, default=0.0,
+                    help="item 3: hard-negative contrastive weight (0 = off)")
+    ap.add_argument("--enable_graph_refiner", action="store_true",
+                    help="item 4+5: graph refinement layer")
+    ap.add_argument("--label_smoothing", type=float, default=0.05,
+                    help="item 6 A: cross-entropy label smoothing")
+    ap.add_argument("--entropy_reg_lambda", type=float, default=0.01,
+                    help="item 6 B: entropy regularization weight")
+    ap.add_argument("--consistency_lambda", type=float, default=0.2,
+                    help="item 9: structured-consistency penalty weight")
+    ap.add_argument("--fully_aux_lambda", type=float, default=0.5,
+                    help="item 10: exact-fully aux loss weight")
+    ap.add_argument("--construction_dropout_p", type=float, default=0.12,
+                    help="item 8: drop construction edges at training")
+    ap.add_argument("--use_ema", action="store_true",
+                    help="item 12: track EMA weights for eval")
+    ap.add_argument("--early_stop_patience", type=int, default=3,
+                    help="item 11: early stop on strict_unseen_fully")
+    # Bonus generalization tricks
+    ap.add_argument("--use_swa", action="store_true",
+                    help="Stochastic weight averaging across eval snapshots")
+    ap.add_argument("--swa_start_step", type=int, default=2000,
+                    help="Begin SWA snapshots after this many global steps")
+    ap.add_argument("--use_llrd", action="store_true",
+                    help="Layer-wise LR decay (encoder slower than heads)")
+    ap.add_argument("--llrd_decay", type=float, default=0.85,
+                    help="LLRD per-layer decay factor")
     args = ap.parse_args()
 
     print("=" * 70)
@@ -85,11 +116,16 @@ def main():
     from irab_tashkeel.morphology.dep_aware_model import DepAwareStructuredModel
 
     # ----- Load corpus -----
+    # STRICT NO-LEAKAGE POLICY (2026-05-09):
+    # gazelle_test, masaq_quranic, ud_padt_test must NEVER enter the
+    # training pool. They appear ONLY in the held-out eval set.
+    from irab_tashkeel.curriculum.config import TEST_SOURCES, assert_no_test_sources
+
     print("\n[1/5] Loading corpus...")
     sentences = []
-    sources = ["distill_v2", "ud_padt_train", "ud_padt_dev",
-               "masaq_quranic", "gazelle_test"]
-    for src in sources:
+    train_sources = ["distill_v2", "ud_padt_train", "ud_padt_dev"]
+    assert_no_test_sources(train_sources, where="train_curriculum.train_sources")
+    for src in train_sources:
         p = ROOT / "data_v2" / "annotated" / src / "all.jsonl"
         if p.exists():
             sentences.extend(list(read_jsonl(str(p))))
@@ -97,7 +133,16 @@ def main():
             print(f"  [warn] missing {p}")
     if args.limit_corpus:
         sentences = sentences[: args.limit_corpus]
-    print(f"  Loaded {len(sentences)} sentences")
+    print(f"  Loaded {len(sentences)} TRAIN sentences "
+          f"(forbidden: {sorted(TEST_SOURCES)})")
+    # Hard runtime assertion: no test source slipped in
+    bad = [s.metadata.source for s in sentences
+           if s.metadata.source in TEST_SOURCES]
+    if bad:
+        raise AssertionError(
+            f"LEAK: {len(bad)} test-source sentences found in training pool "
+            f"({set(bad)}). Aborting."
+        )
 
     # ----- Curriculum scheduler -----
     print("\n[2/5] Building curriculum scheduler...")
@@ -105,18 +150,26 @@ def main():
     for sid, info in sched.stage_summary().items():
         print(f"  stage {sid} ({info['name']:25}): n={info['n_eligible']:5d}")
 
-    # Held-out eval set: pick gazelle_test (gold MSA) by default; for
-    # late stages MASAQ is also relevant. We use both for a single
-    # eval-set; the per-stage metric breakdown distinguishes them.
-    eval_sentences = [s for s in sentences
-                      if s.metadata.source in ("gazelle_test", "masaq_quranic")]
+    # Held-out eval set is loaded SEPARATELY from the training pool.
+    # The training `sentences` list above contains ZERO test-source
+    # records by assertion — so the eval pool must come from disk.
+    eval_sentences = []
+    for src in ("gazelle_test", "masaq_quranic"):
+        p = ROOT / "data_v2" / "annotated" / src / "all.jsonl"
+        if p.exists():
+            eval_sentences.extend(list(read_jsonl(str(p))))
     if args.eval_max_sentences and len(eval_sentences) > args.eval_max_sentences:
-        # Deterministic: sort by id, take prefix. Keeps gazelle_test
-        # entirely (only 30 sentences) and samples MASAQ.
         eval_sentences.sort(key=lambda s: s.sentence_id)
         eval_sentences = eval_sentences[: args.eval_max_sentences]
+    # Sanity: train and eval IDs must not intersect
+    train_ids = {s.sentence_id for s in sentences}
+    leaked = [s.sentence_id for s in eval_sentences if s.sentence_id in train_ids]
+    if leaked:
+        raise AssertionError(
+            f"LEAK: {len(leaked)} eval sentence_ids are also in training pool"
+        )
     print(f"  eval set: {len(eval_sentences)} sentences "
-          f"(gazelle_test + masaq_quranic, capped)")
+          f"(gazelle_test + masaq_quranic; capped at {args.eval_max_sentences})")
 
     # ----- Tokeniser + model -----
     print("\n[3/5] Loading tokeniser + warm-start checkpoint...")
@@ -149,12 +202,44 @@ def main():
         output_root=args.output_root,
     )
 
-    optimizer = torch.optim.AdamW(
-        model.parameters(), lr=cfg.learning_rate,
-        weight_decay=cfg.weight_decay,
-    )
+    if args.use_llrd:
+        from irab_tashkeel.training.llrd import build_param_groups
+        param_groups = build_param_groups(
+            model, base_lr=cfg.learning_rate, decay=args.llrd_decay,
+        )
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=cfg.weight_decay)
+        print(f"  [llrd] {len(param_groups)} param groups; "
+              f"head lr={cfg.learning_rate:.2e}, "
+              f"deepest encoder lr={param_groups[0]['lr']:.2e}")
+    else:
+        optimizer = torch.optim.AdamW(
+            model.parameters(), lr=cfg.learning_rate,
+            weight_decay=cfg.weight_decay,
+        )
+
+    swa_snapshot = None
+    if args.use_swa:
+        from irab_tashkeel.training.swa import SWASnapshot
+        swa_snapshot = SWASnapshot(model, max_snapshots=8)
+        print(f"  [swa] enabled; first snapshot at step {args.swa_start_step}")
 
     trainer = StageTrainer(cfg, sched, model, tokenizer, eval_sentences=[])
+
+    # ----- EMA weights (item 12) -----
+    ema_state = None
+    if args.use_ema:
+        ema_state = {n: p.detach().clone() for n, p in model.named_parameters()}
+        ema_decay = 0.999
+        def _ema_update():
+            with torch.no_grad():
+                for n, p in model.named_parameters():
+                    ema_state[n].mul_(ema_decay).add_(p.detach(), alpha=1 - ema_decay)
+    else:
+        _ema_update = lambda: None  # no-op
+
+    # ----- Early-stop tracker (item 11) -----
+    best_strict = -1.0
+    epochs_since_best = 0
 
     # ----- Training loop -----
     print("\n[4/5] Starting curriculum training loop")
@@ -170,7 +255,10 @@ def main():
             sched.advance_or_continue({stage_cfg.gate_metric: 1.0})
             continue
 
-        sampler = sched.make_sampler(batch_size=args.batch_size)
+        sampler = sched.make_sampler(
+            batch_size=args.batch_size,
+            hard_failure=args.use_hard_failure_sampler,
+        )
 
         # Stage-internal step loop
         stage_start_step = global_step
@@ -212,7 +300,14 @@ def main():
                 if k in collated: labels[f"morph_{axis}"] = collated[k]
 
             ws = cfg.head_weights_for_stage(stage_id)
-            res = compute_multi_head_loss(logits, labels, ws)
+            res = compute_multi_head_loss(
+                logits, labels, ws,
+                label_smoothing=args.label_smoothing,
+                entropy_reg_lambda=args.entropy_reg_lambda,
+                consistency_lambda=args.consistency_lambda,
+                fully_aux_lambda=args.fully_aux_lambda,
+                token_mask=collated.get("word_mask"),
+            )
             loss = res["loss"]
 
             # Defensive: if no head had any valid labels, loss has no grad.
@@ -228,6 +323,7 @@ def main():
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.max_grad_norm)
             optimizer.step()
+            _ema_update()
 
             global_step += 1
             sched.state.steps_in_stage += 1
@@ -244,24 +340,58 @@ def main():
             # stage. Returns a dict; CurriculumScheduler picks out the
             # one matching the current stage's gate_metric.
             if global_step % args.eval_every == 0:
+                # SWA: take a snapshot of the live weights before eval
+                if swa_snapshot is not None and global_step >= args.swa_start_step:
+                    swa_snapshot.update(model)
+                    swa_snapshot.copy_into(model)
+
                 model.eval()
                 metrics = gate_metrics_for_stage(
                     stage_id, model, tokenizer, eval_sentences,
                     batch_size=args.batch_size,
                 )
                 model.train()
+
+                if swa_snapshot is not None and global_step >= args.swa_start_step:
+                    # Restore live weights so training continues from the
+                    # SGD trajectory rather than from the average.
+                    swa_snapshot.restore(model)
                 metric_summary = ", ".join(
                     f"{k}={v:.3f}" for k, v in sorted(metrics.items())
                     if isinstance(v, (int, float))
                 )
                 print(f"  [eval] {metric_summary}")
+
+                # Item 11 — early stop on strict_unseen_fully
+                strict = metrics.get("strict_unseen_fully", 0.0)
+                if strict > best_strict + 1e-4:
+                    best_strict = strict
+                    epochs_since_best = 0
+                else:
+                    epochs_since_best += 1
+                    print(f"  [early_stop] no strict_unseen_fully improvement; "
+                          f"patience {epochs_since_best}/{args.early_stop_patience}")
+                early_stop = epochs_since_best >= args.early_stop_patience
+
                 gate = sched.advance_or_continue(metrics)
                 print(f"  [gate] {gate.decision.value}: {gate.reason}")
-                if gate.decision in (GateDecision.ADVANCE, GateDecision.TIMEOUT_ADVANCE):
+                if gate.decision in (GateDecision.ADVANCE, GateDecision.TIMEOUT_ADVANCE) or early_stop:
+                    # Save SWA-averaged weights (if enabled) so the
+                    # next stage warm-starts from the smoothed loss
+                    # surface, not the noisy SGD endpoint.
+                    if swa_snapshot is not None and global_step >= args.swa_start_step:
+                        swa_snapshot.copy_into(model)
                     stage_dir = out_dir / f"stage_{stage_id}" / "final"
                     trainer.save_checkpoint(stage_dir,
                                               optimizer_state=optimizer.state_dict())
-                    print(f"  [checkpoint] saved {stage_dir}")
+                    if swa_snapshot is not None and global_step >= args.swa_start_step:
+                        swa_snapshot.restore(model)
+                    print(f"  [checkpoint] saved {stage_dir} "
+                          f"({'early_stop' if early_stop else gate.decision.value}"
+                          f"{', swa' if swa_snapshot else ''})")
+                    if early_stop:
+                        epochs_since_best = 0
+                        best_strict = -1.0
                     break
 
             # Hard timeout per stage
