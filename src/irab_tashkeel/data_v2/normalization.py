@@ -196,6 +196,32 @@ def surface_match(a: str, b: str, *, ignore_diacritics: bool = True) -> bool:
            arabic_normalize(b, keep_diacritics=not ignore_diacritics)
 
 
+def quranic_normalize(s: str) -> str:
+    """Quranic-aware normalisation that preserves orthographic distinctions.
+
+    Differences from the default ``arabic_normalize``:
+
+    - **Preserves** alif wasla (ٱ) — distinguishes hamzat-al-waṣl
+      from regular alif. Important for Quranic recitation rules.
+    - **Preserves** alif maqsura (ى) — kept distinct from yāʾ (ي)
+      since Quranic orthography uses both with semantic distinction.
+    - **Preserves** carrier-hamza variants (ؤ ئ).
+    - **Preserves** dagger alif (ألف خنجرية, ٰ) when present (rare).
+
+    Use this for MASAQ / Quranic Arabic Corpus / classical text
+    loaders where the orthographic distinctions carry information.
+
+    NFC normalisation + tatweel removal still apply because those
+    are non-information-bearing in any register.
+    """
+    if not s:
+        return ""
+    s = unicodedata.normalize("NFC", s)
+    s = strip_tatweel(s)
+    s = collapse_whitespace(s)
+    return s
+
+
 def normalize_for_lookup(s: str) -> str:
     """The most aggressive fold — for retrieval keys only.
 
