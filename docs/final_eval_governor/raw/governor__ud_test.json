@@ -1,0 +1,190 @@
+{
+  "checkpoint": "governor",
+  "checkpoint_dir": "runs/nextgen_governor/stage_7/final",
+  "dataset": "ud_test",
+  "dataset_path": "data_v2/annotated/ud_padt_test/all.jsonl",
+  "n_sentences": 680,
+  "n_tokens": 28264,
+  "metrics_full": {
+    "n_words": 28264,
+    "n_observable_case": 14977,
+    "n_observable_role": 0,
+    "n_observable_marker": 0,
+    "n_observable_fully": 0,
+    "case_acc": 0.7963,
+    "role_acc": 0.0,
+    "marker_em": 0.0,
+    "fully": 0.0,
+    "calib_correct": 0.0,
+    "calib_wrong": 0.0,
+    "calib_gap": 0.0
+  },
+  "metrics_observable": {
+    "n_words": 0,
+    "n_observable_case": 0,
+    "n_observable_role": 0,
+    "n_observable_marker": 0,
+    "n_observable_fully": 0,
+    "case_acc": 0.0,
+    "role_acc": 0.0,
+    "marker_em": 0.0,
+    "fully": 0.0,
+    "calib_correct": 0.0,
+    "calib_wrong": 0.0,
+    "calib_gap": 0.0
+  },
+  "calibration": {
+    "case": {
+      "field": "case",
+      "n_total": 14977,
+      "ece": 0.1129,
+      "bins": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.1,
+          "bin_upper": 0.2,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.2,
+          "bin_upper": 0.3,
+          "n": 6,
+          "mean_conf": 0.28347007433573407,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "n": 94,
+          "mean_conf": 0.36475800548462156,
+          "accuracy": 0.2553191489361702
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "n": 261,
+          "mean_conf": 0.4634902246610415,
+          "accuracy": 0.4904214559386973
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "n": 545,
+          "mean_conf": 0.5519798505196878,
+          "accuracy": 0.5027522935779817
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "n": 582,
+          "mean_conf": 0.6496748392729416,
+          "accuracy": 0.5257731958762887
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "n": 749,
+          "mean_conf": 0.7531735047160862,
+          "accuracy": 0.5594125500667557
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "n": 1571,
+          "mean_conf": 0.8608471921186854,
+          "accuracy": 0.527689369828135
+        },
+        {
+          "bin_lower": 0.9,
+          "bin_upper": 1.0,
+          "n": 11169,
+          "mean_conf": 0.9714254779059582,
+          "accuracy": 0.8905004924344166
+        }
+      ],
+      "overall_acc": 0.7963,
+      "mean_conf": 0.9082
+    },
+    "role": {
+      "field": "role",
+      "n_total": 0,
+      "ece": 0.0,
+      "bins": [],
+      "overall_acc": 0.0,
+      "mean_conf": 0.0
+    },
+    "marker": {
+      "field": "marker",
+      "n_total": 0,
+      "ece": 0.0,
+      "bins": [],
+      "overall_acc": 0.0,
+      "mean_conf": 0.0
+    }
+  },
+  "constructions": {
+    "kana_sisters": {
+      "n_gold": 124,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "mawsool": {
+      "n_gold": 997,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "quranic_proxy": {
+      "n_gold": 99,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "inna_sisters": {
+      "n_gold": 457,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "istithna": {
+      "n_gold": 69,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  },
+  "ambiguity": {
+    "n_gold_constructions": 1746,
+    "n_with_alternatives": 175,
+    "n_strict_match": 0,
+    "n_lenient_match": 0,
+    "strict_match_rate": 0.0,
+    "lenient_match_rate": 0.0,
+    "ambiguity_premium": 0.0
+  },
+  "stratified_domain": {
+    "error": "unknown stratify axis: 'construction_families'"
+  },
+  "stratified_family": {
+    "error": "unknown stratify axis: 'construction_families'"
+  }
+}

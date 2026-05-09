@@ -1,0 +1,348 @@
+{
+  "checkpoint": "governor",
+  "checkpoint_dir": "runs/nextgen_governor/stage_7/final",
+  "dataset": "masaq",
+  "dataset_path": "data_v2/annotated/masaq_quranic/all.jsonl",
+  "n_sentences": 624,
+  "n_tokens": 5007,
+  "metrics_full": {
+    "n_words": 5007,
+    "n_observable_case": 4990,
+    "n_observable_role": 999,
+    "n_observable_marker": 2159,
+    "n_observable_fully": 999,
+    "case_acc": 0.8445,
+    "role_acc": 0.8048,
+    "marker_em": 0.7068,
+    "fully": 0.7137,
+    "calib_correct": 0.8744,
+    "calib_wrong": 0.7405,
+    "calib_gap": 0.134
+  },
+  "metrics_observable": {
+    "n_words": 999,
+    "n_observable_case": 999,
+    "n_observable_role": 999,
+    "n_observable_marker": 999,
+    "n_observable_fully": 999,
+    "case_acc": 0.8448,
+    "role_acc": 0.8048,
+    "marker_em": 0.7648,
+    "fully": 0.7137,
+    "calib_correct": 0.8744,
+    "calib_wrong": 0.7405,
+    "calib_gap": 0.134
+  },
+  "calibration": {
+    "case": {
+      "field": "case",
+      "n_total": 4990,
+      "ece": 0.052,
+      "bins": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.1,
+          "bin_upper": 0.2,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.2,
+          "bin_upper": 0.3,
+          "n": 1,
+          "mean_conf": 0.29209497570991516,
+          "accuracy": 1.0
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "n": 37,
+          "mean_conf": 0.3615072240700593,
+          "accuracy": 0.35135135135135137
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "n": 117,
+          "mean_conf": 0.45900088828853053,
+          "accuracy": 0.4188034188034188
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "n": 182,
+          "mean_conf": 0.5531017767204033,
+          "accuracy": 0.5494505494505495
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "n": 191,
+          "mean_conf": 0.649894530236409,
+          "accuracy": 0.6230366492146597
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "n": 314,
+          "mean_conf": 0.7541227712752713,
+          "accuracy": 0.6496815286624203
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "n": 583,
+          "mean_conf": 0.8564338042028568,
+          "accuracy": 0.7530017152658662
+        },
+        {
+          "bin_lower": 0.9,
+          "bin_upper": 1.0,
+          "n": 3565,
+          "mean_conf": 0.9660475139865367,
+          "accuracy": 0.9225806451612903
+        }
+      ],
+      "overall_acc": 0.8445,
+      "mean_conf": 0.8962
+    },
+    "role": {
+      "field": "role",
+      "n_total": 999,
+      "ece": 0.0684,
+      "bins": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.1,
+          "bin_upper": 0.2,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.2,
+          "bin_upper": 0.3,
+          "n": 10,
+          "mean_conf": 0.2657391056418419,
+          "accuracy": 0.2
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "n": 19,
+          "mean_conf": 0.36856540253287867,
+          "accuracy": 0.5263157894736842
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "n": 44,
+          "mean_conf": 0.45534239506179636,
+          "accuracy": 0.4772727272727273
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "n": 55,
+          "mean_conf": 0.5496820016340775,
+          "accuracy": 0.6545454545454545
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "n": 67,
+          "mean_conf": 0.6483449357659069,
+          "accuracy": 0.6716417910447762
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "n": 63,
+          "mean_conf": 0.7508547958873567,
+          "accuracy": 0.7142857142857143
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "n": 136,
+          "mean_conf": 0.8592791044536758,
+          "accuracy": 0.8676470588235294
+        },
+        {
+          "bin_lower": 0.9,
+          "bin_upper": 1.0,
+          "n": 605,
+          "mean_conf": 0.9585315344747433,
+          "accuracy": 0.8710743801652893
+        }
+      ],
+      "overall_acc": 0.8048,
+      "mean_conf": 0.8483
+    },
+    "marker": {
+      "field": "marker",
+      "n_total": 2159,
+      "ece": 0.0771,
+      "bins": [
+        {
+          "bin_lower": 0.0,
+          "bin_upper": 0.1,
+          "n": 0,
+          "mean_conf": 0.0,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.1,
+          "bin_upper": 0.2,
+          "n": 1,
+          "mean_conf": 0.1904936581850052,
+          "accuracy": 0.0
+        },
+        {
+          "bin_lower": 0.2,
+          "bin_upper": 0.3,
+          "n": 27,
+          "mean_conf": 0.2657869303667987,
+          "accuracy": 0.37037037037037035
+        },
+        {
+          "bin_lower": 0.3,
+          "bin_upper": 0.4,
+          "n": 79,
+          "mean_conf": 0.3534347826166998,
+          "accuracy": 0.27848101265822783
+        },
+        {
+          "bin_lower": 0.4,
+          "bin_upper": 0.5,
+          "n": 152,
+          "mean_conf": 0.4609104498828712,
+          "accuracy": 0.42105263157894735
+        },
+        {
+          "bin_lower": 0.5,
+          "bin_upper": 0.6,
+          "n": 182,
+          "mean_conf": 0.5525286322111612,
+          "accuracy": 0.46153846153846156
+        },
+        {
+          "bin_lower": 0.6,
+          "bin_upper": 0.7,
+          "n": 208,
+          "mean_conf": 0.6483923113689973,
+          "accuracy": 0.6105769230769231
+        },
+        {
+          "bin_lower": 0.7,
+          "bin_upper": 0.8,
+          "n": 257,
+          "mean_conf": 0.7523440535430315,
+          "accuracy": 0.708171206225681
+        },
+        {
+          "bin_lower": 0.8,
+          "bin_upper": 0.9,
+          "n": 379,
+          "mean_conf": 0.8526336641928137,
+          "accuracy": 0.7598944591029023
+        },
+        {
+          "bin_lower": 0.9,
+          "bin_upper": 1.0,
+          "n": 874,
+          "mean_conf": 0.9492053297482584,
+          "accuracy": 0.8569794050343249
+        }
+      ],
+      "overall_acc": 0.7068,
+      "mean_conf": 0.7813
+    }
+  },
+  "constructions": {
+    "idafa": {
+      "n_gold": 214,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "inna_sisters": {
+      "n_gold": 159,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "mawsool": {
+      "n_gold": 238,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "istithna": {
+      "n_gold": 62,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "quranic_proxy": {
+      "n_gold": 59,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "kana_sisters": {
+      "n_gold": 33,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "idafa_multi": {
+      "n_gold": 8,
+      "n_pred": 0,
+      "n_match": 0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  },
+  "ambiguity": {
+    "n_gold_constructions": 773,
+    "n_with_alternatives": 164,
+    "n_strict_match": 0,
+    "n_lenient_match": 0,
+    "strict_match_rate": 0.0,
+    "lenient_match_rate": 0.0,
+    "ambiguity_premium": 0.0
+  },
+  "stratified_domain": {
+    "error": "unknown stratify axis: 'construction_families'"
+  },
+  "stratified_family": {
+    "error": "unknown stratify axis: 'construction_families'"
+  }
+}

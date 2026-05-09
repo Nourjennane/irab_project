@@ -398,18 +398,21 @@ class DepAwareStructuredModel(MorphAugmentedStructuredModel):
             # Biaffine scores: (B, W_query, W_key) — score[b, i, j] = how
             # much token i wants j as its governor.
             governor_logits = torch.einsum("bid,bjd->bij", q, k)
-            # Mask invalid head positions (pad tokens) to -inf
+            # Mask invalid head positions (pad tokens) and self-loops with
+            # a large negative number rather than -inf. Using -inf
+            # combined with label_smoothing > 0 in CE poisons the loss
+            # to +inf because the smoothing weight times log_softmax(-inf)
+            # is undefined (eps * -inf = -inf → +inf in NLL).
+            MASK_VAL = -1e9
             mask = word_mask.unsqueeze(1).float()
             governor_logits = governor_logits.masked_fill(
-                mask == 0, float("-inf")
+                mask == 0, MASK_VAL
             )
-            # Self-loops: zero out the diagonal so a token can't be its
-            # own governor (root tokens get governor = -100 in loss).
             B, W = governor_logits.size(0), governor_logits.size(1)
             diag = torch.eye(W, dtype=torch.bool,
                               device=governor_logits.device)
             governor_logits = governor_logits.masked_fill(
-                diag.unsqueeze(0).expand(B, -1, -1), float("-inf")
+                diag.unsqueeze(0).expand(B, -1, -1), MASK_VAL
             )
 
         out: Dict[str, torch.Tensor] = {

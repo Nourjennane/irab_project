@@ -99,6 +99,13 @@ def main():
     ap.add_argument("--edge_dropout_p", type=float, default=0.15,
                     help="Probability of dropping each dep / construction "
                          "edge during training")
+    # Ambiguity-aware phase: governor head + attachment contrastive
+    ap.add_argument("--enable_governor_head", action="store_true",
+                    help="Step 4 of ambiguity phase: biaffine governor "
+                         "prediction head (CE weight 0.5)")
+    ap.add_argument("--attachment_contrastive_lambda", type=float, default=0.0,
+                    help="Step 5 of ambiguity phase: triplet-margin "
+                         "attachment contrastive loss (default off)")
     args = ap.parse_args()
 
     print("=" * 70)
@@ -194,12 +201,14 @@ def main():
         args.warm_start if Path(args.warm_start).exists() else args.encoder_name,
     )
     # Rebuild the DepAwareStructuredModel with the same flags as Phase 3-A,
-    # plus optional graph refiner (Step-7 structural-reasoning upgrade).
+    # plus optional graph refiner (Step-7 structural-reasoning upgrade)
+    # and optional governor head (ambiguity-phase Step 4).
     model = DepAwareStructuredModel(
         encoder_name=args.encoder_name,
         enable_morph_heads=True, morph_heads_enabled=None,
         enable_dep_features=True,
         enable_graph_refiner=args.enable_graph_refiner,
+        enable_governor_head=args.enable_governor_head,
     )
     if Path(args.warm_start).exists():
         sd = torch.load(Path(args.warm_start) / "pytorch_model.bin",
@@ -377,6 +386,11 @@ def main():
                 k = f"morph_{axis}_labels"
                 if k in collated: labels[f"morph_{axis}"] = collated[k]
 
+            # Governor head (Step 4 of ambiguity phase)
+            if "governor_logits" in out:
+                logits["governor"] = out["governor_logits"]
+                labels["governor"] = collated["dep_head_labels"]
+
             ws = cfg.head_weights_for_stage(stage_id)
             res = compute_multi_head_loss(
                 logits, labels, ws,
@@ -387,6 +401,23 @@ def main():
                 token_mask=collated.get("word_mask"),
             )
             loss = res["loss"]
+
+            # Step 5 — attachment contrastive (only if governor head is on
+            # AND the trainer was launched with a positive lambda).
+            if (args.attachment_contrastive_lambda > 0
+                    and "governor_logits" in out):
+                from irab_tashkeel.training.attachment_contrastive import (
+                    contrastive_attachment_loss,
+                )
+                att_loss = contrastive_attachment_loss(
+                    out["governor_logits"], batch_sents,
+                    word_mask=collated["word_mask"],
+                    margin=1.0, k_neg=4,
+                )
+                if att_loss.requires_grad:
+                    loss = loss + args.attachment_contrastive_lambda * att_loss
+                    if global_step % 50 == 0:
+                        print(f"  [att_contrastive] {float(att_loss.item()):.4f}")
 
             # Defensive: if no head had any valid labels, loss has no grad.
             # Skip the backward step instead of crashing.

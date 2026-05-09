@@ -74,6 +74,21 @@ class CollatorConfig:
     max_subtokens:    int = 320
     pad_token_id:     int = 0       # set by tokeniser-specific instantiation
     ignore_index:     int = IGNORE
+    # Graph emission (off by default; trainer flips it on)
+    emit_graph:       bool = False
+    keep_edge_types:  Optional[set] = None   # None = all; else subset of {1,2,3,4,5,6,7,8}
+
+
+# Edge type ids — must stay aligned with models.graph_refiner.EDGE_TYPES
+# and grammar_graph.sparse.EDGE_TYPE_TO_ID.
+EDGE_DEP                 = 1
+EDGE_AGREEMENT           = 2
+EDGE_CONSTRUCTION_MEMBER = 3
+EDGE_CLAUSE_MEMBER       = 4
+EDGE_GOVERNOR            = 5
+EDGE_OVERLAP             = 6
+EDGE_DISCOURSE           = 7
+EDGE_COREF               = 8
 
 
 class SchemaV2Collator:
@@ -177,11 +192,16 @@ class SchemaV2Collator:
                         item["morph"][axis][j], MORPH_TO_ID[axis]
                     )
                 # dep_head — UD-PADT 0-based; IGNORE for -1, else the index
+                # Reject self-loops (head == j): some distill_v2 data carries
+                # spurious self-loops (e.g. tokens 0/1/8 of certain sentences
+                # report their own index as the head — likely a 1-vs-0-index
+                # bug in the upstream parser). Self-loops would also clash
+                # with the diagonal mask in the governor head, producing
+                # +inf CE.
                 head = item["dep_heads"][j]
-                if head is not None and head >= 0 and head < n_kept:
+                if (head is not None and head >= 0 and head < n_kept
+                        and head != j):
                     dep_head_labels[i, j] = head
-                # head == -2 (root marker) → IGNORE; per-word root prediction
-                # is not a head we train against in this iteration
 
         out = {
             "input_ids":      input_ids,
@@ -198,4 +218,74 @@ class SchemaV2Collator:
         }
         for axis, t in morph_labels.items():
             out[f"morph_{axis}_labels"] = t
+
+        # ----- Graph emission (Step 1 of structural reasoning upgrade) -----
+        # Build a dense (B, max_words, max_words) edge-type matrix where
+        # cell [b, i, j] = edge type id (0 = no edge). The graph_refiner
+        # consumes this directly. We do NOT recompute graph structure in
+        # the model forward.
+        if self.config.emit_graph:
+            B = len(batch)
+            edge_index = torch.zeros((B, max_words, max_words), dtype=torch.long)
+            for i, item in enumerate(batch):
+                n_kept = len(kept_words_per_item[i])
+                self._populate_word_edges(
+                    edge_index[i], item, n_kept,
+                    keep_edge_types=self.config.keep_edge_types,
+                )
+            out["word_edge_index"] = edge_index
         return out
+
+    def _populate_word_edges(
+        self, mat: "torch.Tensor", item: Dict[str, Any], n_kept: int,
+        keep_edge_types: Optional[set] = None,
+    ) -> None:
+        """Fill a (W, W) edge-type matrix in place from the dataset item.
+
+        Edge sources:
+          - ``dep_heads[j]`` → bidirectional dep edge (j ↔ head)
+          - constructions   → clique across token_indices (type 3)
+          - construction overlap (≥ 2 share a token) → type 6
+        """
+        if n_kept == 0:
+            return
+        keep = keep_edge_types
+
+        def _set(i: int, j: int, etype: int) -> None:
+            if i == j or i >= n_kept or j >= n_kept or i < 0 or j < 0:
+                return
+            if keep is not None and etype not in keep:
+                return
+            # Don't overwrite a stronger edge with a weaker one. Priority
+            # order: dep > construction_member > overlap > everything else.
+            cur = int(mat[i, j].item())
+            if cur != 0 and cur < etype:
+                # prefer the lower-numbered (more structural) edge type
+                return
+            mat[i, j] = etype
+
+        # Dep edges (bidirectional so message passes both ways)
+        dep_heads = item.get("dep_heads", [])
+        for j in range(min(n_kept, len(dep_heads))):
+            head = dep_heads[j]
+            if isinstance(head, int) and 0 <= head < n_kept:
+                _set(j, head, EDGE_DEP)
+                _set(head, j, EDGE_DEP)
+
+        # Construction edges + overlap detection
+        constructions = item.get("constructions", [])
+        membership: Dict[int, int] = {}     # token_idx → count of constructions
+        for c in constructions:
+            idxs = [i for i in c.get("token_indices", []) if 0 <= i < n_kept]
+            for i in idxs:
+                membership[i] = membership.get(i, 0) + 1
+            # Clique within construction
+            for a in idxs:
+                for b in idxs:
+                    _set(a, b, EDGE_CONSTRUCTION_MEMBER)
+        # Overlap: tokens belonging to ≥ 2 constructions get a stronger
+        # signal — mark all pairs among them with EDGE_OVERLAP.
+        overlap_tokens = [t for t, c in membership.items() if c >= 2]
+        for a in overlap_tokens:
+            for b in overlap_tokens:
+                _set(a, b, EDGE_OVERLAP)
