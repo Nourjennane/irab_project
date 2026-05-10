@@ -1,42 +1,39 @@
-# Heavy / regenerable data
-*.pt
-data/tashkeela/Tashkeela-arabic-diacritized-text-utf8-0.3.tar.bz2
-data/tashkeela/Tashkeela-arabic-diacritized-text-utf8-0.3/
-data/cache/
-data/hf_cache/
-data/ud_padt/
-data/ud_nyuad/
-data/yarob_src/
-data/masaq/
 
-# Most run artefacts (heavy)
-runs/
-
-# But keep the small final adapters (already in tree, ~200 MB each, in git)
-!runs/irab_aragpt2_distill_v2_487443/
-!runs/irab_aragpt2_distill_v2_487443/**
-!runs/irab_acegpt13b_distill_v2_487888/
-!runs/irab_acegpt13b_distill_v2_487888/**
 !runs/baseline_eval_*/
 !runs/baseline_eval_*/**
-# Phase 3 / structured rebuild — keep eval predictions (small ~5 MB total)
-# but NOT the model bin (~680 MB; reproducible via seeded retrain in 4 min).
+!runs/irab_acegpt13b_distill_v2_487888/
+!runs/irab_acegpt13b_distill_v2_487888/**
+!runs/irab_aragpt2_distill_v2_487443/
+!runs/irab_aragpt2_distill_v2_487443/**
 !runs/structured_v1_eval_*/
 !runs/structured_v1_eval_*/**
-
 # Build / venv / caches
-__pycache__/
-*.egg-info/
-logs/
-.venv/
-
+# But keep the small final adapters (already in tree, ~200 MB each, in git)
+# Heavy / regenerable data
 # LaTeX build artefacts
+# Most run artefacts (heavy)
+# Note: data/distill_v2/, data/distilled_irab.jsonl, data/marker_pairs*.jsonl,
+# Phase 3 / structured rebuild — keep eval predictions (small ~5 MB total)
+# are intentionally tracked as of 2026-05-06 so a fresh clone has the corpus
+# but NOT the model bin (~680 MB; reproducible via seeded retrain in 4 min).
+# data/gold_seed.jsonl, data/perturbed_eval.jsonl, data/ambiguity_annotations.jsonl
+# needed to reproduce training. All under 50 MB per file.
+*.egg-info/
+*.pt
+.claude/
+.venv/
+__pycache__/
+data/cache/
+data/hf_cache/
+data/masaq/
+data/tashkeela/Tashkeela-arabic-diacritized-text-utf8-0.3.tar.bz2
+data/tashkeela/Tashkeela-arabic-diacritized-text-utf8-0.3/
+data/ud_nyuad/
+data/ud_padt/
+data/yarob_src/
 docs/paper/*.aux
 docs/paper/*.log
 docs/paper/*.out
 docs/paper/missfont.log
-
-# Note: data/distill_v2/, data/distilled_irab.jsonl, data/marker_pairs*.jsonl,
-# data/gold_seed.jsonl, data/perturbed_eval.jsonl, data/ambiguity_annotations.jsonl
-# are intentionally tracked as of 2026-05-06 so a fresh clone has the corpus
-# needed to reproduce training. All under 50 MB per file.
+logs/
+runs/
