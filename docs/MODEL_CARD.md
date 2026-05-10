@@ -97,7 +97,7 @@ import torch
 from transformers import AutoTokenizer
 from irab_tashkeel.morphology.dep_aware_model import DepAwareStructuredModel
 
-ckpt = "runs/validated_nextgen_stage7"
+ckpt = "runs/validated_nextgen_recovery"
 tok = AutoTokenizer.from_pretrained(ckpt)
 model = DepAwareStructuredModel(
     encoder_name="UBC-NLP/AraT5v2-base-1024",
@@ -109,7 +109,7 @@ model.load_state_dict(sd, strict=False); model.eval()
 
 ## Reproducibility
 
-`runs/validated_nextgen_stage7/REPRODUCIBILITY_MANIFEST.json` captures
+`runs/validated_nextgen_recovery/REPRODUCIBILITY_MANIFEST.json` captures
 git commit hash, environment versions, and dataset SHAs at the freeze
 moment. Re-run [`scripts/freeze_validated_checkpoint.py`](../scripts/freeze_validated_checkpoint.py)
 on the source artifacts to recreate.

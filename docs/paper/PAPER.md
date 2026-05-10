@@ -458,7 +458,7 @@ order:
 
 ## Appendix A — Reproducibility manifest
 
-`runs/validated_nextgen_stage7/REPRODUCIBILITY_MANIFEST.json` captures
+`runs/validated_nextgen_recovery/REPRODUCIBILITY_MANIFEST.json` captures
 git commit, env versions, dataset SHAs at training time. To regenerate
 from scratch:
 

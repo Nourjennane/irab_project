@@ -13,8 +13,13 @@ references. The README below acts as the inventory.
 | Artifact | What it is | Where |
 |---|---|---|
 | `validated_nextgen_recovery` | **Production checkpoint** | `runs/validated_nextgen_recovery/` |
-| `final_validated/` | Frozen Phase A artifact | `runs/final_validated/` |
-| `final_graph_negative_result/` | Frozen graph experiment | `runs/final_graph_negative_result/` |
+| `phase3a_491240` | Phase 3-A baseline (eval comparator) | `runs/phase3a_491240/` |
+
+Frozen-on-HPC-only artefacts (not committed locally) include
+`runs/final_validated/` (the original Phase A leaked stage7 freeze, kept
+for audit) and `runs/final_graph_negative_result/` (the graph experiment
+freeze). Their eval traces live in `docs/final_eval/` and
+`docs/final_graph_negative_result/` respectively.
 
 ## Documented negative results (kept on purpose)
 

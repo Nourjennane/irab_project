@@ -10,9 +10,15 @@
 #SBATCH --output=/home/3415496/irab_project/logs/full_eval_phasea_%j.out
 #SBATCH --error=/home/3415496/irab_project/logs/full_eval_phasea_%j.err
 
-# Phase A — Full Independent Evaluation.
-# Runs Phase 3-A baseline AND nextgen stage_7 over each held-out
-# test set with the same evaluator. Writes per-(model × dataset)
+# Phase A — ORIGINAL Full Independent Evaluation (HISTORICAL).
+# This submission script evaluated the original (later-found-leaked)
+# nextgen `stage_7` checkpoint at `runs/nextgen/stage_7/final`.
+# It is preserved for audit reproducibility. The current production
+# evaluation script is `94_full_eval_recovery.sbatch`, which evaluates
+# the leak-free `runs/validated_nextgen_recovery/`.
+#
+# Runs Phase 3-A baseline AND the original nextgen stage_7 over each
+# held-out test set with the same evaluator. Writes per-(model × dataset)
 # JSON shards, then aggregates into the final report.
 set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"

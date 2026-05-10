@@ -1,6 +1,7 @@
 # Known Failures
 
-Cases the validated nextgen stage_7 model is known to handle poorly.
+Cases the validated nextgen recovery model
+(`runs/validated_nextgen_recovery/`) is known to handle poorly.
 Updated as new failures surface.
 
 ## 1. nasb / jarr ambiguity in idafa edge cases

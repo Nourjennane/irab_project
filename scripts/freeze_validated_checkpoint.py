@@ -1,6 +1,6 @@
-"""Phase C — freeze the validated nextgen stage_7 checkpoint.
+"""Phase C — freeze the validated nextgen recovery checkpoint.
 
-Copies ``runs/nextgen/stage_7/final/`` to ``runs/validated_nextgen_stage7/``
+Copies ``runs/nextgen_recovery/stage_7/final/`` to ``runs/validated_nextgen_recovery/``
 and writes a complete reproducibility manifest:
 
   - config snapshot (training args, head weights per stage)
@@ -199,8 +199,8 @@ def _export_torchscript(checkpoint_dir: Path, out_path: Path,
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--src", default=str(ROOT / "runs" / "nextgen" / "stage_7" / "final"))
-    ap.add_argument("--dst", default=str(ROOT / "runs" / "validated_nextgen_stage7"))
+    ap.add_argument("--src", default=str(ROOT / "runs" / "nextgen_recovery" / "stage_7" / "final"))
+    ap.add_argument("--dst", default=str(ROOT / "runs" / "validated_nextgen_recovery"))
     ap.add_argument("--data_root", default=str(ROOT / "data_v2"))
     ap.add_argument("--encoder_name", default="UBC-NLP/AraT5v2-base-1024")
     ap.add_argument("--skip_onnx", action="store_true")
@@ -225,7 +225,7 @@ def main():
         "training_summary": None,
         "curriculum": None,
     }
-    ts_path = ROOT / "runs" / "nextgen" / "training_summary.json"
+    ts_path = ROOT / "runs" / "nextgen_recovery" / "training_summary.json"
     if ts_path.exists():
         manifest["training_summary"] = json.loads(ts_path.read_text())
     (dst / "REPRODUCIBILITY_MANIFEST.json").write_text(

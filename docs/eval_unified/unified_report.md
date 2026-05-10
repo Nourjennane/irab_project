@@ -12,6 +12,11 @@ differs. The numerators (tokens correct on each axis) are unchanged.
 
 ## final_eval
 
+> **Note:** the `stage7-leaked` rows below are the original Phase A
+> evaluation of the contaminated `runs/nextgen/stage_7/final/`
+> checkpoint. The MASAQ fully = 0.999 line is the leakage signature
+> that triggered the recovery work. Kept for audit reproducibility.
+
 ### gazelle
 
 **Paper convention (denominator = n_words):**
@@ -19,14 +24,14 @@ differs. The numerators (tokens correct on each axis) are unchanged.
 | checkpoint | n_words | case | role | marker | fully |
 |---|---:|---:|---:|---:|---:|
 | phase3a | 134 | 0.6045 | 0.3433 | 0.5000 | **0.2090** |
-| stage7 | 134 | 0.6567 | 0.3731 | 0.4851 | **0.1716** |
+| stage7-leaked | 134 | 0.6567 | 0.3731 | 0.4851 | **0.1716** |
 
 **Fully-observable subset (denominator = n_observable_fully):**
 
 | checkpoint | n_obs_fully | case (on n_obs_case) | role (on n_obs_role) | marker (on n_obs_marker) | fully |
 |---|---:|---:|---:|---:|---:|
 | phase3a | 61 | 0.6378 | 0.5750 | 0.6837 | **0.4590** |
-| stage7 | 61 | 0.6929 | 0.6250 | 0.6633 | **0.3770** |
+| stage7-leaked | 61 | 0.6929 | 0.6250 | 0.6633 | **0.3770** |
 
 ### masaq
 
@@ -35,14 +40,14 @@ differs. The numerators (tokens correct on each axis) are unchanged.
 | checkpoint | n_words | case | role | marker | fully |
 |---|---:|---:|---:|---:|---:|
 | phase3a | 5007 | 0.8316 | 0.1552 | 0.3094 | **0.1346** |
-| stage7 | 5007 | 0.9966 | 0.1995 | 0.4310 | **0.1993** |
+| stage7-leaked | 5007 | 0.9966 | 0.1995 | 0.4310 | **0.1993** |
 
 **Fully-observable subset (denominator = n_observable_fully):**
 
 | checkpoint | n_obs_fully | case (on n_obs_case) | role (on n_obs_role) | marker (on n_obs_marker) | fully |
 |---|---:|---:|---:|---:|---:|
 | phase3a | 999 | 0.8345 | 0.7778 | 0.7175 | **0.6747** |
-| stage7 | 999 | 1.0000 | 1.0000 | 0.9995 | **0.9990** |
+| stage7-leaked | 999 | 1.0000 | 1.0000 | 0.9995 | **0.9990** |
 
 ### ud_test
 
@@ -51,14 +56,14 @@ differs. The numerators (tokens correct on each axis) are unchanged.
 | checkpoint | n_words | case | role | marker | fully |
 |---|---:|---:|---:|---:|---:|
 | phase3a | 28264 | 0.4344 | 0.0000 | 0.0000 | **0.0000** |
-| stage7 | 28264 | 0.4370 | 0.0000 | 0.0000 | **0.0000** |
+| stage7-leaked | 28264 | 0.4370 | 0.0000 | 0.0000 | **0.0000** |
 
 **Fully-observable subset (denominator = n_observable_fully):**
 
 | checkpoint | n_obs_fully | case (on n_obs_case) | role (on n_obs_role) | marker (on n_obs_marker) | fully |
 |---|---:|---:|---:|---:|---:|
 | phase3a | 0 | 0.8197 | 0.0000 | 0.0000 | **0.0000** |
-| stage7 | 0 | 0.8246 | 0.0000 | 0.0000 | **0.0000** |
+| stage7-leaked | 0 | 0.8246 | 0.0000 | 0.0000 | **0.0000** |
 
 ## final_eval_governor
 
