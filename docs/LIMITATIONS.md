@@ -6,6 +6,25 @@ do well, and where the project's current evidence is genuinely thin.
 We list everything we are aware of. Anything missing here is by
 oversight, not by design.
 
+## 0 · Two metric conventions — both reported, primary is the paper's
+
+The project reports every metric under **two denominator conventions**:
+
+- **Paper convention** (primary headline) — denominator = `n_words` for
+  every axis; tokens with missing gold count as wrong on that axis.
+  This is the metric the published paper uses.
+- **Fully-observable subset** (secondary diagnostic) — denominator =
+  tokens where all 3 gold fields (case, role, marker) are populated.
+  This is the metric `eval_v2` computes by default.
+
+The numerators (count of correct tokens on each axis) are identical
+across both conventions. Only the denominators differ. We use the
+paper convention for headlines because it's the metric the published
+paper anchors on; reporting only the fully-observable subset would
+be implicit denominator-shopping. Full unified report:
+[`docs/eval_unified/unified_report.md`](eval_unified/unified_report.md).
+
+
 ## 1 · Held-out sample sizes are small
 
 - **Gazelle** (the cleanest MSA gold) has only **30 sentences / 134

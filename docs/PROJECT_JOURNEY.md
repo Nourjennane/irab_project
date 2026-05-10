@@ -289,19 +289,41 @@ Wall-clock: ~25 minutes. Stages advanced via gate-pass or early-stop.
 
 ### Independent eval (job 491890) — full uncapped
 
+> **Two metric conventions are reported throughout the project.**
+> * **Paper convention** — denominator = `n_words` for every axis;
+>   missing-gold counts as wrong on that axis. Anchors on the
+>   published paper.
+> * **Fully-observable subset** — denominator = tokens with all 3 gold
+>   fields populated (n=61 Gazelle / n=999 MASAQ). Useful diagnostic.
+> Same model, same data, same numerators — only denominators differ.
+> Full unified table: `docs/eval_unified/unified_report.md`.
+
+**Paper convention (denominator = n_words):**
+
 | Dataset | Metric | Phase 3-A | Recovery | Δ |
 |---|---|---|---|---|
-| Gazelle | case | 0.638 | 0.646 | +0.008 |
-| Gazelle | role | 0.575 | 0.613 | **+0.038** |
-| Gazelle | marker | 0.684 | 0.653 | −0.031 |
-| Gazelle | fully | 0.459 | 0.459 | +0.000 |
+| Gazelle (n=134) | case | 0.605 | 0.612 | +0.007 |
+| Gazelle | role | 0.343 | 0.366 | **+0.022** |
+| Gazelle | marker | 0.500 | 0.478 | −0.022 |
+| Gazelle | fully | 0.209 | 0.209 | +0.000 (tied) |
 | Gazelle | calib_gap | +0.021 | **−0.052** | healthier |
-| MASAQ | case | 0.835 | 0.848 | +0.014 |
-| MASAQ | role | 0.778 | 0.807 | **+0.029** |
-| MASAQ | marker | 0.718 | 0.710 | −0.008 |
-| MASAQ | fully | 0.675 | **0.711** | **+0.036** |
+| MASAQ (n=5,007) | case | 0.832 | 0.845 | +0.014 |
+| MASAQ | role | 0.155 | 0.161 | +0.006 |
+| MASAQ | marker | 0.309 | 0.306 | −0.003 |
+| MASAQ | **fully** | 0.135 | **0.142** | **+0.007** ★ (+36 tokens) |
 
-**+0.036 fully on MASAQ is the cleanest single signal in the entire project.**
+**Fully-observable subset (n=61 / 999):**
+
+| Dataset | Metric | Phase 3-A | Recovery | Δ |
+|---|---|---|---|---|
+| Gazelle | fully | 0.459 | 0.459 | +0.000 |
+| Gazelle | role | 0.575 | 0.613 | +0.038 |
+| MASAQ | fully | 0.675 | 0.711 | +0.036 |
+| MASAQ | role | 0.778 | 0.807 | +0.029 |
+
+**The clean honest claim:** +36 tokens correctly relabelled on MASAQ
+fully (out of 5,007). That's +0.007 on the paper convention; +0.036
+on the strict-gold subset. Both reflect the same underlying improvement.
 
 The Gazelle calib_gap moved from +0.021 (slightly over-confident) to
 −0.052 (slightly under-confident — healthier). Marker EM regressed
@@ -310,17 +332,19 @@ slightly because label smoothing pushed the marker head conservative.
 This checkpoint became `runs/validated_nextgen_recovery/` —
 the production model.
 
-### vs the leaked stage_7 (the case study)
+### vs the leaked stage_7 (the case study, fully-observable subset)
 
 | Dataset | Metric | Phase 3-A | Recovery | Leaked stage_7 |
 |---|---|---|---|---|
-| MASAQ | fully | 0.675 | 0.711 | **0.999** ← memorisation |
+| MASAQ | fully (n=999) | 0.675 | 0.711 | **0.999** ← memorisation |
 | MASAQ | calib_gap | 0.087 | 0.124 | **0.9998** ← memorisation |
 | MASAQ | quranic_fully | 0.715 | 0.769 | **1.000** ← memorisation |
-| Gazelle | fully | 0.459 | 0.459 | 0.377 ← regressed |
+| Gazelle | fully (n=61) | 0.459 | 0.459 | 0.377 ← regressed |
 
 The leaked numbers are not gains — they are 28 percentage points of
-memorisation.
+memorisation. (The contamination signature is the same on either
+denominator; we report on the fully-observable subset here because
+calib_gap = 0.9998 is the diagnostic that exposed the leak.)
 
 ---
 

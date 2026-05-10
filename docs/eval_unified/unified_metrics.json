@@ -1,0 +1,960 @@
+{
+  "final_eval": {
+    "phase3a": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6045,
+          "role": 0.3433,
+          "marker": 0.5,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6378,
+          "role": 0.575,
+          "marker": 0.6837,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 81,
+          "role_corr": 46,
+          "marker_corr": 67,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8316,
+          "role": 0.1552,
+          "marker": 0.3094,
+          "fully": 0.1346
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8345,
+          "role": 0.7778,
+          "marker": 0.7175,
+          "fully": 0.6747
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4164,
+          "role_corr": 777,
+          "marker_corr": 1549,
+          "fully_corr": 674
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4344,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8197,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12277,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    },
+    "stage7": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6567,
+          "role": 0.3731,
+          "marker": 0.4851,
+          "fully": 0.1716
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6929,
+          "role": 0.625,
+          "marker": 0.6633,
+          "fully": 0.377
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 88,
+          "role_corr": 50,
+          "marker_corr": 65,
+          "fully_corr": 23
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.9966,
+          "role": 0.1995,
+          "marker": 0.431,
+          "fully": 0.1993
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 1.0,
+          "role": 1.0,
+          "marker": 0.9995,
+          "fully": 0.999
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4990,
+          "role_corr": 999,
+          "marker_corr": 2158,
+          "fully_corr": 998
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.437,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8246,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12350,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    }
+  },
+  "final_eval_governor": {
+    "governor": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6269,
+          "role": 0.3582,
+          "marker": 0.5,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6614,
+          "role": 0.6,
+          "marker": 0.6837,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 84,
+          "role_corr": 48,
+          "marker_corr": 67,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8416,
+          "role": 0.1606,
+          "marker": 0.3048,
+          "fully": 0.1424
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8445,
+          "role": 0.8048,
+          "marker": 0.7068,
+          "fully": 0.7137
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4214,
+          "role_corr": 804,
+          "marker_corr": 1526,
+          "fully_corr": 713
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.422,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.7963,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 11926,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    },
+    "phase3a": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6045,
+          "role": 0.3433,
+          "marker": 0.5,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6378,
+          "role": 0.575,
+          "marker": 0.6837,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 81,
+          "role_corr": 46,
+          "marker_corr": 67,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8316,
+          "role": 0.1552,
+          "marker": 0.3094,
+          "fully": 0.1346
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8345,
+          "role": 0.7778,
+          "marker": 0.7175,
+          "fully": 0.6747
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4164,
+          "role_corr": 777,
+          "marker_corr": 1549,
+          "fully_corr": 674
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4344,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8197,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12277,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    },
+    "recovery": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6119,
+          "role": 0.3657,
+          "marker": 0.4776,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6457,
+          "role": 0.6125,
+          "marker": 0.6531,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 82,
+          "role_corr": 49,
+          "marker_corr": 64,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8452,
+          "role": 0.161,
+          "marker": 0.306,
+          "fully": 0.1418
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8481,
+          "role": 0.8068,
+          "marker": 0.7096,
+          "fully": 0.7107
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4232,
+          "role_corr": 806,
+          "marker_corr": 1532,
+          "fully_corr": 710
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4302,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8118,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12158,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    }
+  },
+  "final_eval_graph": {
+    "graph": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6045,
+          "role": 0.3657,
+          "marker": 0.4776,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6378,
+          "role": 0.6125,
+          "marker": 0.6531,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 81,
+          "role_corr": 49,
+          "marker_corr": 64,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8424,
+          "role": 0.1622,
+          "marker": 0.3082,
+          "fully": 0.141
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8453,
+          "role": 0.8128,
+          "marker": 0.7147,
+          "fully": 0.7067
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4218,
+          "role_corr": 812,
+          "marker_corr": 1543,
+          "fully_corr": 706
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4327,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8165,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12229,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    },
+    "phase3a": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6045,
+          "role": 0.3433,
+          "marker": 0.5,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6378,
+          "role": 0.575,
+          "marker": 0.6837,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 81,
+          "role_corr": 46,
+          "marker_corr": 67,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8316,
+          "role": 0.1552,
+          "marker": 0.3094,
+          "fully": 0.1346
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8345,
+          "role": 0.7778,
+          "marker": 0.7175,
+          "fully": 0.6747
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4164,
+          "role_corr": 777,
+          "marker_corr": 1549,
+          "fully_corr": 674
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4344,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8197,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12277,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    },
+    "recovery": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6119,
+          "role": 0.3657,
+          "marker": 0.4776,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6457,
+          "role": 0.6125,
+          "marker": 0.6531,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 82,
+          "role_corr": 49,
+          "marker_corr": 64,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8452,
+          "role": 0.161,
+          "marker": 0.306,
+          "fully": 0.1418
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8481,
+          "role": 0.8068,
+          "marker": 0.7096,
+          "fully": 0.7107
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4232,
+          "role_corr": 806,
+          "marker_corr": 1532,
+          "fully_corr": 710
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4302,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8118,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12158,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    }
+  },
+  "final_eval_recovery": {
+    "phase3a": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6045,
+          "role": 0.3433,
+          "marker": 0.5,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6378,
+          "role": 0.575,
+          "marker": 0.6837,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 81,
+          "role_corr": 46,
+          "marker_corr": 67,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8316,
+          "role": 0.1552,
+          "marker": 0.3094,
+          "fully": 0.1346
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8345,
+          "role": 0.7778,
+          "marker": 0.7175,
+          "fully": 0.6747
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4164,
+          "role_corr": 777,
+          "marker_corr": 1549,
+          "fully_corr": 674
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4344,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8197,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12277,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    },
+    "recovery": {
+      "gazelle": {
+        "paper": {
+          "n": 134,
+          "case": 0.6119,
+          "role": 0.3657,
+          "marker": 0.4776,
+          "fully": 0.209
+        },
+        "observable": {
+          "n": 61,
+          "case_n": 127,
+          "role_n": 80,
+          "marker_n": 98,
+          "fully_n": 61,
+          "case": 0.6457,
+          "role": 0.6125,
+          "marker": 0.6531,
+          "fully": 0.459
+        },
+        "numerators": {
+          "n_words": 134,
+          "n_obs_case": 127,
+          "n_obs_role": 80,
+          "n_obs_marker": 98,
+          "n_obs_fully": 61,
+          "case_corr": 82,
+          "role_corr": 49,
+          "marker_corr": 64,
+          "fully_corr": 28
+        }
+      },
+      "masaq": {
+        "paper": {
+          "n": 5007,
+          "case": 0.8452,
+          "role": 0.161,
+          "marker": 0.306,
+          "fully": 0.1418
+        },
+        "observable": {
+          "n": 999,
+          "case_n": 4990,
+          "role_n": 999,
+          "marker_n": 2159,
+          "fully_n": 999,
+          "case": 0.8481,
+          "role": 0.8068,
+          "marker": 0.7096,
+          "fully": 0.7107
+        },
+        "numerators": {
+          "n_words": 5007,
+          "n_obs_case": 4990,
+          "n_obs_role": 999,
+          "n_obs_marker": 2159,
+          "n_obs_fully": 999,
+          "case_corr": 4232,
+          "role_corr": 806,
+          "marker_corr": 1532,
+          "fully_corr": 710
+        }
+      },
+      "ud_test": {
+        "paper": {
+          "n": 28264,
+          "case": 0.4302,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "observable": {
+          "n": 0,
+          "case_n": 14977,
+          "role_n": 0,
+          "marker_n": 0,
+          "fully_n": 0,
+          "case": 0.8118,
+          "role": 0.0,
+          "marker": 0.0,
+          "fully": 0.0
+        },
+        "numerators": {
+          "n_words": 28264,
+          "n_obs_case": 14977,
+          "n_obs_role": 0,
+          "n_obs_marker": 0,
+          "n_obs_fully": 0,
+          "case_corr": 12158,
+          "role_corr": 0,
+          "marker_corr": 0,
+          "fully_corr": 0
+        }
+      }
+    }
+  }
+}

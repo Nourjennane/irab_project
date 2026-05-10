@@ -36,13 +36,34 @@
 
 ## Evaluation
 
-See [`docs/final_eval/final_eval_report.md`](final_eval/final_eval_report.md)
-for the independent evaluator output.
+See [`docs/eval_unified/unified_report.md`](eval_unified/unified_report.md)
+for both metric conventions side-by-side, and
+[`docs/final_eval_recovery/final_eval_report.md`](final_eval_recovery/final_eval_report.md)
+for the raw evaluator output.
 
-Headline (clean held-out only):
+**Primary metric: paper convention** (denominator = n_words; missing-gold
+counts as wrong on that axis):
 
-- Gazelle: case_acc, role_f1, marker_em, fully — full table in report
-- MASAQ Quranic: case_acc, role_f1, marker_em, fully — full table in report
+| Dataset | metric | Phase 3-A | Recovery | Δ |
+|---|---|---|---|---|
+| Gazelle (n=134) | case | 0.605 | 0.612 | +0.007 |
+| Gazelle | role | 0.343 | 0.366 | +0.022 |
+| Gazelle | marker | 0.500 | 0.478 | −0.022 |
+| Gazelle | fully | 0.209 | 0.209 | +0.000 (tied) |
+| MASAQ (n=5,007) | case | 0.832 | 0.845 | +0.014 |
+| MASAQ | role | 0.155 | 0.161 | +0.006 |
+| MASAQ | marker | 0.309 | 0.306 | −0.003 |
+| MASAQ | **fully** | **0.135** | **0.142** | **+0.007** (+36 tokens) |
+
+**Diagnostic — fully-observable subset** (denominator = tokens with all
+3 gold fields populated):
+
+| Dataset | fully | role |
+|---|---|---|
+| Gazelle (n=61) | 0.459 → 0.459 | 0.575 → 0.613 |
+| MASAQ (n=999) | 0.675 → 0.711 | 0.778 → 0.807 |
+
+Numerators are the same; only the denominators differ.
 
 ## Calibration
 

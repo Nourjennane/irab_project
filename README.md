@@ -817,65 +817,92 @@ on small-corpus fine-tuning. Always-on.
 
 ## 9. Validated production results
 
+> **Evaluation conventions used here.**
+> * **Primary metric (paper convention)** — denominator = `n_words` for
+>   every axis. Tokens with missing gold on an axis count as wrong on
+>   that axis. This anchors on what the published paper reports
+>   (`docs/paper/PAPER.md`, `docs/paper/REPORT.tex`).
+> * **Secondary diagnostic — fully-observable subset** — denominator =
+>   tokens where all 3 gold fields are populated (n=61 on Gazelle,
+>   n=999 on MASAQ).
+> Both are reported side by side. The same model, same data, same
+> numerators — only the denominators differ.
+> Full unified report: [`docs/eval_unified/unified_report.md`](docs/eval_unified/unified_report.md).
+
 **`runs/validated_nextgen_recovery`** (the production checkpoint),
 trained leak-free with the full recovery patch, evaluated independently
 against Phase 3-A on the **full uncapped held-out sets**:
 
-### Gazelle (30 sent / 134 words / 61 fully-observable)
+### Gazelle (30 sent / 134 word judgments)
+
+**Paper convention (denominator = n_words = 134):**
 
 ```
                           Phase 3-A    Recovery     Δ
                           ─────────    ────────     ────
-case_acc                  0.638        0.646        +0.008
-role_f1                   0.575        0.613        +0.038  ★
-marker_em                 0.684        0.653        −0.031
-fully                     0.459        0.459        +0.000
+case                      0.605        0.612        +0.007
+role                      0.343        0.366        +0.022  ★
+marker                    0.500        0.478        −0.022
+fully                     0.209        0.209        +0.000  (tied)
+```
+
+**Fully-observable subset (n=61):**
+
+```
+                          Phase 3-A    Recovery     Δ
+                          ─────────    ────────     ────
+case (n=127)              0.638        0.646        +0.008
+role (n=80)               0.575        0.613        +0.038
+marker (n=98)             0.684        0.653        −0.031
+fully (n=61)              0.459        0.459        +0.000  (tied)
 calib_gap (role)          +0.021       −0.052       healthier
-                          ─────────    ────────     ────
 ```
 
-Visualised:
+**Interpretation.** Gazelle is a 30-sentence held-out: every delta
+≤ 0.05 is within the noise band. The +0.022 role gain on the paper
+convention is +3 tokens correctly relabelled out of 134 — a real but
+small improvement. Marker regressed by the same magnitude (label
+smoothing pushed the marker head toward more conservative predictions).
+**Fully is tied** at 0.209 on the paper convention (and at 0.459 on the
+strict-gold subset). The most meaningful Gazelle change is the
+calibration gap going from +0.021 (slightly over-confident) to
+−0.052 (slightly under-confident — healthier).
 
-```
-Gazelle role_f1   ████████████████░░░░░░░░░  0.575  Phase 3-A
-                  ███████████████████░░░░░░  0.613  Recovery (+0.038)
+### MASAQ Quranic (624 sent / 5,007 word judgments)
 
-Gazelle fully     ███████████████░░░░░░░░░░  0.459  Phase 3-A
-                  ███████████████░░░░░░░░░░  0.459  Recovery  (tied)
-```
-
-**Interpretation.** Gazelle's 30-sentence size means a +0.038 role gain
-(≈ 8 tokens) doesn't compound to a fully gain because the failures
-fire on different tokens. Calibration gap moving from +0.021 to −0.052
-is the most important Gazelle change: the model is now **slightly
-under-confident** on correct predictions (healthier than over-confident).
-
-### MASAQ Quranic (624 sent / 5,007 words / 999 fully-observable)
+**Paper convention (denominator = n_words = 5,007):**
 
 ```
                           Phase 3-A    Recovery     Δ
                           ─────────    ────────     ────
-case_acc                  0.835        0.848        +0.014
-role_f1                   0.778        0.807        +0.029  ★
-marker_em                 0.718        0.710        −0.008
-fully                     0.675        0.711        +0.036  ★
+case                      0.832        0.845        +0.014
+role                      0.155        0.161        +0.006
+marker                    0.309        0.306        −0.003
+fully                     0.135        0.142        +0.007  ★
+```
+
+**Fully-observable subset (n=999):**
+
+```
+                          Phase 3-A    Recovery     Δ
+                          ─────────    ────────     ────
+case (n=999)              0.835        0.848        +0.014
+role (n=999)              0.778        0.807        +0.029
+marker (n=999)            0.718        0.710        −0.008
+fully (n=999)             0.675        0.711        +0.036
 calib_gap (role)          0.087        0.124        −0.037
 ```
 
-Visualised:
+**Interpretation.** On the paper convention the recovery model gains
+**+36 tokens out of 5,007** on the fully-correct count — a real but
+small improvement at +0.007 on the headline. The same +36 tokens
+projected onto the strict-gold subset (n=999) yields the +0.036 number;
+both reflect the same underlying improvement.
 
-```
-MASAQ fully      █████████████████░░░░░░░░  0.675  Phase 3-A
-                 ██████████████████░░░░░░░  0.711  Recovery (+0.036)
-
-MASAQ role_f1    ████████████████████░░░░░  0.778  Phase 3-A
-                 ████████████████████░░░░░  0.807  Recovery (+0.029)
-```
-
-**Interpretation.** MASAQ has the larger sample so the gains compound.
-**+0.036 fully on MASAQ is the cleanest single signal in the project.**
-Marker regressed slightly (label smoothing pushed the marker head
-toward more conservative predictions).
+The MASAQ paper-convention `fully` of 0.135 also matches the
+intermediate `CURRENT_STATE.md` snapshot (14.9%) within ~1pp — the
+small remaining gap is from minor extractor differences between the
+project's two evaluation pipelines.
 
 ### vs the leaked stage_7
 
@@ -954,23 +981,36 @@ signal — particularly for the dominant idafa-attachment failure family.
 
 ### 10.4 Held-out result — what did not work
 
+**Paper convention (denominator = n_words):**
+
 ```
 Dataset    Metric    Recovery    Graph    Δ
 ─────      ──────    ────────    ─────    ────
-Gazelle    fully     0.459       0.459    +0.000   tied
-Gazelle    role      0.613       0.613    +0.000   tied
-Gazelle    case      0.646       0.638    −0.008
-Gazelle    marker    0.653       0.653    +0.000   tied
+Gazelle    fully     0.209       0.209    +0.000   tied
+Gazelle    role      0.366       0.366    +0.000   tied
+Gazelle    case      0.612       0.604    −0.008
+Gazelle    marker    0.478       0.478    +0.000   tied
+MASAQ      fully     0.142       0.141    −0.001
+MASAQ      role      0.161       0.162    +0.001
+MASAQ      case      0.845       0.843    −0.002
+MASAQ      marker    0.306       0.308    +0.002
+```
+
+**Fully-observable subset (n=61 Gazelle / 999 MASAQ):**
+
+```
+Dataset    Metric    Recovery    Graph    Δ
+─────      ──────    ────────    ─────    ────
+Gazelle    fully     0.459       0.459    +0.000
+Gazelle    role      0.613       0.613    +0.000
 MASAQ      fully     0.711       0.707    −0.004
 MASAQ      role      0.807       0.813    +0.006
-MASAQ      case      0.848       0.845    −0.003
-MASAQ      marker    0.710       0.715    +0.005
 ```
 
 The training-time +0.013 ablation delta did not survive the full-sample
-eval. All held-out deltas are within the noise band on a 30-sentence
-Gazelle. **The graph candidate is functionally indistinguishable from
-recovery on the held-out set.**
+eval. All held-out deltas are within the noise band on either
+denominator. **The graph candidate is functionally indistinguishable
+from recovery on the held-out set.**
 
 ### 10.5 Interpretation
 
@@ -1047,20 +1087,32 @@ wiring would hit; documenting them saves hours.
 
 ### 11.5 Held-out result
 
+**Paper convention (denominator = n_words):**
+
 ```
 Dataset    Metric    Recovery    Governor    Δ
 ─────      ──────    ────────    ────────    ────
-Gazelle    fully     0.459       0.459       +0.000   tied
-Gazelle    role      0.613       0.600       −0.013
-Gazelle    case      0.646       0.661       +0.015
-Gazelle    marker    0.653       0.653       +0.000   tied
-MASAQ      fully     0.711       0.714       +0.003   within noise
-MASAQ      role      0.807       0.805       −0.002
-MASAQ      case      0.848       0.844       −0.004
-MASAQ      marker    0.710       0.707       −0.003
+Gazelle    fully     0.209       0.209       +0.000   tied
+Gazelle    role      0.366       0.358       −0.008
+Gazelle    case      0.612       0.627       +0.015
+Gazelle    marker    0.478       0.500       +0.022
+MASAQ      fully     0.142       0.142       +0.000
+MASAQ      role      0.161       0.161       +0.000
+MASAQ      case      0.845       0.842       −0.003
+MASAQ      marker    0.306       0.305       −0.001
 ```
 
-All deltas within noise.
+**Fully-observable subset (n=61 / 999):**
+
+```
+Dataset    Metric    Recovery    Governor    Δ
+─────      ──────    ────────    ────────    ────
+Gazelle    fully     0.459       0.459       +0.000
+Gazelle    role      0.613       0.600       −0.013
+MASAQ      fully     0.711       0.714       +0.003
+```
+
+All deltas within noise on both denominators.
 
 ### 11.6 The dominant idafa confusions — UNCHANGED
 

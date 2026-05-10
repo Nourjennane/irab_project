@@ -102,17 +102,40 @@ def eval_metrics() -> Dict[str, Any]:
     if rec:
         out["recovery_eval"] = rec
 
-    # Curated headline (so the dashboard doesn't have to slice the raw)
-    out["summary"]["headline"] = {
-        "gazelle":  {"phase3a": {"case": 0.638, "role": 0.575, "marker": 0.684, "fully": 0.459},
+    # Curated headline numbers — paper convention (denominator = n_words),
+    # which is the project's primary reported metric. Fully-observable
+    # subset numbers are the secondary diagnostic and live in
+    # docs/eval_unified/unified_metrics.json.
+    out["summary"]["headline_paper"] = {
+        "convention": "paper (denominator = n_words; missing-gold counts as wrong on that axis)",
+        "gazelle":  {"n": 134,
+                      "phase3a":  {"case": 0.605, "role": 0.343, "marker": 0.500, "fully": 0.209},
+                      "recovery": {"case": 0.612, "role": 0.366, "marker": 0.478, "fully": 0.209},
+                      "graph":    {"case": 0.604, "role": 0.366, "marker": 0.478, "fully": 0.209},
+                      "governor": {"case": 0.627, "role": 0.358, "marker": 0.500, "fully": 0.209}},
+        "masaq":    {"n": 5007,
+                      "phase3a":  {"case": 0.832, "role": 0.155, "marker": 0.309, "fully": 0.135},
+                      "recovery": {"case": 0.845, "role": 0.161, "marker": 0.306, "fully": 0.142},
+                      "graph":    {"case": 0.843, "role": 0.162, "marker": 0.308, "fully": 0.141},
+                      "governor": {"case": 0.842, "role": 0.161, "marker": 0.305, "fully": 0.142}},
+    }
+    out["summary"]["headline_observable"] = {
+        "convention": "fully-observable subset (denominator = tokens with all 3 gold fields)",
+        "gazelle":  {"n": 61,
+                      "phase3a":  {"case": 0.638, "role": 0.575, "marker": 0.684, "fully": 0.459},
                       "recovery": {"case": 0.646, "role": 0.613, "marker": 0.653, "fully": 0.459},
                       "graph":    {"case": 0.638, "role": 0.613, "marker": 0.653, "fully": 0.459},
                       "governor": {"case": 0.661, "role": 0.600, "marker": 0.684, "fully": 0.459}},
-        "masaq":    {"phase3a": {"case": 0.835, "role": 0.778, "marker": 0.718, "fully": 0.675},
+        "masaq":    {"n": 999,
+                      "phase3a":  {"case": 0.835, "role": 0.778, "marker": 0.718, "fully": 0.675},
                       "recovery": {"case": 0.848, "role": 0.807, "marker": 0.710, "fully": 0.711},
                       "graph":    {"case": 0.845, "role": 0.813, "marker": 0.715, "fully": 0.707},
                       "governor": {"case": 0.844, "role": 0.805, "marker": 0.707, "fully": 0.714}},
     }
+    # Backwards-compat alias: the old key remains but now points at
+    # the paper convention so existing frontend code uses the right
+    # denominator by default.
+    out["summary"]["headline"] = out["summary"]["headline_paper"]
     out["summary"]["calibration_ece"] = {
         "recovery": {"case": 0.42, "role": 0.49, "marker": 0.60},
     }

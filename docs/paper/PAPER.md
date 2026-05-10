@@ -198,10 +198,25 @@ scored by `src/irab_tashkeel/eval_v2/`. **No metric drift.** This is
 not a courtesy detail: many published Arabic NLP comparisons mix
 evaluator versions and silently shift numbers.
 
-### 6.2 Two reporting modes
+### 6.2 Two metric conventions (both reported, primary is paper convention)
 
-- **Full noisy:** every observable token, even partial-gold rows
-- **Fully observable:** only tokens with all 3 gold fields populated
+We report every metric under **two denominator conventions** and
+flag which we use as the headline:
+
+- **Paper convention (primary, headline):** denominator = `n_words`
+  for every axis (case, role, marker, fully). Tokens with missing gold
+  on a given axis count as wrong on that axis. This anchors on the
+  metric the published paper uses (Gazelle Phase 3-A fully = 20.1%
+  on n=134).
+- **Fully-observable subset (secondary, diagnostic):** denominator =
+  tokens where all 3 gold fields (case, role, marker) are populated
+  (n=61 on Gazelle, n=999 on MASAQ).
+
+The *numerators* (count of correct tokens on each axis) are identical
+across both conventions; only the denominators differ. We report
+both so that comparison against earlier project artefacts and the
+published paper remains traceable. Full unified report:
+`docs/eval_unified/unified_report.md`.
 
 ### 6.3 Stratified breakdowns
 
@@ -240,18 +255,40 @@ We report two model variants:
 Both models are scored by the *same* `eval_v2` evaluator on the *full*
 uncapped test sets.
 
-### 8.1 Headline (clean held-out, full noisy evaluation)
+### 8.1 Headline — paper convention (denominator = `n_words`)
 
 | Dataset | Metric | Phase 3-A | Recovery | Δ |
 |---|---|---|---|---|
-| Gazelle | case_acc | 0.638 | 0.646 | +0.008 |
-| Gazelle | role_f1  | 0.575 | 0.613 | **+0.038** |
-| Gazelle | marker_em | 0.684 | 0.653 | −0.031 |
-| Gazelle | fully    | **0.459** | **0.459** | +0.000 |
-| MASAQ   | case_acc | 0.835 | 0.848 | +0.014 |
-| MASAQ   | role_f1  | 0.778 | 0.807 | **+0.029** |
-| MASAQ   | marker_em | 0.718 | 0.710 | −0.008 |
-| MASAQ   | fully    | **0.675** | **0.711** | **+0.036** |
+| Gazelle (n=134) | case | 0.605 | 0.612 | +0.007 |
+| Gazelle | role | 0.343 | 0.366 | **+0.022** |
+| Gazelle | marker | 0.500 | 0.478 | −0.022 |
+| Gazelle | fully | **0.209** | **0.209** | +0.000 |
+| MASAQ (n=5,007) | case | 0.832 | 0.845 | +0.014 |
+| MASAQ | role | 0.155 | 0.161 | +0.006 |
+| MASAQ | marker | 0.309 | 0.306 | −0.003 |
+| MASAQ | **fully** | **0.135** | **0.142** | **+0.007** ★ (+36 tokens) |
+
+### 8.1.1 Diagnostic — fully-observable subset (n=61 / 999)
+
+The same numerators on a smaller denominator. Reported because the
+project's `eval_v2` evaluator computes this by default; included for
+traceability against intermediate snapshots.
+
+| Dataset | Metric | Phase 3-A | Recovery | Δ |
+|---|---|---|---|---|
+| Gazelle | case | 0.638 | 0.646 | +0.008 |
+| Gazelle | role | 0.575 | 0.613 | +0.038 |
+| Gazelle | marker | 0.684 | 0.653 | −0.031 |
+| Gazelle | fully | 0.459 | 0.459 | +0.000 |
+| MASAQ | case | 0.835 | 0.848 | +0.014 |
+| MASAQ | role | 0.778 | 0.807 | +0.029 |
+| MASAQ | marker | 0.718 | 0.710 | −0.008 |
+| MASAQ | fully | 0.675 | 0.711 | +0.036 |
+
+**The clean honest claim:** +36 tokens correctly relabelled on MASAQ
+fully out of 5,007 word judgments. That's +0.007 on the paper
+convention; +0.036 on the strict-gold subset. Both reflect the same
+underlying improvement.
 
 ### 8.2 UD-PADT-test (with contamination caveat)
 
@@ -278,13 +315,15 @@ On MASAQ, calibration gap rose slightly (0.087 → 0.124) but ECE was
 
 ### 8.4 What did *not* improve
 
-- Marker EM regressed by −0.031 on Gazelle and −0.008 on MASAQ.
-  The label-smoothing + entropy regularization pushed the marker head
-  toward more conservative predictions. A future revision could leave
-  the marker head un-smoothed.
-- Gazelle `fully` is unchanged at 0.459. The 30-sentence sample is
-  small enough that the +0.038 role gain doesn't compound into
-  exact-match wins — different errors fire on different tokens.
+- Marker regressed by −0.022 (paper) / −0.031 (subset) on Gazelle and
+  −0.003 (paper) / −0.008 (subset) on MASAQ. The label-smoothing +
+  entropy regularization pushed the marker head toward more
+  conservative predictions. A future revision could leave the marker
+  head un-smoothed.
+- Gazelle `fully` is unchanged at 0.209 (paper) / 0.459 (subset). The
+  30-sentence sample is small enough that the role gain doesn't
+  compound into exact-match wins — different errors fire on different
+  tokens.
 - `construction_f1_macro` is 0.0 on every eval. The training-time
   evaluator does not emit `ConstructionPrediction` records, so this
   metric is a known evaluator gap, not a model failure.
@@ -296,8 +335,10 @@ the original curriculum run reports (on the same evaluator):
 
 | Dataset | Metric | Phase 3-A | stage_7-leaked | Δ |
 |---|---|---|---|---|
-| Gazelle | fully | 0.459 | 0.377 | −0.082 |
-| MASAQ | fully | 0.675 | **0.999** | +0.324 (memorization) |
+| Gazelle | fully (paper, n=134) | 0.209 | 0.172 | −0.037 |
+| Gazelle | fully (subset, n=61) | 0.459 | 0.377 | −0.082 |
+| MASAQ | fully (paper, n=5,007) | 0.135 | **0.199** | +0.065 (memorization-mediated) |
+| MASAQ | fully (subset, n=999) | 0.675 | **0.999** | +0.324 (memorization) |
 | MASAQ | calib_gap | 0.087 | **0.9998** | direct evidence of memorization |
 
 The leaked model's "perfect" MASAQ score (0.999 fully, 0.9998

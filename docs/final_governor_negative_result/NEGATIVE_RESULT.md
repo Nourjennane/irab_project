@@ -26,14 +26,26 @@ triplet loss on top of `validated_nextgen_recovery`:
 
 On the full uncapped held-out sets vs `validated_recovery`:
 
+**Paper convention (denominator = n_words):**
+
+| Dataset | metric | recovery | governor | Δ |
+|---|---|---|---|---|
+| Gazelle (n=134) | fully | 0.209 | 0.209 | +0.000 |
+| Gazelle | case  | 0.612 | 0.627 | +0.015 |
+| Gazelle | role  | 0.366 | 0.358 | −0.008 |
+| Gazelle | marker | 0.478 | 0.500 | +0.022 |
+| MASAQ (n=5,007) | fully | 0.142 | 0.142 | +0.000 |
+| MASAQ | role | 0.161 | 0.161 | +0.000 |
+| MASAQ | case  | 0.845 | 0.842 | −0.003 |
+
+**Fully-observable subset (n=61 / 999):**
+
 | Dataset | metric | recovery | governor | Δ |
 |---|---|---|---|---|
 | Gazelle | fully | 0.459 | 0.459 | +0.000 |
-| Gazelle | case  | 0.646 | 0.661 | +0.015 |
-| Gazelle | role  | 0.613 | 0.600 | −0.013 |
-| MASAQ   | fully | 0.711 | 0.714 | +0.003 |
-| MASAQ   | role  | 0.807 | 0.805 | −0.002 |
-| MASAQ   | case  | 0.848 | 0.844 | −0.004 |
+| Gazelle | role | 0.613 | 0.600 | −0.013 |
+| MASAQ | fully | 0.711 | 0.714 | +0.003 |
+| MASAQ | role | 0.807 | 0.805 | −0.002 |
 
 The dominant idafa-attachment confusions are unchanged:
 

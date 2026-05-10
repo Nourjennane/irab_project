@@ -327,27 +327,38 @@
   </div>
 </section>
 
-<!-- AT-A-GLANCE STATS -->
-<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-  <div class="stat">
-    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">MASAQ fully</div>
-    <div class="stat-num">0.711</div>
-    <div class="text-xs mt-1" style="color:var(--green)">+0.036 vs Phase 3-A</div>
+<!-- AT-A-GLANCE STATS — paper convention (denominator = n_words) -->
+<section class="space-y-2">
+  <div class="text-xs uppercase tracking-wider" style="color:var(--text-soft)">
+    Headline · paper convention (denominator = n_words)
+    · <a href="https://github.com/Nourjennane/irab_project/blob/main/docs/eval_unified/unified_report.md" class="underline" style="color:var(--accent)">full unified report</a>
   </div>
-  <div class="stat">
-    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Gazelle role</div>
-    <div class="stat-num">0.613</div>
-    <div class="text-xs mt-1" style="color:var(--green)">+0.038 vs Phase 3-A</div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="stat">
+      <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">MASAQ fully (n=5,007)</div>
+      <div class="stat-num">0.142</div>
+      <div class="text-xs mt-1" style="color:var(--green)">+0.007 vs Phase 3-A · +36 tok</div>
+    </div>
+    <div class="stat">
+      <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Gazelle role (n=134)</div>
+      <div class="stat-num">0.366</div>
+      <div class="text-xs mt-1" style="color:var(--green)">+0.022 vs Phase 3-A · +3 tok</div>
+    </div>
+    <div class="stat">
+      <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Calib gap (Gazelle)</div>
+      <div class="stat-num">−0.052</div>
+      <div class="text-xs mt-1" style="color:var(--text-soft)">healthier (less overconfident)</div>
+    </div>
+    <div class="stat">
+      <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Permissive Δ (n=1,060)</div>
+      <div class="stat-num">+0.153</div>
+      <div class="text-xs mt-1" style="color:var(--text-soft)">heuristic upper bound</div>
+    </div>
   </div>
-  <div class="stat">
-    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Calib gap (Gazelle)</div>
-    <div class="stat-num">−0.052</div>
-    <div class="text-xs mt-1" style="color:var(--text-soft)">healthier (less overconfident)</div>
-  </div>
-  <div class="stat">
-    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Permissive Δ</div>
-    <div class="stat-num">+0.153</div>
-    <div class="text-xs mt-1" style="color:var(--text-soft)">heuristic upper bound</div>
+  <div class="text-xs" style="color:var(--text-soft)">
+    Diagnostic on the fully-observable subset (n=61 Gazelle / 999 MASAQ):
+    fully 0.459 / role 0.613 (Gazelle), fully 0.711 / role 0.807 (MASAQ).
+    Same numerators, smaller denominators.
   </div>
 </section>
 
