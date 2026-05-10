@@ -2,424 +2,965 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Arabic Iʿrāb — Validated Nextgen</title>
+<title>Arabic Iʿrāb — Grammatical Reasoning Assistant</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif; }
-  .arabic { font-family: "Amiri", "Noto Naskh Arabic", "Times New Roman", serif;
-            direction: rtl; font-size: 1.6rem; line-height: 1.8; }
-  .tab.active { border-bottom: 3px solid #38bdf8; color: #38bdf8; }
-  .pill { display: inline-block; padding: .15rem .45rem; border-radius: .375rem;
-          font-size: .75rem; margin-left: .25rem; }
-  .case-raf    { background:#dcfce7; color:#166534; }
-  .case-nasb   { background:#fee2e2; color:#991b1b; }
-  .case-jarr   { background:#dbeafe; color:#1e40af; }
-  .case-jazm   { background:#f3e8ff; color:#6b21a8; }
-  .case-mabni  { background:#e5e7eb; color:#374151; }
-  .case-none   { background:#f1f5f9; color:#94a3b8; }
-  .conf-bar { height: 4px; background: #38bdf8; border-radius: 2px; }
-  body.dark { background:#0f172a; color:#e2e8f0; }
-  body.dark .panel { background:#1e293b; border-color:#334155; }
-  .panel { background:white; border:1px solid #e2e8f0; }
+  :root {
+    --bg:#fafafa; --card:#ffffff; --border:#e5e7eb;
+    --text:#0f172a; --text-soft:#475569; --muted:#94a3b8;
+    --accent:#0ea5e9; --accent-soft:#e0f2fe;
+    --green:#10b981; --green-soft:#dcfce7;
+    --yellow:#f59e0b; --yellow-soft:#fef3c7;
+    --red:#ef4444; --red-soft:#fee2e2;
+    --purple:#a855f7; --purple-soft:#f3e8ff;
+    --blue:#3b82f6; --blue-soft:#dbeafe;
+  }
+  body.dark {
+    --bg:#0a0f1c; --card:#111827; --border:#1f2937;
+    --text:#e5e7eb; --text-soft:#9ca3af; --muted:#6b7280;
+    --accent:#38bdf8; --accent-soft:#0c4a6e;
+    --green:#34d399; --green-soft:#064e3b;
+    --yellow:#fbbf24; --yellow-soft:#78350f;
+    --red:#f87171; --red-soft:#7f1d1d;
+    --purple:#c084fc; --purple-soft:#581c87;
+    --blue:#60a5fa; --blue-soft:#1e3a8a;
+  }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; transition: background 0.2s, color 0.2s;
+  }
+  .ar { font-family: 'Amiri', 'Noto Naskh Arabic', serif;
+        direction: rtl; line-height: 1.9; }
+  .ar-big { font-size: 2.2rem; font-weight: 700; }
+  .ar-input { font-size: 1.5rem; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    transition: box-shadow 0.15s, border-color 0.15s;
+  }
+  body.dark .card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .card-hover:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06); }
+  .pill { display:inline-flex; align-items:center; gap:.25rem;
+          padding:.15rem .55rem; border-radius:9999px; font-size:.7rem;
+          font-weight:600; }
+  .pill-case-raf    { background:var(--green-soft);  color:var(--green); }
+  .pill-case-nasb   { background:var(--red-soft);    color:var(--red); }
+  .pill-case-jarr   { background:var(--blue-soft);   color:var(--blue); }
+  .pill-case-jazm   { background:var(--purple-soft); color:var(--purple); }
+  .pill-case-mabni  { background:#f1f5f9;            color:#475569; }
+  body.dark .pill-case-mabni { background:#1e293b; color:#cbd5e1; }
+  .pill-role        { background:var(--blue-soft);   color:var(--blue); }
+  .pill-construction{ background:var(--purple-soft); color:var(--purple); }
+  .pill-warning     { background:var(--yellow-soft); color:var(--yellow); }
+  .conf-bar { height: 6px; background:#e5e7eb; border-radius: 3px;
+              overflow: hidden; }
+  body.dark .conf-bar { background:#1f2937; }
+  .conf-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .conf-high   { background:var(--green); }
+  .conf-medium { background:var(--yellow); }
+  .conf-low    { background:#f97316; }
+  .conf-very_low { background:var(--red); }
+  .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+  .tab { color: var(--text-soft); border-bottom: 2px solid transparent;
+         padding: .5rem .25rem; font-weight: 500; transition: color 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab-pane.hidden { display: none; }
+  .token-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 0.75rem; min-width: 110px;
+    transition: transform 0.1s, border-color 0.15s;
+    cursor: pointer; position: relative;
+  }
+  .token-card:hover {
+    transform: translateY(-2px); border-color: var(--accent);
+  }
+  .token-card.highlighted { border-color: var(--accent); background: var(--accent-soft); }
+  .icon-warn::before { content:"⚠"; color:var(--yellow); margin-right:.25rem; }
+  .btn { background: var(--accent); color: white; padding: .55rem 1.1rem;
+         border-radius: 10px; font-weight: 600; transition: background 0.15s, transform 0.1s; }
+  .btn:hover { filter: brightness(1.05); }
+  .btn:active { transform: scale(0.98); }
+  .btn-soft { background: transparent; border: 1px solid var(--border);
+              color: var(--text-soft); padding: .4rem .8rem;
+              border-radius: 8px; font-size: 0.85rem; }
+  .btn-soft:hover { background: var(--card); border-color: var(--accent); color: var(--accent); }
+  .chip { display:inline-block; padding:.3rem .7rem; border-radius:9999px;
+          font-size:.85rem; background:var(--card); border:1px solid var(--border);
+          cursor:pointer; transition: all 0.15s; }
+  .chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+  .spinner {
+    border:3px solid var(--border); border-top:3px solid var(--accent);
+    border-radius:50%; width:20px; height:20px;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+  .fade-in { animation: fadeIn 0.25s ease-out; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+  details > summary { cursor: pointer; user-select: none; list-style: none; }
+  details > summary::after { content: "▼"; float: right; font-size:.7rem;
+                              opacity:0.6; transition: transform 0.15s; }
+  details[open] > summary::after { transform: rotate(180deg); }
+  .graph-svg { width:100%; height:280px; }
+  .graph-node circle { fill: var(--card); stroke: var(--border); stroke-width: 2; transition: all 0.15s; }
+  .graph-node.highlighted circle { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
+  .graph-node text { fill: var(--text); }
+  .graph-edge { stroke: var(--border); stroke-width: 1.5; fill: none; }
+  .graph-edge.construction { stroke: var(--purple); stroke-width: 2; stroke-dasharray: 4 3; }
+  .modal-bg { background: rgba(0,0,0,0.5); }
+  body.dark .modal-bg { background: rgba(0,0,0,0.7); }
+  /* Scrollbar polish */
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
-<header class="bg-white border-b shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-    <h1 class="text-xl font-semibold">Arabic Iʿrāb · Validated Nextgen Recovery</h1>
-    <div class="flex gap-2">
-      <button id="darkToggle" class="text-sm px-3 py-1 border rounded">🌙</button>
+<body>
+
+<!-- HEADER -->
+<header class="card border-x-0 border-t-0 rounded-none sticky top-0 z-40" style="background:var(--card)">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="text-2xl">إعراب</div>
+      <div>
+        <div class="font-semibold text-base">Arabic Iʿrāb</div>
+        <div class="text-xs" style="color:var(--text-soft)">Grammatical Reasoning Assistant</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <select id="ckpt" class="btn-soft text-xs">
+        <option value="recovery">recovery (validated)</option>
+        <option value="phase3a">phase3a (baseline)</option>
+      </select>
+      <button id="darkToggle" class="btn-soft text-xs" title="Toggle dark mode">🌙</button>
+      <a href="https://github.com/Nourjennane/irab_project" target="_blank" class="btn-soft text-xs">GitHub →</a>
     </div>
   </div>
-  <nav class="max-w-7xl mx-auto px-4 flex gap-2 text-sm flex-wrap">
-    <button class="tab active py-2 px-2" data-tab="analyze">Sentence Analysis</button>
-    <button class="tab py-2 px-2" data-tab="graph">Grammar Graph</button>
-    <button class="tab py-2 px-2" data-tab="reasoning">Reasoning Trace</button>
-    <button class="tab py-2 px-2" data-tab="construction">Constructions</button>
-    <button class="tab py-2 px-2" data-tab="eval">Evaluation Dashboard</button>
-    <button class="tab py-2 px-2" data-tab="compare">Model Comparison</button>
-    <button class="tab py-2 px-2" data-tab="hard">Hard Examples</button>
-    <button class="tab py-2 px-2" data-tab="failures">Known Failures</button>
-    <button class="tab py-2 px-2" data-tab="leakage">Leakage Case Study</button>
+  <nav class="max-w-7xl mx-auto px-6 flex gap-5 text-sm overflow-x-auto">
+    <button class="tab active" data-tab="analyze">Analyze</button>
+    <button class="tab" data-tab="reasoning">Reasoning</button>
+    <button class="tab" data-tab="graph">Graph</button>
+    <button class="tab" data-tab="constructions">Constructions</button>
+    <button class="tab" data-tab="compare">Compare Models</button>
+    <button class="tab" data-tab="hard">Hard Cases</button>
+    <button class="tab" data-tab="dashboard">Eval Dashboard</button>
+    <button class="tab" data-tab="leakage">Leakage Story</button>
+    <button class="tab" data-tab="json">Raw JSON</button>
   </nav>
 </header>
 
-<main class="max-w-7xl mx-auto p-4">
+<main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
 
-<!-- Input bar -->
-<div class="panel rounded-lg p-4 mb-4 shadow-sm">
-  <div class="flex flex-col md:flex-row gap-2">
-    <input id="inputText" type="text" dir="rtl" placeholder="أدخل جملة عربية..."
-           class="arabic flex-1 border rounded px-3 py-2 text-base">
-    <select id="ckpt" class="border rounded px-3 py-2">
-      <option value="recovery">recovery (validated)</option>
-      <option value="phase3a">phase3a (baseline)</option>
-      <option value="stage7">stage_7 (leaked, for case study)</option>
-    </select>
-    <button id="analyzeBtn" class="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600">Analyze</button>
-  </div>
-  <div id="samples" class="mt-3 text-xs flex flex-wrap gap-2"></div>
-</div>
-
-<!-- Analyze tab -->
-<section id="tab-analyze" class="tab-pane">
-  <div id="analyzeOut" class="panel rounded-lg p-4 min-h-[120px]">
-    <div class="text-slate-500 text-sm">Enter a sentence and press Analyze.</div>
+<!-- HERO -->
+<section id="hero" class="card p-7 md:p-9">
+  <div class="grid md:grid-cols-3 gap-6 items-end">
+    <div class="md:col-span-2">
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">Per-token Arabic grammatical analysis</h1>
+      <p class="text-sm md:text-base mb-5" style="color:var(--text-soft)">
+        Structured iʿrāb with case, role, marker, confidence, and reasoning.
+        Every prediction is machine-checkable and calibrated.
+        <span class="hidden md:inline">Production checkpoint: <code>validated_nextgen_recovery</code>.</span>
+      </p>
+      <div class="flex flex-col md:flex-row gap-3">
+        <input id="inputText" type="text" dir="rtl"
+               placeholder="أدخل جملة عربية..."
+               class="ar ar-input flex-1 px-4 py-3 rounded-xl outline-none"
+               style="background:var(--bg); border:2px solid var(--border)">
+        <button id="analyzeBtn" class="btn flex items-center justify-center gap-2">
+          <span>Analyze</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M3 8h10m-3-3 3 3-3 3" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div id="samples" class="mt-4 flex flex-wrap gap-2"></div>
+    </div>
+    <div class="hidden md:block">
+      <div class="card p-4 text-xs" style="background:var(--accent-soft); border-color:var(--accent)">
+        <div class="font-semibold mb-2" style="color:var(--accent)">Quick legend</div>
+        <div class="space-y-1.5">
+          <div><span class="pill pill-case-raf">raf</span> nominative · subject</div>
+          <div><span class="pill pill-case-nasb">nasb</span> accusative · object</div>
+          <div><span class="pill pill-case-jarr">jarr</span> genitive · idafa / prep</div>
+          <div><span class="pill pill-case-mabni">mabni</span> indeclinable · particles</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- Graph tab -->
-<section id="tab-graph" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Grammar graph</h2>
-    <pre id="graphOut" class="text-xs bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto"></pre>
-  </div>
+<!-- BANNER (warnings / loading) -->
+<div id="banner" class="hidden"></div>
+
+<!-- ===== ANALYZE TAB ===== -->
+<section id="tab-analyze" class="tab-pane space-y-5">
+  <div id="analyzeSummary"></div>
+  <div id="analyzeOut"></div>
+  <details class="card p-4">
+    <summary class="font-medium">Advanced — token confidence details</summary>
+    <div id="analyzeAdvanced" class="mt-4"></div>
+  </details>
 </section>
 
-<!-- Reasoning tab -->
+<!-- ===== REASONING TAB ===== -->
 <section id="tab-reasoning" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Reasoning trace</h2>
-    <div id="reasoningOut" class="space-y-2"></div>
-    <p class="text-xs text-slate-500 mt-3">Trace is template-rendered from structured labels — not free-form generation.</p>
+  <div class="card p-6 space-y-3">
+    <h2 class="font-semibold text-lg">Reasoning trace</h2>
+    <p class="text-sm" style="color:var(--text-soft)">
+      Per-token natural-language explanation of the model's prediction —
+      template-rendered from structured labels (no free-form generation).
+    </p>
+    <div id="reasoningOut" class="space-y-3"></div>
   </div>
 </section>
 
-<!-- Construction tab -->
-<section id="tab-construction" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Detected constructions</h2>
+<!-- ===== GRAPH TAB ===== -->
+<section id="tab-graph" class="tab-pane hidden">
+  <div class="card p-6">
+    <h2 class="font-semibold text-lg mb-2">Grammar graph</h2>
+    <p class="text-sm mb-4" style="color:var(--text-soft)">
+      Solid edges: sequential token order. Dashed purple edges: detected
+      construction membership. Hover any node to highlight.
+    </p>
+    <div id="graphContainer" class="card p-4" style="background:var(--bg)">
+      <svg id="graph" class="graph-svg"></svg>
+    </div>
+    <div id="graphLegend" class="mt-3 flex gap-4 text-xs flex-wrap"></div>
+  </div>
+</section>
+
+<!-- ===== CONSTRUCTIONS TAB ===== -->
+<section id="tab-constructions" class="tab-pane hidden">
+  <div class="card p-6 space-y-4">
+    <h2 class="font-semibold text-lg">Detected constructions</h2>
     <div id="constructionOut" class="space-y-3"></div>
   </div>
 </section>
 
-<!-- Eval dashboard -->
-<section id="tab-eval" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Phase A — independent evaluation</h2>
-    <p class="text-xs text-slate-500 mb-3">Loaded from <code>docs/final_eval/final_eval_tables.json</code>. Empty until Phase A finishes.</p>
-    <div id="evalOut"></div>
-    <hr class="my-4">
-    <h2 class="font-medium mb-2">Phase B — leakage audit</h2>
-    <div id="leakageOut"></div>
-  </div>
-</section>
-
-<!-- Compare tab -->
+<!-- ===== COMPARE TAB ===== -->
 <section id="tab-compare" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Phase 3-A baseline vs validated recovery vs leaked stage_7</h2>
-    <p class="text-xs text-slate-500 mb-3">
-      Predict the same sentence with three checkpoints. The third is the
-      contaminated stage_7 — kept reachable as a teaching example, not as
-      a candidate.
-    </p>
-    <button id="compareBtn" class="bg-emerald-500 text-white px-3 py-1.5 rounded text-sm">Compare</button>
-    <div id="compareOut" class="grid md:grid-cols-3 gap-4 mt-4"></div>
+  <div class="card p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="font-semibold text-lg">Model comparison</h2>
+        <p class="text-sm" style="color:var(--text-soft)">
+          Recovery (production) vs phase3a (baseline) vs leaked stage_7 (case study).
+        </p>
+      </div>
+      <button id="compareBtn" class="btn">Compare</button>
+    </div>
+    <div id="compareOut" class="space-y-4"></div>
   </div>
 </section>
 
-<!-- Hard examples tab -->
+<!-- ===== HARD CASES TAB ===== -->
 <section id="tab-hard" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Hard examples</h2>
-    <p class="text-xs text-slate-500 mb-3">
-      Sentences from the held-out hard-eval buckets (<code>data_v2/hard_eval/</code>):
-      long_range, nested_clause, overlap, ambiguity, quranic_hard,
-      rare_constructions. Click any to send it to the analyzer.
+  <div class="card p-6">
+    <h2 class="font-semibold text-lg mb-2">Hard cases gallery</h2>
+    <p class="text-sm mb-5" style="color:var(--text-soft)">
+      Curated examples where the model's failure mode is documented.
+      Click any to send it to the analyzer.
     </p>
-    <div class="text-xs mb-2">
-      Recovery model fully accuracy by bucket:
-      <span class="pill case-jarr">ambiguity 0.736</span>
-      <span class="pill case-jarr">quranic_hard 0.722</span>
-      <span class="pill case-nasb">overlap 0.668</span>
-      <span class="pill case-nasb">rare 0.182</span>
-    </div>
-    <div id="hardList" class="mt-2 space-y-2"></div>
+    <div id="hardList" class="grid md:grid-cols-2 gap-4"></div>
   </div>
 </section>
 
-<!-- Known failures tab -->
-<section id="tab-failures" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Known failure cases — the <code>mudaaf_ilayh</code> family</h2>
-    <p class="text-xs text-slate-500 mb-3">
-      The dominant role-confusion family. Three labels share an
-      identical surface signature; the model cannot reliably
-      distinguish them at the current data scale. See
-      <code>docs/failure_analysis/FINDINGS.md</code> for the full analysis.
+<!-- ===== DASHBOARD TAB ===== -->
+<section id="tab-dashboard" class="tab-pane hidden space-y-5">
+  <div class="card p-6">
+    <h2 class="font-semibold text-lg mb-2">Validated headline metrics</h2>
+    <p class="text-sm mb-4" style="color:var(--text-soft)">
+      Phase A independent eval, full uncapped held-out sets.
     </p>
-    <table class="text-xs w-full mt-3">
-      <thead class="bg-slate-100"><tr>
-        <th class="px-2 py-1 text-left">Gold</th>
-        <th class="px-2 py-1 text-left">Predicted</th>
-        <th class="px-2 py-1 text-right">Count on held-out</th>
-      </tr></thead>
-      <tbody id="failuresTable"></tbody>
-    </table>
-    <div class="mt-4 text-xs text-amber-700 panel p-3 rounded">
-      <b>Why the model gets these wrong:</b> the second noun in a noun-noun
-      sequence can be (a) a <code>mudaaf_ilayh</code> (idafa partner — set by
-      the first noun), (b) a <code>mafoul_bih</code> (direct object — set by
-      an upstream verb), or (c) an <code>ism_majrur</code> (set by a
-      preposition). All three surface as the same case (jarr) with the same
-      marker (kasra). Resolving them requires verb-argument knowledge,
-      which is beyond what the model is trained on.
-    </div>
+    <div id="dashHeadline" class="grid md:grid-cols-2 gap-4"></div>
+  </div>
+  <div class="card p-6">
+    <h2 class="font-semibold text-lg mb-2">Calibration</h2>
+    <div id="dashCalib"></div>
+  </div>
+  <div class="card p-6">
+    <h2 class="font-semibold text-lg mb-2">Top role confusions on held-out</h2>
+    <div id="dashConfusions"></div>
+  </div>
+  <div class="card p-6">
+    <h2 class="font-semibold text-lg mb-2">Permissive eval (heuristic upper bound)</h2>
+    <div id="dashPermissive"></div>
   </div>
 </section>
 
-<!-- Leakage case study tab -->
+<!-- ===== LEAKAGE TAB ===== -->
 <section id="tab-leakage" class="tab-pane hidden">
-  <div class="panel rounded-lg p-4">
-    <h2 class="font-medium mb-2">Leakage case study</h2>
-    <p class="text-xs text-slate-500 mb-3">
+  <div class="card p-6 space-y-4">
+    <h2 class="font-semibold text-lg">The leakage discovery</h2>
+    <p class="text-sm" style="color:var(--text-soft)">
       An earlier curriculum run reported an apparent <b>0.999 MASAQ fully</b>
-      accuracy. The independent eval traced the result to
-      <code>gazelle_test</code> and <code>masaq_quranic</code> being silently
-      present in the curriculum's training pool — the model had memorised
-      the test set. The leak-free retraining produced the validated
-      recovery checkpoint that ships today.
+      accuracy. Independent eval traced the result to test sources being
+      silently in the training pool. The model had memorised the test set.
+      The validated_recovery checkpoint is the leak-free retraining.
     </p>
-    <table class="text-xs w-full mt-2 mb-3">
-      <thead class="bg-slate-100"><tr>
-        <th class="px-2 py-1 text-left">Metric</th>
-        <th class="px-2 py-1 text-right">Phase 3-A</th>
-        <th class="px-2 py-1 text-right">Recovery (clean)</th>
-        <th class="px-2 py-1 text-right">Leaked stage_7</th>
-      </tr></thead>
-      <tbody class="font-mono">
-        <tr><td class="px-2 py-1">MASAQ fully</td>
-            <td class="px-2 py-1 text-right">0.675</td>
-            <td class="px-2 py-1 text-right text-emerald-700">0.711</td>
-            <td class="px-2 py-1 text-right text-red-700">0.999 ← memorisation</td></tr>
-        <tr><td class="px-2 py-1">MASAQ calib_gap</td>
-            <td class="px-2 py-1 text-right">0.087</td>
-            <td class="px-2 py-1 text-right">0.124</td>
-            <td class="px-2 py-1 text-right text-red-700">0.9998 ← memorisation</td></tr>
-        <tr><td class="px-2 py-1">Gazelle fully</td>
-            <td class="px-2 py-1 text-right">0.459</td>
-            <td class="px-2 py-1 text-right">0.459</td>
-            <td class="px-2 py-1 text-right text-red-700">0.377 ← regressed</td></tr>
-      </tbody>
-    </table>
-    <div class="text-xs text-slate-700 panel p-3 rounded">
-      <b>Three runtime assertions</b> now refuse to load any test source
-      into the training pool: at module load, at pool build, at sentence
-      eligibility. Plus a <b>provenance manifest</b> with declared
-      <code>split_role</code> per source. See
-      <code>src/irab_tashkeel/curriculum/config.py:TEST_SOURCES</code>.
+    <div id="leakageOut"></div>
+    <div class="card p-4" style="background:var(--accent-soft); border-color:var(--accent)">
+      <div class="font-medium" style="color:var(--accent)">Three runtime assertions</div>
+      <p class="text-sm mt-1" style="color:var(--text-soft)">
+        Now refuse any test source from entering the training pool — at module
+        load, at pool build, and at sentence eligibility. Plus a provenance
+        manifest with declared <code>split_role</code> per source. The bug
+        class cannot recur silently.
+      </p>
     </div>
+  </div>
+</section>
+
+<!-- ===== RAW JSON TAB ===== -->
+<section id="tab-json" class="tab-pane hidden">
+  <div class="card p-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold text-lg">Raw JSON</h2>
+      <div class="flex gap-2">
+        <button id="copyJson" class="btn-soft">Copy</button>
+        <button id="downloadJson" class="btn-soft">Download</button>
+      </div>
+    </div>
+    <pre id="jsonOut" class="text-xs p-4 rounded-lg overflow-auto"
+         style="background:var(--bg); border:1px solid var(--border); max-height:60vh"></pre>
   </div>
 </section>
 
 </main>
 
+<footer class="max-w-7xl mx-auto px-6 py-8 text-xs text-center" style="color:var(--text-soft)">
+  Author: Nour Jennane · Contributors: Nour Jennane, Hatem Saadallah ·
+  Production checkpoint: <code>validated_nextgen_recovery</code>
+</footer>
+
 <script>
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
+let lastAnalysis = null;
 
-// Tab switching
+// ===== Tab switching =====
 $$(".tab").forEach(b => b.addEventListener("click", () => {
   $$(".tab").forEach(t => t.classList.remove("active"));
   b.classList.add("active");
   const id = b.dataset.tab;
   $$(".tab-pane").forEach(p => p.classList.add("hidden"));
   $("#tab-" + id).classList.remove("hidden");
-  if (id === "eval")     loadEvalDashboard();
-  if (id === "hard")     loadHard();
-  if (id === "failures") loadFailures();
+  if (id === "dashboard") loadDashboard();
+  if (id === "hard")      loadHard();
+  if (id === "leakage")   loadLeakage();
+  if (id === "json")      renderJson();
 }));
 
-// Hard-examples list (curated client-side; the backend doesn't need a route)
-const HARD_EXAMPLES = [
-  {tag: "nested",    text: "إنَّ الكتابَ الذي قرأهُ الطالبُ مفيدٌ"},
-  {tag: "overlap",   text: "كان أبو الطفلِ معلِّمًا"},
-  {tag: "ambiguity", text: "أكلَ الطفلُ التفاحةَ"},
-  {tag: "ambiguity", text: "في البيتِ رجلٌ"},
-  {tag: "quranic",   text: "بسم الله الرحمن الرحيم"},
-  {tag: "quranic",   text: "الحمد لله رب العالمين"},
-  {tag: "long",      text: "ذهب الطلابُ المجتهدونَ في المدرسةِ القريبةِ من الجامعةِ إلى الحديقةِ الجميلةِ"},
-];
+// ===== Dark mode =====
+const persistedDark = localStorage.getItem("dark") === "1";
+if (persistedDark) document.body.classList.add("dark");
+$("#darkToggle").addEventListener("click", () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("dark", document.body.classList.contains("dark") ? "1" : "0");
+});
 
-function loadHard() {
-  $("#hardList").innerHTML = HARD_EXAMPLES.map(e => `
-    <div class="border rounded p-2 cursor-pointer hover:bg-slate-50"
-         onclick="document.querySelector('#inputText').value='${e.text}';
-                  document.querySelector('[data-tab=\\'analyze\\']').click();">
-      <div class="text-xs text-slate-500">${e.tag}</div>
-      <div class="arabic">${e.text}</div>
-    </div>`).join("");
-}
-
-const FAILURE_ROWS = [
-  ["mudaaf_ilayh", "mafoul_bih", 32],
-  ["mudaaf_ilayh", "mubtada", 29],
-  ["ism_majrur", "matuf", 21],
-  ["mudaaf_ilayh", "fail", 13],
-  ["mudaaf_ilayh", "ism_majrur", 13],
-  ["mafoul_bih", "fail", 12],
-  ["ism_majrur", "mubtada", 8],
-  ["mudaaf_ilayh", "ism_inna", 7],
-  ["ism_majrur", "naat", 7],
-  ["mudaaf_ilayh", "khabar_inna", 6],
-];
-
-function loadFailures() {
-  $("#failuresTable").innerHTML = FAILURE_ROWS.map(([g, p, n]) => `
-    <tr class="border-b">
-      <td class="px-2 py-1 font-mono">${g}</td>
-      <td class="px-2 py-1 font-mono">${p}</td>
-      <td class="px-2 py-1 text-right">${n}</td>
-    </tr>`).join("");
-}
-
-// Dark toggle
-$("#darkToggle").addEventListener("click", () => document.body.classList.toggle("dark"));
-
-// Sample sentences
+// ===== Sample sentences =====
 fetch("/api/sample").then(r => r.json()).then(items => {
   const c = $("#samples");
   items.forEach(s => {
     const b = document.createElement("button");
-    b.className = "border px-2 py-1 rounded hover:bg-slate-100 arabic";
-    b.style.fontSize = "0.85rem";
-    b.textContent = s.text + "  (" + s.tag + ")";
-    b.onclick = () => { $("#inputText").value = s.text; };
+    b.className = "chip ar";
+    b.style.fontSize = "1.05rem";
+    b.textContent = s.text;
+    b.title = s.tag;
+    b.onclick = () => { $("#inputText").value = s.text; analyze(); };
     c.appendChild(b);
   });
 });
 
-// Analyze
+// ===== Analyze =====
 $("#analyzeBtn").addEventListener("click", analyze);
 $("#inputText").addEventListener("keypress", e => { if (e.key === "Enter") analyze(); });
 
-function caseClass(c) {
-  return "case-" + (c || "none");
+function setBanner(html, kind = "info") {
+  const colors = {
+    info:    "background:var(--accent-soft); color:var(--accent); border-color:var(--accent)",
+    warn:    "background:var(--yellow-soft); color:var(--yellow); border-color:var(--yellow)",
+    err:     "background:var(--red-soft); color:var(--red); border-color:var(--red)",
+    loading: "background:var(--accent-soft); color:var(--accent); border-color:var(--accent)",
+  };
+  const b = $("#banner");
+  b.innerHTML = `<div class="card p-3 text-sm flex items-center gap-3 fade-in" style="${colors[kind]}">${html}</div>`;
+  b.classList.remove("hidden");
 }
-function confBar(p) {
-  const w = Math.max(2, Math.round((p || 0) * 100));
-  return `<div class="conf-bar" style="width:${w}%"></div>`;
-}
+function clearBanner() { $("#banner").classList.add("hidden"); }
 
 async function analyze() {
   const text = $("#inputText").value.trim();
   if (!text) return;
-  $("#analyzeOut").innerHTML = '<div class="text-slate-500 text-sm">Analyzing...</div>';
+  setBanner('<div class="spinner"></div><div>Analyzing syntax · detecting constructions · generating reasoning…</div>', "loading");
+  $("#analyzeOut").innerHTML = '';
   try {
     const r = await fetch("/api/analyze", {
-      method: "POST", headers: {"content-type": "application/json"},
-      body: JSON.stringify({text, checkpoint: $("#ckpt").value}),
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text, checkpoint: $("#ckpt").value }),
     });
     if (!r.ok) throw new Error(await r.text());
     const d = await r.json();
+    lastAnalysis = d;
+    clearBanner();
+    if (d.warnings && d.warnings.length) {
+      setBanner(d.warnings.map(w => `<div class="icon-warn">${w}</div>`).join(""), "warn");
+    }
     renderTokens(d);
     renderReasoning(d);
-    renderGraph(d);
     renderConstructions(d);
+    renderGraph(d);
   } catch (e) {
-    $("#analyzeOut").innerHTML = '<div class="text-red-600 text-sm">' + e.message + '</div>';
+    setBanner(`Couldn't analyze: ${e.message || e}`, "err");
   }
 }
+
+function caseClass(c) { return "pill-case-" + (c || "mabni"); }
+function confClass(b) { return "conf-" + (b || "very_low"); }
+function pct(x) { return x == null ? "—" : (x * 100).toFixed(1) + "%"; }
 
 function renderTokens(d) {
-  const grid = d.tokens.map(t => `
-    <div class="border rounded p-2 inline-block m-1 align-top text-center" style="min-width:90px">
-      <div class="arabic">${t.surface}</div>
-      <div class="text-xs"><span class="pill ${caseClass(t.case)}">${t.case || "—"}</span></div>
-      <div class="text-xs text-slate-600 mt-1">${t.role || "—"}</div>
-      <div class="text-xs text-slate-500">${t.marker || "—"}</div>
-      <div class="text-[10px] text-slate-400">${t.pos || ""}</div>
-      <div class="mt-1">${confBar(t.case_conf)}</div>
-    </div>
-  `).join("");
+  // headline summary
+  const ctx = d.constructions.length
+    ? d.constructions.map(c => `<span class="pill pill-construction">${c.family}</span>`).join("")
+    : '<span class="text-xs" style="color:var(--text-soft)">no constructions detected</span>';
+  $("#analyzeSummary").innerHTML = `
+    <div class="card p-5 fade-in">
+      <div class="ar ar-big mb-3" dir="rtl">${d.text}</div>
+      <div class="flex items-center gap-3 text-xs" style="color:var(--text-soft)">
+        <span><b style="color:var(--text)">${d.n_tokens}</b> tokens</span>
+        <span>·</span>
+        <span>checkpoint: <code>${d.checkpoint}</code></span>
+        <span>·</span>
+        <span>${ctx}</span>
+      </div>
+    </div>`;
+
+  // token grid
+  const grid = d.tokens.map(t => {
+    const warnIcon = t.calibration_warning ? '<span class="icon-warn"></span>' : '';
+    const ambig = t.is_surface_ambiguous
+      ? '<span class="pill pill-warning text-[9px]">surface ambiguous</span>' : '';
+    return `
+      <div class="token-card fade-in" data-tindex="${t.index}" onclick="showTokenModal(${t.index})">
+        <div class="ar text-xl text-center mb-2" dir="rtl">${t.surface}</div>
+        <div class="text-center mb-1.5">
+          <span class="pill ${caseClass(t.case)}">${t.case || '—'}</span>
+        </div>
+        <div class="text-center text-[11px] mb-1" style="color:var(--text-soft)">
+          <span class="pill pill-role">${t.role || '—'}</span>
+        </div>
+        <div class="text-center text-[10px] mb-2" style="color:var(--muted)">
+          ${t.marker || '—'} ${ambig}
+        </div>
+        <div class="conf-bar">
+          <div class="conf-fill ${confClass(t.confidence_band)}"
+               style="width:${(t.role_conf || 0) * 100}%"></div>
+        </div>
+        <div class="text-[10px] mt-1 flex justify-between" style="color:var(--muted)">
+          <span>${warnIcon}role conf</span>
+          <span>${pct(t.role_conf)}</span>
+        </div>
+      </div>`;
+  }).join("");
   $("#analyzeOut").innerHTML = `
-    <div class="text-xs text-slate-500 mb-2">Checkpoint: <code>${d.checkpoint}</code> · ${d.n_tokens} tokens</div>
-    <div class="arabic mb-3" style="font-size:1.4rem">${d.text}</div>
-    <div class="flex flex-wrap" dir="rtl">${grid}</div>
-    <div class="text-xs text-amber-700 mt-3">${d.calibration_note || ""}</div>`;
+    <div class="card p-5 fade-in">
+      <div class="text-xs mb-3" style="color:var(--text-soft)">
+        Click any token for full details and alternative readings.
+      </div>
+      <div class="flex flex-wrap gap-2.5" dir="rtl">${grid}</div>
+    </div>`;
+
+  // advanced section
+  $("#analyzeAdvanced").innerHTML = `
+    <table class="text-xs w-full">
+      <thead style="color:var(--text-soft)">
+        <tr class="border-b" style="border-color:var(--border)">
+          <th class="text-left py-2">surface</th>
+          <th class="text-left">case</th><th class="text-left">role</th>
+          <th class="text-left">marker</th>
+          <th class="text-right">case conf</th>
+          <th class="text-right">role conf</th>
+          <th class="text-right">marker conf</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${d.tokens.map(t => `
+          <tr class="border-b" style="border-color:var(--border)">
+            <td class="ar py-1.5" dir="rtl">${t.surface}</td>
+            <td>${t.case || '—'}</td><td>${t.role || '—'}</td>
+            <td>${t.marker || '—'}</td>
+            <td class="text-right font-mono">${pct(t.case_conf)}</td>
+            <td class="text-right font-mono">${pct(t.role_conf)}</td>
+            <td class="text-right font-mono">${pct(t.marker_conf)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
 }
+
+// Token-detail modal
+window.showTokenModal = function(index) {
+  if (!lastAnalysis) return;
+  const t = lastAnalysis.tokens[index];
+  if (!t) return;
+  const reasoning = lastAnalysis.reasoning[index];
+  const alts = (t.role_alternatives || []).map((a, i) =>
+    `<div class="flex justify-between text-xs py-1">
+       <span>${i + 1}. <span class="pill pill-role">${a.role || '—'}</span></span>
+       <span class="font-mono" style="color:var(--text-soft)">${pct(a.conf)}</span>
+     </div>`).join("");
+  const html = `
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-bg fade-in"
+         onclick="if(event.target===this)closeModal()">
+      <div class="card p-6 max-w-md w-full max-h-[85vh] overflow-y-auto">
+        <div class="flex justify-between items-start mb-3">
+          <div>
+            <div class="ar text-2xl" dir="rtl">${t.surface}</div>
+            <div class="text-xs mt-1" style="color:var(--text-soft)">
+              token ${t.index} · pos ${t.pos || '—'}
+            </div>
+          </div>
+          <button onclick="closeModal()" class="btn-soft text-xs">close</button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="text-center card p-2.5" style="background:var(--bg)">
+            <div class="text-[10px] mb-1" style="color:var(--text-soft)">CASE</div>
+            <span class="pill ${caseClass(t.case)}">${t.case || '—'}</span>
+            <div class="text-[10px] mt-1 font-mono" style="color:var(--muted)">${pct(t.case_conf)}</div>
+          </div>
+          <div class="text-center card p-2.5" style="background:var(--bg)">
+            <div class="text-[10px] mb-1" style="color:var(--text-soft)">ROLE</div>
+            <span class="pill pill-role">${t.role || '—'}</span>
+            <div class="text-[10px] mt-1 font-mono" style="color:var(--muted)">${pct(t.role_conf)}</div>
+          </div>
+          <div class="text-center card p-2.5" style="background:var(--bg)">
+            <div class="text-[10px] mb-1" style="color:var(--text-soft)">MARKER</div>
+            <div class="text-xs">${t.marker || '—'}</div>
+            <div class="text-[10px] mt-1 font-mono" style="color:var(--muted)">${pct(t.marker_conf)}</div>
+          </div>
+        </div>
+        ${t.calibration_warning ? `
+        <div class="card p-3 mb-4 text-xs" style="background:var(--yellow-soft); color:var(--yellow); border-color:var(--yellow)">
+          <span class="icon-warn"></span>${t.calibration_warning}
+        </div>` : ''}
+        ${alts ? `
+        <div class="mb-4">
+          <div class="text-xs font-medium mb-1.5">Top role alternatives</div>
+          ${alts}
+        </div>` : ''}
+        <div class="space-y-2 text-sm">
+          ${reasoning?.why_role ? `
+          <div class="card p-3" style="background:var(--bg)">
+            <div class="text-[10px] font-semibold mb-1" style="color:var(--accent)">WHY THIS ROLE?</div>
+            <div>${reasoning.why_role}</div>
+          </div>` : ''}
+          ${reasoning?.why_case ? `
+          <div class="card p-3" style="background:var(--bg)">
+            <div class="text-[10px] font-semibold mb-1" style="color:var(--accent)">WHY THIS CASE?</div>
+            <div>${reasoning.why_case}</div>
+          </div>` : ''}
+          ${reasoning?.why_marker ? `
+          <div class="card p-3" style="background:var(--bg)">
+            <div class="text-[10px] font-semibold mb-1" style="color:var(--accent)">WHY THIS MARKER?</div>
+            <div>${reasoning.why_marker}</div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend", html);
+};
+window.closeModal = () => {
+  const m = $("#modal"); if (m) m.remove();
+};
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
 function renderReasoning(d) {
-  const lines = d.tokens.map(t => {
-    if (!t.case) return null;
-    return `<div class="text-sm border-l-2 border-sky-400 pl-3">
-      <span class="arabic">${t.surface}</span> →
-      <span class="font-mono">${t.role || "?"}</span> /
-      <span class="font-mono">${t.case || "?"}</span> /
-      <span class="font-mono">${t.marker || "?"}</span>
-    </div>`;
-  }).filter(Boolean).join("");
-  $("#reasoningOut").innerHTML = lines || '<div class="text-slate-500 text-sm">no reasoning</div>';
-}
-
-function renderGraph(d) {
-  const dot = ['digraph G {', '  rankdir=LR;'];
-  d.tokens.forEach(t => {
-    dot.push(`  t${t.index} [label="${t.surface}\\n${t.role || "?"}"];`);
-  });
-  for (let i = 0; i < d.tokens.length - 1; i++) {
-    dot.push(`  t${i} -> t${i+1};`);
+  if (!d.reasoning?.length) {
+    $("#reasoningOut").innerHTML = '<div class="text-sm" style="color:var(--text-soft)">No reasoning yet — analyze a sentence first.</div>';
+    return;
   }
-  dot.push("}");
-  $("#graphOut").textContent = dot.join("\n");
+  $("#reasoningOut").innerHTML = d.reasoning.map(r => `
+    <div class="card p-4 fade-in" style="background:var(--bg)">
+      <div class="flex items-baseline gap-3 mb-2">
+        <div class="ar text-lg" dir="rtl">${r.surface}</div>
+        <span class="pill pill-role">${r.role || '—'}</span>
+        <span class="pill ${caseClass(r.case)}">${r.case || '—'}</span>
+        ${r.marker ? `<span class="text-xs" style="color:var(--text-soft)">marker: ${r.marker}</span>` : ''}
+      </div>
+      <div class="space-y-1.5 text-sm">
+        ${r.why_role   ? `<div><b style="color:var(--accent)">role:</b> ${r.why_role}</div>` : ''}
+        ${r.why_case   ? `<div><b style="color:var(--accent)">case:</b> ${r.why_case}</div>` : ''}
+        ${r.why_marker ? `<div><b style="color:var(--accent)">marker:</b> ${r.why_marker}</div>` : ''}
+      </div>
+    </div>`).join("");
 }
 
 function renderConstructions(d) {
-  // Lightweight heuristic detection on the client side until the
-  // backend exposes the construction tagger output.
-  const cs = [];
-  d.tokens.forEach((t, i) => {
-    if (t.role && (t.role.includes("ism_kana") || t.role.includes("khabar_kana"))) {
-      cs.push({family: "kana_sisters", token: t.surface, role: t.role});
-    }
-    if (t.role === "mudaaf_ilayh") {
-      cs.push({family: "idafa", token: t.surface, role: t.role});
+  if (!d.constructions?.length) {
+    $("#constructionOut").innerHTML = '<div class="text-sm" style="color:var(--text-soft)">No constructions detected for this sentence.</div>';
+    return;
+  }
+  $("#constructionOut").innerHTML = d.constructions.map(c => {
+    const memberSurf = c.members.map(i => d.tokens[i]?.surface || '?').join(' · ');
+    return `
+      <div class="card p-4 fade-in" style="background:var(--bg)">
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-semibold">${c.family}</div>
+          <span class="pill pill-construction">${c.id}</span>
+        </div>
+        <div class="ar text-lg mb-2" dir="rtl">${memberSurf}</div>
+        <div class="text-sm mb-2" style="color:var(--text-soft)">${c.explanation}</div>
+        <div class="text-xs flex gap-3" style="color:var(--muted)">
+          <span>members: ${c.members.join(', ')}</span>
+          ${c.governor != null ? `<span>governor: ${c.governor}</span>` : ''}
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// ===== Graph SVG =====
+function renderGraph(d) {
+  const svg = $("#graph");
+  if (!svg) return;
+  svg.innerHTML = '';
+  const nodes = d.graph.nodes;
+  const edges = d.graph.edges;
+  if (!nodes.length) return;
+  const W = svg.clientWidth || 800;
+  const H = 280;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const padding = 50;
+  const xStep = (W - padding * 2) / Math.max(nodes.length - 1, 1);
+  // Position tokens RTL (so visual order matches Arabic reading)
+  nodes.forEach((n, i) => {
+    n._x = W - padding - i * xStep;
+    n._y = H / 2;
+  });
+
+  // Edges first (so nodes draw on top)
+  edges.forEach(e => {
+    const src = nodes.find(n => n.id === e.src);
+    const dst = nodes.find(n => n.id === e.dst);
+    if (!src || !dst) return;
+    if (e.type === "construction") {
+      const dx = dst._x - src._x;
+      const cx = (src._x + dst._x) / 2;
+      const cy = src._y - 50;
+      const path = `M ${src._x} ${src._y} Q ${cx} ${cy} ${dst._x} ${dst._y}`;
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      p.setAttribute("d", path);
+      p.setAttribute("class", "graph-edge construction");
+      p.setAttribute("data-construction", e.construction_id || "");
+      svg.appendChild(p);
+    } else {
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", src._x); line.setAttribute("y1", src._y);
+      line.setAttribute("x2", dst._x); line.setAttribute("y2", dst._y);
+      line.setAttribute("class", "graph-edge");
+      svg.appendChild(line);
     }
   });
-  $("#constructionOut").innerHTML = cs.length
-    ? cs.map(c => `<div class="border rounded p-2"><b>${c.family}</b> · <span class="arabic">${c.token}</span> (${c.role})</div>`).join("")
-    : '<div class="text-slate-500 text-sm">no constructions detected by heuristic.</div>';
+
+  nodes.forEach(n => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("transform", `translate(${n._x},${n._y})`);
+    g.setAttribute("class", "graph-node");
+    g.setAttribute("data-tindex", n.index);
+    g.style.cursor = "pointer";
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("r", 24);
+    g.appendChild(c);
+    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("dy", "0.35em");
+    label.setAttribute("font-family", "Amiri, serif");
+    label.setAttribute("font-size", "16");
+    label.textContent = n.label;
+    g.appendChild(label);
+    const role = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    role.setAttribute("text-anchor", "middle");
+    role.setAttribute("y", 42);
+    role.setAttribute("font-size", "10");
+    role.setAttribute("fill", "var(--text-soft)");
+    role.textContent = n.role || "—";
+    g.appendChild(role);
+    g.addEventListener("mouseenter", () => {
+      g.classList.add("highlighted");
+      $$(`[data-tindex="${n.index}"]`).forEach(el => el.classList.add("highlighted"));
+    });
+    g.addEventListener("mouseleave", () => {
+      g.classList.remove("highlighted");
+      $$(`[data-tindex="${n.index}"]`).forEach(el => el.classList.remove("highlighted"));
+    });
+    svg.appendChild(g);
+  });
+
+  // Legend
+  const consTypes = [...new Set(edges.filter(e => e.type === "construction").map(e => e.label))];
+  $("#graphLegend").innerHTML = `
+    <span><span style="display:inline-block;width:24px;height:1.5px;background:var(--border);vertical-align:middle"></span> sequential</span>
+    ${consTypes.map(t => `<span><span style="display:inline-block;width:24px;border-top:2px dashed var(--purple);vertical-align:middle"></span> ${t}</span>`).join('')}
+  `;
 }
 
-async function loadEvalDashboard() {
-  const ev = await fetch("/api/eval_metrics").then(r => r.json());
-  const lk = await fetch("/api/leakage_summary").then(r => r.json());
-  $("#evalOut").innerHTML = ev.status
-    ? `<div class="text-amber-700 text-sm">${ev.status}</div>`
-    : `<pre class="text-xs bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto">${JSON.stringify(ev.rows ? ev.rows.slice(0, 20) : ev, null, 2)}</pre>`;
-  $("#leakageOut").innerHTML = lk.status
-    ? `<div class="text-amber-700 text-sm">${lk.status}</div>`
-    : `<pre class="text-xs bg-slate-100 dark:bg-slate-900 p-3 rounded overflow-auto">${JSON.stringify(lk.rows || lk, null, 2)}</pre>`;
-}
-
+// ===== Compare =====
 $("#compareBtn").addEventListener("click", async () => {
   const text = $("#inputText").value.trim();
-  if (!text) return;
-  $("#compareOut").innerHTML = '<div class="text-slate-500 text-sm">Comparing...</div>';
+  if (!text) { alert("Type a sentence first."); return; }
+  $("#compareOut").innerHTML = '<div class="flex items-center gap-3"><div class="spinner"></div><div>Running three checkpoints…</div></div>';
   const r = await fetch("/api/compare", {
-    method: "POST", headers: {"content-type": "application/json"},
-    body: JSON.stringify({text}),
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text }),
   }).then(r => r.json());
-  const renderSide = (name, d, banner) => {
-    if (!d || d.error) return `<div class="panel rounded p-3 text-sm text-red-600">${name}: ${d?.error || "unavailable"}</div>`;
-    const grid = d.tokens.map(t => `
-      <div class="border rounded p-1 inline-block m-0.5 text-center" style="min-width:70px">
-        <div class="arabic" style="font-size:1rem">${t.surface}</div>
-        <div class="text-xs"><span class="pill ${caseClass(t.case)}">${t.case || "—"}</span></div>
-        <div class="text-[10px] text-slate-500">${t.role || "—"}</div>
-      </div>`).join("");
-    return `<div class="panel rounded p-3">
-              <h3 class="font-medium mb-1">${name}</h3>
-              <div class="text-[10px] text-slate-500 mb-2">${banner}</div>
-              <div class="flex flex-wrap" dir="rtl">${grid}</div>
-            </div>`;
+
+  const renderRow = (d, name, banner, note) => {
+    if (!d || d.error) return `<div class="card p-3 text-sm" style="color:var(--red)">${name}: ${d?.error || 'unavailable'}</div>`;
+    return `<div class="card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <div><b>${name}</b> <span class="text-xs" style="color:var(--text-soft)">${banner}</span></div>
+        ${note ? `<span class="pill pill-warning">${note}</span>` : ''}
+      </div>
+      <div class="flex flex-wrap gap-2" dir="rtl">
+        ${d.tokens.map(t => `
+          <div class="token-card" style="min-width:80px;padding:.4rem">
+            <div class="ar text-base text-center">${t.surface}</div>
+            <div class="text-center mt-1"><span class="pill ${caseClass(t.case)} text-[9px]">${t.case || '—'}</span></div>
+            <div class="text-center text-[10px]" style="color:var(--text-soft)">${t.role || '—'}</div>
+          </div>`).join("")}
+      </div>
+    </div>`;
   };
-  $("#compareOut").innerHTML =
-      renderSide("recovery (validated)", r.recovery, "production checkpoint")
-    + renderSide("phase3a (baseline)",   r.phase3a, "warm-start baseline")
-    + renderSide("stage7 (leaked)",      r.stage7,  "contamination case study — do not deploy");
+
+  let diffHtml = '';
+  if (r.diff) {
+    const changedTokens = r.diff.filter(t => t.n_changes > 0);
+    diffHtml = `<div class="card p-4">
+      <h3 class="font-semibold mb-2">Token-level diff: phase3a → recovery</h3>
+      ${changedTokens.length === 0
+        ? '<div class="text-sm" style="color:var(--green)">✓ No differences — both checkpoints agree on every token.</div>'
+        : `<div class="text-xs mb-2" style="color:var(--text-soft)">${changedTokens.length} of ${r.diff.length} tokens changed</div>
+           <table class="text-xs w-full">
+             <thead style="color:var(--text-soft)"><tr><th class="text-left py-1">tok</th><th class="text-left">word</th>
+               <th class="text-left">axis</th><th class="text-left">phase3a</th><th class="text-left">recovery</th></tr></thead>
+             <tbody>
+               ${changedTokens.flatMap(t => t.changes.map(ch => `
+                 <tr class="border-t" style="border-color:var(--border)">
+                   <td>${t.index}</td>
+                   <td class="ar" dir="rtl">${t.surface}</td>
+                   <td>${ch.axis}</td>
+                   <td><span class="pill pill-warning">${ch.phase3a || '—'}</span></td>
+                   <td><span class="pill pill-role">${ch.recovery || '—'}</span></td>
+                 </tr>`)).join("")}
+             </tbody>
+           </table>`}
+    </div>`;
+  }
+
+  $("#compareOut").innerHTML = [
+    renderRow(r.recovery, "recovery", "production checkpoint", null),
+    renderRow(r.phase3a,  "phase3a",  "warm-start baseline",   null),
+    renderRow(r.stage7,   "stage7",   "leaked — case study",   "do not deploy"),
+    diffHtml,
+  ].join("");
+});
+
+// ===== Hard cases =====
+async function loadHard() {
+  const r = await fetch("/api/hard_cases").then(r => r.json());
+  $("#hardList").innerHTML = r.map(c => `
+    <div class="card card-hover p-4 cursor-pointer" onclick="document.querySelector('#inputText').value='${c.text.replace(/'/g, "\\'")}';document.querySelector('[data-tab=analyze]').click();analyze()">
+      <div class="flex items-center justify-between mb-2">
+        <span class="pill pill-construction">${c.tag}</span>
+        <span class="text-xs" style="color:var(--text-soft)">try →</span>
+      </div>
+      <div class="ar text-xl mb-2" dir="rtl">${c.text}</div>
+      <div class="text-xs" style="color:var(--text-soft)">${c.why}</div>
+    </div>`).join("");
+}
+
+// ===== Dashboard =====
+async function loadDashboard() {
+  const ev = await fetch("/api/eval_metrics").then(r => r.json()).catch(() => ({}));
+  const fc = await fetch("/api/failure_summary").then(r => r.json()).catch(() => ({}));
+  const pe = await fetch("/api/permissive_eval").then(r => r.json()).catch(() => ({}));
+  const cb = await fetch("/api/calibration").then(r => r.json()).catch(() => ({}));
+
+  // Headline metrics
+  const h = ev.summary?.headline;
+  if (h) {
+    const renderDS = (name, d) => {
+      const metrics = ['case', 'role', 'marker', 'fully'];
+      return `<div class="card p-4" style="background:var(--bg)">
+        <h3 class="font-semibold mb-3">${name}</h3>
+        ${metrics.map(m => {
+          const ph = d.phase3a[m], rc = d.recovery[m];
+          const delta = (rc - ph);
+          const dColor = delta > 0.005 ? 'var(--green)' : (delta < -0.005 ? 'var(--red)' : 'var(--text-soft)');
+          return `<div class="mb-2">
+            <div class="flex justify-between text-xs mb-1">
+              <span><b>${m}</b></span>
+              <span style="color:${dColor}" class="font-mono">Δ ${delta >= 0 ? '+' : ''}${delta.toFixed(3)}</span>
+            </div>
+            <div class="flex gap-2 items-center">
+              <div class="text-[10px]" style="color:var(--text-soft);min-width:60px">phase3a</div>
+              <div class="conf-bar flex-1"><div class="conf-fill conf-medium" style="width:${ph * 100}%"></div></div>
+              <div class="text-[10px] font-mono" style="min-width:42px;text-align:right">${ph.toFixed(3)}</div>
+            </div>
+            <div class="flex gap-2 items-center mt-1">
+              <div class="text-[10px]" style="color:var(--text-soft);min-width:60px">recovery</div>
+              <div class="conf-bar flex-1"><div class="conf-fill conf-high" style="width:${rc * 100}%"></div></div>
+              <div class="text-[10px] font-mono" style="min-width:42px;text-align:right">${rc.toFixed(3)}</div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>`;
+    };
+    $("#dashHeadline").innerHTML = renderDS("Gazelle (30 sentences)", h.gazelle)
+                                  + renderDS("MASAQ (624 sentences)", h.masaq);
+  }
+
+  // Calibration
+  const ece = ev.summary?.calibration_ece?.recovery;
+  if (ece && cb && !cb.status) {
+    const fits = cb.fits || {};
+    const rel  = cb.reliability || {};
+    $("#dashCalib").innerHTML = `
+      <table class="text-sm w-full">
+        <thead style="color:var(--text-soft)">
+          <tr><th class="text-left py-2">axis</th>
+              <th class="text-right">fitted T</th>
+              <th class="text-right">ECE before</th>
+              <th class="text-right">ECE after</th>
+              <th class="text-right">Δ</th></tr>
+        </thead>
+        <tbody>
+          ${["case","role","marker"].map(a => {
+            const r = rel[a] || {};
+            return `<tr class="border-t" style="border-color:var(--border)">
+              <td class="py-1.5">${a}</td>
+              <td class="text-right font-mono">${fits[a] ?? '—'}</td>
+              <td class="text-right font-mono">${r.ece_before ?? '—'}</td>
+              <td class="text-right font-mono">${r.ece_after ?? '—'}</td>
+              <td class="text-right font-mono" style="color:${(r.delta ?? 0) < 0 ? 'var(--green)' : 'var(--red)'}">${r.delta != null ? (r.delta >= 0 ? '+' : '') + r.delta : '—'}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+  } else {
+    $("#dashCalib").innerHTML = '<div class="text-sm" style="color:var(--text-soft)">Calibration data not yet generated.</div>';
+  }
+
+  // Confusions
+  if (fc.confusions?.role?.length) {
+    const top = fc.confusions.role.slice(0, 12);
+    const max = top[0][2];
+    $("#dashConfusions").innerHTML = top.map(([g, p, n]) => `
+      <div class="flex items-center gap-3 mb-1.5 text-xs">
+        <div class="font-mono" style="min-width:130px">${g}</div>
+        <div style="color:var(--text-soft)">→</div>
+        <div class="font-mono" style="min-width:130px">${p}</div>
+        <div class="conf-bar flex-1"><div class="conf-fill conf-low" style="width:${n / max * 100}%"></div></div>
+        <div class="font-mono" style="min-width:24px;text-align:right">${n}</div>
+      </div>`).join("");
+  }
+
+  // Permissive
+  if (pe && pe.permissive) {
+    const p = pe.permissive;
+    $("#dashPermissive").innerHTML = `
+      <div class="grid md:grid-cols-3 gap-3 text-sm">
+        <div class="card p-3" style="background:var(--bg)">
+          <div class="text-[10px]" style="color:var(--text-soft)">STRICT FULLY</div>
+          <div class="text-2xl font-bold">${p.strict_fully}</div>
+        </div>
+        <div class="card p-3" style="background:var(--bg)">
+          <div class="text-[10px]" style="color:var(--text-soft)">PERMISSIVE FULLY</div>
+          <div class="text-2xl font-bold" style="color:var(--green)">${p.permissive_fully}</div>
+        </div>
+        <div class="card p-3" style="background:var(--bg)">
+          <div class="text-[10px]" style="color:var(--text-soft)">Δ (UPPER BOUND)</div>
+          <div class="text-2xl font-bold" style="color:var(--accent)">+${p.delta}</div>
+        </div>
+      </div>
+      <div class="text-xs mt-3 card p-3" style="background:var(--yellow-soft); color:var(--yellow); border-color:var(--yellow)">
+        <span class="icon-warn"></span>
+        Heuristic upper bound. A real grammarian would tighten this to +0.05 to +0.10.
+      </div>`;
+  }
+}
+
+// ===== Leakage tab =====
+async function loadLeakage() {
+  const lk = await fetch("/api/leakage_summary").then(r => r.json()).catch(() => ({}));
+  $("#leakageOut").innerHTML = `
+    <table class="text-sm w-full">
+      <thead style="color:var(--text-soft)">
+        <tr><th class="text-left py-2">Metric</th>
+            <th class="text-right">Phase 3-A</th>
+            <th class="text-right">Recovery (clean)</th>
+            <th class="text-right">Leaked stage_7</th></tr>
+      </thead>
+      <tbody>
+        <tr class="border-t" style="border-color:var(--border)">
+          <td class="py-1.5">MASAQ fully</td>
+          <td class="text-right font-mono">0.675</td>
+          <td class="text-right font-mono" style="color:var(--green)">0.711</td>
+          <td class="text-right font-mono" style="color:var(--red)">0.999 ← memorisation</td>
+        </tr>
+        <tr class="border-t" style="border-color:var(--border)">
+          <td class="py-1.5">MASAQ calib_gap</td>
+          <td class="text-right font-mono">0.087</td>
+          <td class="text-right font-mono">0.124</td>
+          <td class="text-right font-mono" style="color:var(--red)">0.9998 ← memorisation</td>
+        </tr>
+        <tr class="border-t" style="border-color:var(--border)">
+          <td class="py-1.5">Gazelle fully</td>
+          <td class="text-right font-mono">0.459</td>
+          <td class="text-right font-mono">0.459</td>
+          <td class="text-right font-mono" style="color:var(--red)">0.377 ← regressed</td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+// ===== JSON tab =====
+function renderJson() {
+  $("#jsonOut").textContent = lastAnalysis
+    ? JSON.stringify(lastAnalysis, null, 2)
+    : "// analyze a sentence first";
+}
+$("#copyJson").addEventListener("click", () => {
+  if (!lastAnalysis) return;
+  navigator.clipboard.writeText(JSON.stringify(lastAnalysis, null, 2));
+  $("#copyJson").textContent = "✓ copied";
+  setTimeout(() => $("#copyJson").textContent = "Copy", 1200);
+});
+$("#downloadJson").addEventListener("click", () => {
+  if (!lastAnalysis) return;
+  const blob = new Blob([JSON.stringify(lastAnalysis, null, 2)], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "irab_analysis.json";
+  a.click();
+});
+
+// Auto-analyze a sample on first load
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    if (!$("#inputText").value) {
+      $("#inputText").value = "ذهبَ الطالبُ إلى المدرسةِ";
+      analyze();
+    }
+  }, 400);
 });
 </script>
 </body>
