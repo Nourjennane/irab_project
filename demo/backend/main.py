@@ -20,9 +20,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -54,6 +54,18 @@ holder = ModelHolder()
 class AnalyzeRequest(BaseModel):
     text: str
     checkpoint: str = "recovery"
+
+
+@app.middleware("http")
+async def no_cache_headers(request: Request, call_next):
+    """Add aggressive no-cache headers to HTML responses so the
+    browser always picks up the latest demo build."""
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.endswith(".html"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 
 @app.get("/")

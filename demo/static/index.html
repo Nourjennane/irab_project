@@ -2,221 +2,375 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Arabic Iʿrāb — Grammatical Reasoning Assistant</title>
+<title>Iʿrāb · Arabic Grammatical Reasoning Assistant</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#fafafa; --card:#ffffff; --border:#e5e7eb;
-    --text:#0f172a; --text-soft:#475569; --muted:#94a3b8;
-    --accent:#0ea5e9; --accent-soft:#e0f2fe;
-    --green:#10b981; --green-soft:#dcfce7;
-    --yellow:#f59e0b; --yellow-soft:#fef3c7;
-    --red:#ef4444; --red-soft:#fee2e2;
-    --purple:#a855f7; --purple-soft:#f3e8ff;
-    --blue:#3b82f6; --blue-soft:#dbeafe;
+    /* Light palette — distinctive, not generic */
+    --bg-1:#0b1020; --bg-2:#11163b; --bg-3:#1d1454;
+    --bg-surface:#ffffff;
+    --bg-soft:#f5f5fb;
+    --bg-page:#f8f8fc;
+    --border:#e6e8f0;
+    --text:#0f1129; --text-soft:#525677; --muted:#8c91ad;
+
+    /* Vivid accents */
+    --accent:#6366f1;       --accent-2:#8b5cf6;
+    --accent-soft:#eef0ff;
+    --green:#10b981;        --green-soft:#d1fae5;
+    --amber:#f59e0b;        --amber-soft:#fef3c7;
+    --red:#e11d48;          --red-soft:#ffe4e6;
+    --rose:#ec4899;         --rose-soft:#fce7f3;
+    --teal:#14b8a6;         --teal-soft:#ccfbf1;
+    --grad-1: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 50%, #ec4899 100%);
+    --grad-2: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+    --grad-3: linear-gradient(120deg, #0b1020 0%, #1d1454 60%, #4c1d95 100%);
   }
   body.dark {
-    --bg:#0a0f1c; --card:#111827; --border:#1f2937;
-    --text:#e5e7eb; --text-soft:#9ca3af; --muted:#6b7280;
-    --accent:#38bdf8; --accent-soft:#0c4a6e;
-    --green:#34d399; --green-soft:#064e3b;
-    --yellow:#fbbf24; --yellow-soft:#78350f;
-    --red:#f87171; --red-soft:#7f1d1d;
-    --purple:#c084fc; --purple-soft:#581c87;
-    --blue:#60a5fa; --blue-soft:#1e3a8a;
+    --bg-surface:#0f1129;
+    --bg-soft:#171a3a;
+    --bg-page:#0a0c1f;
+    --border:#23264a;
+    --text:#e6e7f5; --text-soft:#a4a7c0; --muted:#6e7193;
+    --accent-soft:#1a1d4a;
+    --green-soft:#0a3d2c;   --amber-soft:#3a2a06;
+    --red-soft:#3a1018;     --rose-soft:#3a0f24;
+    --teal-soft:#0a3a35;
   }
+  * { box-sizing:border-box; }
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg); color: var(--text);
-    min-height: 100vh; transition: background 0.2s, color 0.2s;
+    font-family:'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background:var(--bg-page); color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  .ar { font-family: 'Amiri', 'Noto Naskh Arabic', serif;
-        direction: rtl; line-height: 1.9; }
-  .ar-big { font-size: 2.2rem; font-weight: 700; }
-  .ar-input { font-size: 1.5rem; }
+  /* ---- Typography ---- */
+  .ar { font-family:'Amiri', 'Noto Naskh Arabic', serif; direction:rtl; line-height:1.85; }
+  .mono { font-family:'JetBrains Mono', monospace; }
+
+  /* ---- Hero ---- */
+  .hero {
+    position:relative; overflow:hidden;
+    background: var(--grad-3);
+    color:#fff; border-radius:28px; padding:3rem 2.5rem;
+  }
+  .hero::before {
+    content:""; position:absolute; inset:-50%;
+    background: radial-gradient(circle at 20% 30%, rgba(139,92,246,0.4), transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(236,72,153,0.3), transparent 50%);
+    z-index:0; pointer-events:none;
+  }
+  .hero > * { position:relative; z-index:1; }
+  .hero-arabic { font-size:5rem; line-height:1; opacity:0.06;
+                  position:absolute; top:1rem; right:2rem; z-index:0;
+                  font-family:'Amiri', serif; pointer-events:none; }
+  .hero h1 { font-weight:800; letter-spacing:-0.02em; }
+  .hero-input {
+    background: rgba(255,255,255,0.95); color:var(--text);
+    border:none; border-radius:18px;
+    padding:1.1rem 1.4rem; font-size:1.4rem;
+    font-family:'Amiri', serif;
+    box-shadow: 0 12px 32px rgba(15,17,41,0.25);
+  }
+  .hero-input:focus { outline:3px solid rgba(255,255,255,0.4); }
+  .btn-primary {
+    background:#fff; color:var(--accent);
+    padding:1.1rem 1.6rem; border-radius:18px;
+    font-weight:700; font-size:1rem;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 20px rgba(99,102,241,0.3);
+  }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow: 0 12px 28px rgba(99,102,241,0.4); }
+  .btn-primary:active { transform:translateY(0); }
+
+  /* ---- Cards ---- */
   .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
-    transition: box-shadow 0.15s, border-color 0.15s;
+    background:var(--bg-surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:1.5rem;
+    transition: all 0.2s;
   }
-  body.dark .card {
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15);
-  }
-  .card-hover:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.06); }
-  .pill { display:inline-flex; align-items:center; gap:.25rem;
-          padding:.15rem .55rem; border-radius:9999px; font-size:.7rem;
-          font-weight:600; }
-  .pill-case-raf    { background:var(--green-soft);  color:var(--green); }
-  .pill-case-nasb   { background:var(--red-soft);    color:var(--red); }
-  .pill-case-jarr   { background:var(--blue-soft);   color:var(--blue); }
-  .pill-case-jazm   { background:var(--purple-soft); color:var(--purple); }
-  .pill-case-mabni  { background:#f1f5f9;            color:#475569; }
+  .card-glow:hover { border-color:var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); transform:translateY(-1px); }
+
+  /* ---- Pills ---- */
+  .pill { display:inline-flex; align-items:center; gap:.3rem;
+          padding:.25rem .65rem; border-radius:9999px;
+          font-size:.7rem; font-weight:700; letter-spacing:0.02em;
+          text-transform:uppercase; }
+  .pill-case-raf    { background:var(--green-soft); color:#065f46; }
+  body.dark .pill-case-raf { color:#34d399; }
+  .pill-case-nasb   { background:var(--red-soft); color:#9f1239; }
+  body.dark .pill-case-nasb { color:#fb7185; }
+  .pill-case-jarr   { background:#dbeafe; color:#1e40af; }
+  body.dark .pill-case-jarr { background:#172554; color:#93c5fd; }
+  .pill-case-jazm   { background:var(--rose-soft); color:#9d174d; }
+  body.dark .pill-case-jazm { color:#f472b6; }
+  .pill-case-mabni  { background:#f1f5f9; color:#475569; }
   body.dark .pill-case-mabni { background:#1e293b; color:#cbd5e1; }
-  .pill-role        { background:var(--blue-soft);   color:var(--blue); }
-  .pill-construction{ background:var(--purple-soft); color:var(--purple); }
-  .pill-warning     { background:var(--yellow-soft); color:var(--yellow); }
-  .conf-bar { height: 6px; background:#e5e7eb; border-radius: 3px;
-              overflow: hidden; }
-  body.dark .conf-bar { background:#1f2937; }
-  .conf-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-  .conf-high   { background:var(--green); }
-  .conf-medium { background:var(--yellow); }
-  .conf-low    { background:#f97316; }
-  .conf-very_low { background:var(--red); }
-  .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-  .tab { color: var(--text-soft); border-bottom: 2px solid transparent;
-         padding: .5rem .25rem; font-weight: 500; transition: color 0.15s; }
-  .tab:hover { color: var(--text); }
-  .tab-pane.hidden { display: none; }
-  .token-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 0.75rem; min-width: 110px;
-    transition: transform 0.1s, border-color 0.15s;
-    cursor: pointer; position: relative;
+  .pill-role        { background:var(--accent-soft); color:var(--accent); }
+  body.dark .pill-role { color:#a5b4fc; }
+  .pill-construction { background:var(--rose-soft); color:#9d174d; }
+  body.dark .pill-construction { color:#f9a8d4; }
+  .pill-warning     { background:var(--amber-soft); color:#92400e; }
+  body.dark .pill-warning { color:#fcd34d; }
+  .pill-tag { background:var(--teal-soft); color:#115e59; }
+  body.dark .pill-tag { color:#5eead4; }
+
+  /* ---- Token cards ---- */
+  .token {
+    position:relative;
+    background:var(--bg-surface);
+    border:2px solid var(--border);
+    border-radius:18px;
+    padding:1rem 0.85rem;
+    min-width:120px;
+    transition: all 0.2s;
+    cursor:pointer;
   }
-  .token-card:hover {
-    transform: translateY(-2px); border-color: var(--accent);
+  .token::before {
+    content:""; position:absolute; inset:0;
+    border-radius:18px;
+    background: var(--grad-2); opacity:0;
+    z-index:-1; transition: opacity 0.2s;
   }
-  .token-card.highlighted { border-color: var(--accent); background: var(--accent-soft); }
-  .icon-warn::before { content:"⚠"; color:var(--yellow); margin-right:.25rem; }
-  .btn { background: var(--accent); color: white; padding: .55rem 1.1rem;
-         border-radius: 10px; font-weight: 600; transition: background 0.15s, transform 0.1s; }
-  .btn:hover { filter: brightness(1.05); }
-  .btn:active { transform: scale(0.98); }
-  .btn-soft { background: transparent; border: 1px solid var(--border);
-              color: var(--text-soft); padding: .4rem .8rem;
-              border-radius: 8px; font-size: 0.85rem; }
-  .btn-soft:hover { background: var(--card); border-color: var(--accent); color: var(--accent); }
-  .chip { display:inline-block; padding:.3rem .7rem; border-radius:9999px;
-          font-size:.85rem; background:var(--card); border:1px solid var(--border);
-          cursor:pointer; transition: all 0.15s; }
-  .chip:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); }
+  .token:hover { transform:translateY(-3px); border-color:transparent;
+                 box-shadow: 0 10px 25px rgba(99,102,241,0.18); }
+  .token:hover::before { opacity:0.05; }
+  .token.highlighted { border-color:var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .token-arabic { font-family:'Amiri', serif; font-size:1.6rem; font-weight:700;
+                   text-align:center; line-height:1.2; margin-bottom:0.6rem; }
+
+  /* ---- Confidence bar ---- */
+  .conf-bar { height:6px; background:var(--bg-soft); border-radius:99px; overflow:hidden; }
+  .conf-fill { height:100%; border-radius:99px; transition:width 0.4s ease-out; }
+  .conf-high   { background:linear-gradient(90deg, #34d399, #10b981); }
+  .conf-medium { background:linear-gradient(90deg, #fbbf24, #f59e0b); }
+  .conf-low    { background:linear-gradient(90deg, #fb923c, #ea580c); }
+  .conf-very_low { background:linear-gradient(90deg, #fb7185, #e11d48); }
+
+  /* ---- Tabs ---- */
+  .tab { color:var(--text-soft); padding:0.5rem 0.85rem;
+         border-radius:10px; font-size:0.875rem; font-weight:600;
+         transition: all 0.15s; white-space:nowrap; }
+  .tab:hover { background:var(--bg-soft); color:var(--text); }
+  .tab.active { background:var(--accent); color:#fff;
+                box-shadow: 0 4px 14px rgba(99,102,241,0.3); }
+  .tab-pane.hidden { display:none; }
+
+  /* ---- Chips ---- */
+  .chip { display:inline-block; padding:0.45rem 0.95rem;
+          border-radius:9999px; background:var(--bg-surface);
+          border:1.5px solid var(--border);
+          font-family:'Amiri', serif; font-size:1.15rem; line-height:1;
+          cursor:pointer; transition:all 0.15s; }
+  .chip:hover { border-color:var(--accent); transform:translateY(-1px);
+                box-shadow: 0 4px 12px rgba(99,102,241,0.15); }
+
+  /* ---- Buttons ---- */
+  .btn { background:var(--accent); color:#fff;
+         padding:0.65rem 1.2rem; border-radius:12px;
+         font-weight:600; font-size:0.9rem;
+         transition: all 0.15s;
+         box-shadow: 0 4px 12px rgba(99,102,241,0.25); }
+  .btn:hover { transform:translateY(-1px);
+                box-shadow: 0 6px 18px rgba(99,102,241,0.35); }
+  .btn:active { transform:translateY(0); }
+  .btn-soft { background:var(--bg-soft); border:1px solid var(--border);
+              color:var(--text); padding:0.45rem 0.85rem;
+              border-radius:10px; font-size:0.8rem; font-weight:500;
+              transition: all 0.15s; }
+  .btn-soft:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* ---- Spinner ---- */
   .spinner {
+    width:22px; height:22px;
     border:3px solid var(--border); border-top:3px solid var(--accent);
-    border-radius:50%; width:20px; height:20px;
-    animation: spin 0.8s linear infinite;
+    border-radius:50%; animation: spin 0.7s linear infinite;
   }
-  @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
-  .fade-in { animation: fadeIn 0.25s ease-out; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-  details > summary { cursor: pointer; user-select: none; list-style: none; }
-  details > summary::after { content: "▼"; float: right; font-size:.7rem;
-                              opacity:0.6; transition: transform 0.15s; }
-  details[open] > summary::after { transform: rotate(180deg); }
-  .graph-svg { width:100%; height:280px; }
-  .graph-node circle { fill: var(--card); stroke: var(--border); stroke-width: 2; transition: all 0.15s; }
-  .graph-node.highlighted circle { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
-  .graph-node text { fill: var(--text); }
-  .graph-edge { stroke: var(--border); stroke-width: 1.5; fill: none; }
-  .graph-edge.construction { stroke: var(--purple); stroke-width: 2; stroke-dasharray: 4 3; }
-  .modal-bg { background: rgba(0,0,0,0.5); }
-  body.dark .modal-bg { background: rgba(0,0,0,0.7); }
-  /* Scrollbar polish */
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ---- Animations ---- */
+  .fade-in { animation: fadeIn 0.35s ease-out; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); }
+                       to { opacity:1; transform: none; } }
+  .slide-in { animation: slideIn 0.4s ease-out; }
+  @keyframes slideIn { from { opacity:0; transform: translateX(-12px); }
+                        to { opacity:1; transform: none; } }
+
+  /* ---- Modal ---- */
+  .modal-bg { background: rgba(15,17,41,0.7); backdrop-filter: blur(8px); }
+
+  /* ---- Graph ---- */
+  .graph-svg { width:100%; height:320px; }
+  .graph-node circle { fill:var(--bg-surface); stroke:var(--border); stroke-width:2.5;
+                        transition: all 0.2s; }
+  .graph-node.highlighted circle { fill:var(--accent-soft); stroke:var(--accent); stroke-width:3; }
+  .graph-node text { fill:var(--text); }
+  .graph-edge { stroke:var(--border); stroke-width:1.5; fill:none; }
+  .graph-edge.construction { stroke:var(--rose); stroke-width:2.2; stroke-dasharray:5 4; fill:none; }
+
+  /* ---- Scrollbar ---- */
   ::-webkit-scrollbar { width:8px; height:8px; }
-  ::-webkit-scrollbar-track { background:transparent; }
-  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--muted); }
+
+  /* ---- Misc ---- */
+  details > summary { cursor:pointer; user-select:none; list-style:none; padding:0.5rem 0;
+                       display:flex; align-items:center; justify-content:space-between; }
+  details > summary::after { content:"▸"; transition: transform 0.2s; opacity:0.6; }
+  details[open] > summary::after { transform: rotate(90deg); }
+
+  /* ---- Sticky topbar ---- */
+  .topbar { background:rgba(255,255,255,0.85); backdrop-filter: blur(12px);
+            border-bottom:1px solid var(--border); }
+  body.dark .topbar { background:rgba(15,17,41,0.85); }
+
+  /* ---- Stats grid ---- */
+  .stat { background:var(--bg-surface); border:1px solid var(--border);
+          border-radius:18px; padding:1.2rem; }
+  .stat-num { font-size:2rem; font-weight:800; line-height:1;
+              background: var(--grad-2);
+              -webkit-background-clip:text; background-clip:text;
+              -webkit-text-fill-color:transparent; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="card border-x-0 border-t-0 rounded-none sticky top-0 z-40" style="background:var(--card)">
-  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+<!-- TOPBAR -->
+<header class="topbar sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <div class="text-2xl">إعراب</div>
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center"
+           style="background:var(--grad-1)">
+        <span class="ar text-white text-xl font-bold">إ</span>
+      </div>
       <div>
-        <div class="font-semibold text-base">Arabic Iʿrāb</div>
+        <div class="font-bold leading-tight">Iʿrāb</div>
         <div class="text-xs" style="color:var(--text-soft)">Grammatical Reasoning Assistant</div>
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <select id="ckpt" class="btn-soft text-xs">
+      <select id="ckpt" class="btn-soft mono">
         <option value="recovery">recovery (validated)</option>
         <option value="phase3a">phase3a (baseline)</option>
       </select>
-      <button id="darkToggle" class="btn-soft text-xs" title="Toggle dark mode">🌙</button>
-      <a href="https://github.com/Nourjennane/irab_project" target="_blank" class="btn-soft text-xs">GitHub →</a>
+      <button id="darkToggle" class="btn-soft" title="Toggle dark mode">🌗</button>
+      <a href="https://github.com/Nourjennane/irab_project" target="_blank" class="btn-soft">GitHub →</a>
     </div>
   </div>
-  <nav class="max-w-7xl mx-auto px-6 flex gap-5 text-sm overflow-x-auto">
+  <nav class="max-w-7xl mx-auto px-6 pb-3 flex gap-1 overflow-x-auto">
     <button class="tab active" data-tab="analyze">Analyze</button>
     <button class="tab" data-tab="reasoning">Reasoning</button>
     <button class="tab" data-tab="graph">Graph</button>
     <button class="tab" data-tab="constructions">Constructions</button>
     <button class="tab" data-tab="compare">Compare Models</button>
     <button class="tab" data-tab="hard">Hard Cases</button>
-    <button class="tab" data-tab="dashboard">Eval Dashboard</button>
+    <button class="tab" data-tab="dashboard">Dashboard</button>
     <button class="tab" data-tab="leakage">Leakage Story</button>
-    <button class="tab" data-tab="json">Raw JSON</button>
+    <button class="tab" data-tab="json">JSON</button>
   </nav>
 </header>
 
-<main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+<main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
 
 <!-- HERO -->
-<section id="hero" class="card p-7 md:p-9">
-  <div class="grid md:grid-cols-3 gap-6 items-end">
-    <div class="md:col-span-2">
-      <h1 class="text-2xl md:text-3xl font-bold mb-2">Per-token Arabic grammatical analysis</h1>
-      <p class="text-sm md:text-base mb-5" style="color:var(--text-soft)">
-        Structured iʿrāb with case, role, marker, confidence, and reasoning.
-        Every prediction is machine-checkable and calibrated.
-        <span class="hidden md:inline">Production checkpoint: <code>validated_nextgen_recovery</code>.</span>
+<section class="hero fade-in">
+  <div class="hero-arabic">إعراب</div>
+  <div class="grid md:grid-cols-5 gap-8 items-center">
+    <div class="md:col-span-3">
+      <div class="inline-block mb-4 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider"
+           style="background:rgba(255,255,255,0.15); color:#fff">
+        Honest Arabic Grammatical Reasoning · Production
+      </div>
+      <h1 class="text-3xl md:text-4xl mb-3 leading-tight">
+        Per-token Arabic iʿrāb,<br>structured and calibrated.
+      </h1>
+      <p class="text-base md:text-lg mb-7 leading-relaxed" style="color:rgba(255,255,255,0.8)">
+        Case · syntactic role · marker · construction · confidence · reasoning —
+        every prediction machine-checkable, every metric independently audited.
       </p>
       <div class="flex flex-col md:flex-row gap-3">
         <input id="inputText" type="text" dir="rtl"
                placeholder="أدخل جملة عربية..."
-               class="ar ar-input flex-1 px-4 py-3 rounded-xl outline-none"
-               style="background:var(--bg); border:2px solid var(--border)">
-        <button id="analyzeBtn" class="btn flex items-center justify-center gap-2">
+               class="hero-input ar flex-1 outline-none">
+        <button id="analyzeBtn" class="btn-primary flex items-center justify-center gap-2">
           <span>Analyze</span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 8h10m-3-3 3 3-3 3" stroke="currentColor" stroke-width="2"
+            <path d="M3 8h10m-3-3 3 3-3 3" stroke="currentColor" stroke-width="2.5"
                   stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
       </div>
-      <div id="samples" class="mt-4 flex flex-wrap gap-2"></div>
+      <div id="samples" class="mt-5 flex flex-wrap gap-2"></div>
     </div>
-    <div class="hidden md:block">
-      <div class="card p-4 text-xs" style="background:var(--accent-soft); border-color:var(--accent)">
-        <div class="font-semibold mb-2" style="color:var(--accent)">Quick legend</div>
-        <div class="space-y-1.5">
-          <div><span class="pill pill-case-raf">raf</span> nominative · subject</div>
-          <div><span class="pill pill-case-nasb">nasb</span> accusative · object</div>
-          <div><span class="pill pill-case-jarr">jarr</span> genitive · idafa / prep</div>
-          <div><span class="pill pill-case-mabni">mabni</span> indeclinable · particles</div>
+    <div class="md:col-span-2">
+      <div class="rounded-2xl p-5"
+           style="background:rgba(255,255,255,0.1); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15)">
+        <div class="text-xs uppercase tracking-wider mb-3 font-semibold" style="color:rgba(255,255,255,0.7)">Quick legend</div>
+        <div class="space-y-2 text-sm" style="color:#fff">
+          <div class="flex items-center gap-3"><span class="pill pill-case-raf">raf</span><span style="opacity:0.85">nominative · subject</span></div>
+          <div class="flex items-center gap-3"><span class="pill pill-case-nasb">nasb</span><span style="opacity:0.85">accusative · object</span></div>
+          <div class="flex items-center gap-3"><span class="pill pill-case-jarr">jarr</span><span style="opacity:0.85">genitive · iḍāfa, prep</span></div>
+          <div class="flex items-center gap-3"><span class="pill pill-case-mabni">mabni</span><span style="opacity:0.85">indeclinable · particle</span></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- BANNER (warnings / loading) -->
+<!-- AT-A-GLANCE STATS -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+  <div class="stat">
+    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">MASAQ fully</div>
+    <div class="stat-num">0.711</div>
+    <div class="text-xs mt-1" style="color:var(--green)">+0.036 vs Phase 3-A</div>
+  </div>
+  <div class="stat">
+    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Gazelle role</div>
+    <div class="stat-num">0.613</div>
+    <div class="text-xs mt-1" style="color:var(--green)">+0.038 vs Phase 3-A</div>
+  </div>
+  <div class="stat">
+    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Calib gap (Gazelle)</div>
+    <div class="stat-num">−0.052</div>
+    <div class="text-xs mt-1" style="color:var(--text-soft)">healthier (less overconfident)</div>
+  </div>
+  <div class="stat">
+    <div class="text-xs uppercase tracking-wider mb-1" style="color:var(--text-soft)">Permissive Δ</div>
+    <div class="stat-num">+0.153</div>
+    <div class="text-xs mt-1" style="color:var(--text-soft)">heuristic upper bound</div>
+  </div>
+</section>
+
+<!-- BANNER -->
 <div id="banner" class="hidden"></div>
 
 <!-- ===== ANALYZE TAB ===== -->
 <section id="tab-analyze" class="tab-pane space-y-5">
   <div id="analyzeSummary"></div>
   <div id="analyzeOut"></div>
-  <details class="card p-4">
-    <summary class="font-medium">Advanced — token confidence details</summary>
+  <details class="card">
+    <summary class="font-semibold">Advanced — confidence per axis</summary>
     <div id="analyzeAdvanced" class="mt-4"></div>
   </details>
 </section>
 
 <!-- ===== REASONING TAB ===== -->
 <section id="tab-reasoning" class="tab-pane hidden">
-  <div class="card p-6 space-y-3">
-    <h2 class="font-semibold text-lg">Reasoning trace</h2>
-    <p class="text-sm" style="color:var(--text-soft)">
-      Per-token natural-language explanation of the model's prediction —
-      template-rendered from structured labels (no free-form generation).
+  <div class="card">
+    <h2 class="font-bold text-2xl mb-2">Reasoning trace</h2>
+    <p class="mb-5" style="color:var(--text-soft)">
+      Per-token natural-language explanation, template-rendered from
+      structured labels — never free-form generation.
     </p>
     <div id="reasoningOut" class="space-y-3"></div>
   </div>
@@ -224,35 +378,36 @@
 
 <!-- ===== GRAPH TAB ===== -->
 <section id="tab-graph" class="tab-pane hidden">
-  <div class="card p-6">
-    <h2 class="font-semibold text-lg mb-2">Grammar graph</h2>
-    <p class="text-sm mb-4" style="color:var(--text-soft)">
-      Solid edges: sequential token order. Dashed purple edges: detected
-      construction membership. Hover any node to highlight.
+  <div class="card">
+    <h2 class="font-bold text-2xl mb-2">Grammar graph</h2>
+    <p class="mb-5" style="color:var(--text-soft)">
+      Solid edges are sequential token order. Dashed pink edges show
+      detected construction membership. Hover any node to highlight
+      the matching token card.
     </p>
-    <div id="graphContainer" class="card p-4" style="background:var(--bg)">
+    <div class="card" style="background:var(--bg-soft); padding:0">
       <svg id="graph" class="graph-svg"></svg>
     </div>
-    <div id="graphLegend" class="mt-3 flex gap-4 text-xs flex-wrap"></div>
+    <div id="graphLegend" class="mt-3 flex gap-4 text-xs flex-wrap" style="color:var(--text-soft)"></div>
   </div>
 </section>
 
 <!-- ===== CONSTRUCTIONS TAB ===== -->
 <section id="tab-constructions" class="tab-pane hidden">
-  <div class="card p-6 space-y-4">
-    <h2 class="font-semibold text-lg">Detected constructions</h2>
+  <div class="card">
+    <h2 class="font-bold text-2xl mb-5">Detected constructions</h2>
     <div id="constructionOut" class="space-y-3"></div>
   </div>
 </section>
 
 <!-- ===== COMPARE TAB ===== -->
 <section id="tab-compare" class="tab-pane hidden">
-  <div class="card p-6">
-    <div class="flex items-center justify-between mb-4">
+  <div class="card">
+    <div class="flex items-start justify-between mb-5 gap-4">
       <div>
-        <h2 class="font-semibold text-lg">Model comparison</h2>
-        <p class="text-sm" style="color:var(--text-soft)">
-          Recovery (production) vs phase3a (baseline) vs leaked stage_7 (case study).
+        <h2 class="font-bold text-2xl mb-2">Model comparison</h2>
+        <p style="color:var(--text-soft)">
+          Recovery (production) · phase3a (baseline) · leaked stage_7 (case study).
         </p>
       </div>
       <button id="compareBtn" class="btn">Compare</button>
@@ -261,84 +416,80 @@
   </div>
 </section>
 
-<!-- ===== HARD CASES TAB ===== -->
+<!-- ===== HARD TAB ===== -->
 <section id="tab-hard" class="tab-pane hidden">
-  <div class="card p-6">
-    <h2 class="font-semibold text-lg mb-2">Hard cases gallery</h2>
-    <p class="text-sm mb-5" style="color:var(--text-soft)">
-      Curated examples where the model's failure mode is documented.
-      Click any to send it to the analyzer.
+  <div class="card">
+    <h2 class="font-bold text-2xl mb-2">Hard cases gallery</h2>
+    <p class="mb-6" style="color:var(--text-soft)">
+      Curated examples where the failure mode is documented. Click any card to send the sentence to the analyzer.
     </p>
     <div id="hardList" class="grid md:grid-cols-2 gap-4"></div>
   </div>
 </section>
 
-<!-- ===== DASHBOARD TAB ===== -->
+<!-- ===== DASHBOARD ===== -->
 <section id="tab-dashboard" class="tab-pane hidden space-y-5">
-  <div class="card p-6">
-    <h2 class="font-semibold text-lg mb-2">Validated headline metrics</h2>
-    <p class="text-sm mb-4" style="color:var(--text-soft)">
-      Phase A independent eval, full uncapped held-out sets.
-    </p>
+  <div class="card">
+    <h2 class="font-bold text-2xl mb-2">Validated headline metrics</h2>
+    <p class="mb-5" style="color:var(--text-soft)">Phase A independent eval, full uncapped held-out sets.</p>
     <div id="dashHeadline" class="grid md:grid-cols-2 gap-4"></div>
   </div>
-  <div class="card p-6">
-    <h2 class="font-semibold text-lg mb-2">Calibration</h2>
+  <div class="card">
+    <h2 class="font-bold text-xl mb-3">Calibration</h2>
     <div id="dashCalib"></div>
   </div>
-  <div class="card p-6">
-    <h2 class="font-semibold text-lg mb-2">Top role confusions on held-out</h2>
+  <div class="card">
+    <h2 class="font-bold text-xl mb-3">Top role confusions</h2>
     <div id="dashConfusions"></div>
   </div>
-  <div class="card p-6">
-    <h2 class="font-semibold text-lg mb-2">Permissive eval (heuristic upper bound)</h2>
+  <div class="card">
+    <h2 class="font-bold text-xl mb-3">Permissive eval (heuristic upper bound)</h2>
     <div id="dashPermissive"></div>
   </div>
 </section>
 
-<!-- ===== LEAKAGE TAB ===== -->
+<!-- ===== LEAKAGE ===== -->
 <section id="tab-leakage" class="tab-pane hidden">
-  <div class="card p-6 space-y-4">
-    <h2 class="font-semibold text-lg">The leakage discovery</h2>
-    <p class="text-sm" style="color:var(--text-soft)">
-      An earlier curriculum run reported an apparent <b>0.999 MASAQ fully</b>
-      accuracy. Independent eval traced the result to test sources being
-      silently in the training pool. The model had memorised the test set.
-      The validated_recovery checkpoint is the leak-free retraining.
+  <div class="card">
+    <h2 class="font-bold text-2xl mb-3">The leakage discovery</h2>
+    <p class="mb-5" style="color:var(--text-soft)">
+      An earlier curriculum run reported an apparent <b>0.999 MASAQ fully</b>.
+      Independent eval traced the result to test sources being silently in
+      the training pool. The model had memorised the test set. The
+      validated_recovery checkpoint is the leak-free retraining.
     </p>
     <div id="leakageOut"></div>
-    <div class="card p-4" style="background:var(--accent-soft); border-color:var(--accent)">
-      <div class="font-medium" style="color:var(--accent)">Three runtime assertions</div>
-      <p class="text-sm mt-1" style="color:var(--text-soft)">
-        Now refuse any test source from entering the training pool — at module
-        load, at pool build, and at sentence eligibility. Plus a provenance
-        manifest with declared <code>split_role</code> per source. The bug
-        class cannot recur silently.
+    <div class="card mt-5" style="background:var(--accent-soft); border-color:var(--accent)">
+      <div class="font-bold mb-2" style="color:var(--accent)">Three runtime assertions now refuse test sources from entering training</div>
+      <p style="color:var(--text-soft)">
+        At module load · at pool build · at sentence eligibility — plus a
+        provenance manifest with declared <code>split_role</code> per source.
+        The bug class cannot recur silently.
       </p>
     </div>
   </div>
 </section>
 
-<!-- ===== RAW JSON TAB ===== -->
+<!-- ===== JSON ===== -->
 <section id="tab-json" class="tab-pane hidden">
-  <div class="card p-6">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="font-semibold text-lg">Raw JSON</h2>
+  <div class="card">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-2xl">Raw JSON</h2>
       <div class="flex gap-2">
-        <button id="copyJson" class="btn-soft">Copy</button>
-        <button id="downloadJson" class="btn-soft">Download</button>
+        <button id="copyJson" class="btn-soft">📋 Copy</button>
+        <button id="downloadJson" class="btn-soft">⬇ Download</button>
       </div>
     </div>
-    <pre id="jsonOut" class="text-xs p-4 rounded-lg overflow-auto"
-         style="background:var(--bg); border:1px solid var(--border); max-height:60vh"></pre>
+    <pre id="jsonOut" class="mono p-4 rounded-xl overflow-auto text-xs"
+         style="background:var(--bg-soft); border:1px solid var(--border); max-height:60vh"></pre>
   </div>
 </section>
 
 </main>
 
-<footer class="max-w-7xl mx-auto px-6 py-8 text-xs text-center" style="color:var(--text-soft)">
-  Author: Nour Jennane · Contributors: Nour Jennane, Hatem Saadallah ·
-  Production checkpoint: <code>validated_nextgen_recovery</code>
+<footer class="max-w-7xl mx-auto px-6 py-10 text-center text-sm" style="color:var(--text-soft)">
+  <div class="mb-2">Author <b>Nour Jennane</b> · Contributors: Nour Jennane, Hatem Saadallah</div>
+  <div>Production checkpoint: <code class="mono">validated_nextgen_recovery</code></div>
 </footer>
 
 <script>
@@ -346,20 +497,45 @@ const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 let lastAnalysis = null;
 
-// ===== Tab switching =====
+// Empty-state CTA used when a tab needs analysis output that doesn't exist yet
+const EMPTY_HTML = `
+  <div class="card text-center py-12 px-6">
+    <div class="text-5xl mb-4 opacity-30">إعراب</div>
+    <div class="font-bold text-lg mb-2">No analysis yet</div>
+    <p class="mb-4" style="color:var(--text-soft)">Type an Arabic sentence in the box above and press Analyze.</p>
+    <button onclick="document.querySelector('[data-tab=analyze]').click(); document.querySelector('#inputText').focus();" class="btn">Go analyze</button>
+  </div>`;
+
 $$(".tab").forEach(b => b.addEventListener("click", () => {
   $$(".tab").forEach(t => t.classList.remove("active"));
   b.classList.add("active");
   const id = b.dataset.tab;
   $$(".tab-pane").forEach(p => p.classList.add("hidden"));
   $("#tab-" + id).classList.remove("hidden");
+  // Tabs that depend on lastAnalysis: ensure they're populated, or show empty state
+  if (id === "reasoning") {
+    if (lastAnalysis) renderReasoning(lastAnalysis);
+    else $("#reasoningOut").innerHTML = EMPTY_HTML;
+  }
+  if (id === "graph") {
+    if (lastAnalysis) renderGraph(lastAnalysis);
+    else $("#graph").innerHTML = '';
+    if (!lastAnalysis) $("#graphLegend").innerHTML = '';
+  }
+  if (id === "constructions") {
+    if (lastAnalysis) renderConstructions(lastAnalysis);
+    else $("#constructionOut").innerHTML = EMPTY_HTML;
+  }
+  if (id === "compare") {
+    if (lastAnalysis) runCompare();         // auto-trigger comparison
+    else $("#compareOut").innerHTML = EMPTY_HTML;
+  }
   if (id === "dashboard") loadDashboard();
   if (id === "hard")      loadHard();
   if (id === "leakage")   loadLeakage();
   if (id === "json")      renderJson();
 }));
 
-// ===== Dark mode =====
 const persistedDark = localStorage.getItem("dark") === "1";
 if (persistedDark) document.body.classList.add("dark");
 $("#darkToggle").addEventListener("click", () => {
@@ -367,41 +543,41 @@ $("#darkToggle").addEventListener("click", () => {
   localStorage.setItem("dark", document.body.classList.contains("dark") ? "1" : "0");
 });
 
-// ===== Sample sentences =====
 fetch("/api/sample").then(r => r.json()).then(items => {
   const c = $("#samples");
   items.forEach(s => {
     const b = document.createElement("button");
-    b.className = "chip ar";
-    b.style.fontSize = "1.05rem";
+    b.className = "chip";
     b.textContent = s.text;
     b.title = s.tag;
+    b.style.background = "rgba(255,255,255,0.95)";
+    b.style.color = "#0f1129";
+    b.style.borderColor = "rgba(255,255,255,0.3)";
     b.onclick = () => { $("#inputText").value = s.text; analyze(); };
     c.appendChild(b);
   });
 });
 
-// ===== Analyze =====
 $("#analyzeBtn").addEventListener("click", analyze);
 $("#inputText").addEventListener("keypress", e => { if (e.key === "Enter") analyze(); });
 
 function setBanner(html, kind = "info") {
   const colors = {
-    info:    "background:var(--accent-soft); color:var(--accent); border-color:var(--accent)",
-    warn:    "background:var(--yellow-soft); color:var(--yellow); border-color:var(--yellow)",
-    err:     "background:var(--red-soft); color:var(--red); border-color:var(--red)",
-    loading: "background:var(--accent-soft); color:var(--accent); border-color:var(--accent)",
+    info:    `background:var(--accent-soft); color:var(--accent); border-color:var(--accent)`,
+    warn:    `background:var(--amber-soft); color:#92400e; border-color:var(--amber)`,
+    err:     `background:var(--red-soft); color:var(--red); border-color:var(--red)`,
+    loading: `background:var(--accent-soft); color:var(--accent); border-color:var(--accent)`,
   };
-  const b = $("#banner");
-  b.innerHTML = `<div class="card p-3 text-sm flex items-center gap-3 fade-in" style="${colors[kind]}">${html}</div>`;
-  b.classList.remove("hidden");
+  $("#banner").innerHTML =
+    `<div class="card fade-in flex items-center gap-3" style="${colors[kind]}; padding:1rem 1.2rem">${html}</div>`;
+  $("#banner").classList.remove("hidden");
 }
 function clearBanner() { $("#banner").classList.add("hidden"); }
 
 async function analyze() {
   const text = $("#inputText").value.trim();
   if (!text) return;
-  setBanner('<div class="spinner"></div><div>Analyzing syntax · detecting constructions · generating reasoning…</div>', "loading");
+  setBanner('<div class="spinner"></div><div class="font-medium">Analyzing syntax · detecting constructions · generating reasoning…</div>', "loading");
   $("#analyzeOut").innerHTML = '';
   try {
     const r = await fetch("/api/analyze", {
@@ -411,14 +587,16 @@ async function analyze() {
     if (!r.ok) throw new Error(await r.text());
     const d = await r.json();
     lastAnalysis = d;
-    clearBanner();
     if (d.warnings && d.warnings.length) {
-      setBanner(d.warnings.map(w => `<div class="icon-warn">${w}</div>`).join(""), "warn");
+      setBanner(d.warnings.map(w => `<div>⚠ ${w}</div>`).join(""), "warn");
+    } else {
+      clearBanner();
     }
     renderTokens(d);
     renderReasoning(d);
     renderConstructions(d);
     renderGraph(d);
+    renderJson();
   } catch (e) {
     setBanner(`Couldn't analyze: ${e.message || e}`, "err");
   }
@@ -429,197 +607,192 @@ function confClass(b) { return "conf-" + (b || "very_low"); }
 function pct(x) { return x == null ? "—" : (x * 100).toFixed(1) + "%"; }
 
 function renderTokens(d) {
-  // headline summary
   const ctx = d.constructions.length
-    ? d.constructions.map(c => `<span class="pill pill-construction">${c.family}</span>`).join("")
-    : '<span class="text-xs" style="color:var(--text-soft)">no constructions detected</span>';
+    ? d.constructions.map(c => `<span class="pill pill-construction">${c.family}</span>`).join(" ")
+    : '<span style="color:var(--muted)">no construction</span>';
   $("#analyzeSummary").innerHTML = `
-    <div class="card p-5 fade-in">
-      <div class="ar ar-big mb-3" dir="rtl">${d.text}</div>
-      <div class="flex items-center gap-3 text-xs" style="color:var(--text-soft)">
-        <span><b style="color:var(--text)">${d.n_tokens}</b> tokens</span>
-        <span>·</span>
-        <span>checkpoint: <code>${d.checkpoint}</code></span>
-        <span>·</span>
-        <span>${ctx}</span>
+    <div class="card fade-in">
+      <div class="ar text-3xl md:text-4xl mb-4 font-bold" dir="rtl" style="color:var(--text)">${d.text}</div>
+      <div class="flex items-center gap-3 text-sm flex-wrap" style="color:var(--text-soft)">
+        <span class="pill pill-tag">${d.n_tokens} tokens</span>
+        <span class="pill pill-tag mono">${d.checkpoint}</span>
+        ${ctx}
       </div>
     </div>`;
 
-  // token grid
-  const grid = d.tokens.map(t => {
-    const warnIcon = t.calibration_warning ? '<span class="icon-warn"></span>' : '';
+  const grid = d.tokens.map((t, i) => {
+    const warnIcon = t.calibration_warning ? '<span title="calibration warning">⚠</span>' : '';
     const ambig = t.is_surface_ambiguous
-      ? '<span class="pill pill-warning text-[9px]">surface ambiguous</span>' : '';
+      ? '<span class="pill pill-warning" style="font-size:0.55rem">surface ambiguous</span>' : '';
     return `
-      <div class="token-card fade-in" data-tindex="${t.index}" onclick="showTokenModal(${t.index})">
-        <div class="ar text-xl text-center mb-2" dir="rtl">${t.surface}</div>
+      <div class="token slide-in" style="animation-delay:${i*40}ms" data-tindex="${t.index}" onclick="showTokenModal(${t.index})">
+        <div class="token-arabic" dir="rtl">${t.surface}</div>
         <div class="text-center mb-1.5">
           <span class="pill ${caseClass(t.case)}">${t.case || '—'}</span>
         </div>
-        <div class="text-center text-[11px] mb-1" style="color:var(--text-soft)">
+        <div class="text-center text-[11px] mb-1.5">
           <span class="pill pill-role">${t.role || '—'}</span>
         </div>
-        <div class="text-center text-[10px] mb-2" style="color:var(--muted)">
-          ${t.marker || '—'} ${ambig}
+        <div class="text-center text-[10px] mb-2.5 mono" style="color:var(--muted)">
+          ${t.marker || '—'}
         </div>
         <div class="conf-bar">
-          <div class="conf-fill ${confClass(t.confidence_band)}"
-               style="width:${(t.role_conf || 0) * 100}%"></div>
+          <div class="conf-fill ${confClass(t.confidence_band)}" style="width:${(t.role_conf || 0) * 100}%"></div>
         </div>
-        <div class="text-[10px] mt-1 flex justify-between" style="color:var(--muted)">
+        <div class="text-[10px] mt-1.5 flex justify-between mono" style="color:var(--muted)">
           <span>${warnIcon}role conf</span>
           <span>${pct(t.role_conf)}</span>
         </div>
+        ${ambig ? `<div class="text-center mt-2">${ambig}</div>` : ''}
       </div>`;
   }).join("");
   $("#analyzeOut").innerHTML = `
-    <div class="card p-5 fade-in">
-      <div class="text-xs mb-3" style="color:var(--text-soft)">
-        Click any token for full details and alternative readings.
+    <div class="card fade-in">
+      <div class="text-sm mb-4 flex items-center gap-2" style="color:var(--text-soft)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Click any token to see top-3 alternative readings + reasoning
       </div>
-      <div class="flex flex-wrap gap-2.5" dir="rtl">${grid}</div>
+      <div class="flex flex-wrap gap-3" dir="rtl">${grid}</div>
     </div>`;
 
-  // advanced section
   $("#analyzeAdvanced").innerHTML = `
-    <table class="text-xs w-full">
+    <table class="text-sm w-full">
       <thead style="color:var(--text-soft)">
         <tr class="border-b" style="border-color:var(--border)">
-          <th class="text-left py-2">surface</th>
-          <th class="text-left">case</th><th class="text-left">role</th>
-          <th class="text-left">marker</th>
-          <th class="text-right">case conf</th>
-          <th class="text-right">role conf</th>
-          <th class="text-right">marker conf</th>
+          <th class="text-left py-2 pr-4">surface</th>
+          <th class="text-left pr-3">case</th><th class="text-left pr-3">role</th>
+          <th class="text-left pr-3">marker</th>
+          <th class="text-right pr-3 mono">case</th>
+          <th class="text-right pr-3 mono">role</th>
+          <th class="text-right mono">marker</th>
         </tr>
       </thead>
       <tbody>
         ${d.tokens.map(t => `
           <tr class="border-b" style="border-color:var(--border)">
-            <td class="ar py-1.5" dir="rtl">${t.surface}</td>
-            <td>${t.case || '—'}</td><td>${t.role || '—'}</td>
-            <td>${t.marker || '—'}</td>
-            <td class="text-right font-mono">${pct(t.case_conf)}</td>
-            <td class="text-right font-mono">${pct(t.role_conf)}</td>
-            <td class="text-right font-mono">${pct(t.marker_conf)}</td>
+            <td class="ar py-2 pr-4 text-lg" dir="rtl">${t.surface}</td>
+            <td class="pr-3">${t.case || '—'}</td><td class="pr-3">${t.role || '—'}</td>
+            <td class="pr-3">${t.marker || '—'}</td>
+            <td class="text-right pr-3 mono">${pct(t.case_conf)}</td>
+            <td class="text-right pr-3 mono">${pct(t.role_conf)}</td>
+            <td class="text-right mono">${pct(t.marker_conf)}</td>
           </tr>`).join("")}
       </tbody>
     </table>`;
 }
 
-// Token-detail modal
 window.showTokenModal = function(index) {
   if (!lastAnalysis) return;
   const t = lastAnalysis.tokens[index];
   if (!t) return;
+  closeModal();   // remove any prior modal so we never stack duplicate IDs
   const reasoning = lastAnalysis.reasoning[index];
-  const alts = (t.role_alternatives || []).map((a, i) =>
-    `<div class="flex justify-between text-xs py-1">
-       <span>${i + 1}. <span class="pill pill-role">${a.role || '—'}</span></span>
-       <span class="font-mono" style="color:var(--text-soft)">${pct(a.conf)}</span>
-     </div>`).join("");
+  const alts = (t.role_alternatives || []).map((a, i) => `
+    <div class="flex justify-between items-center py-1.5 border-b" style="border-color:var(--border)">
+      <span class="flex items-center gap-2">
+        <span style="color:var(--muted)" class="mono text-xs">${i+1}</span>
+        <span class="pill pill-role">${a.role || '—'}</span>
+      </span>
+      <span class="mono text-xs" style="color:var(--text-soft)">${pct(a.conf)}</span>
+    </div>`).join("");
   const html = `
     <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-bg fade-in"
          onclick="if(event.target===this)closeModal()">
-      <div class="card p-6 max-w-md w-full max-h-[85vh] overflow-y-auto">
-        <div class="flex justify-between items-start mb-3">
+      <div class="card max-w-md w-full max-h-[88vh] overflow-y-auto">
+        <div class="flex justify-between items-start mb-4">
           <div>
-            <div class="ar text-2xl" dir="rtl">${t.surface}</div>
-            <div class="text-xs mt-1" style="color:var(--text-soft)">
-              token ${t.index} · pos ${t.pos || '—'}
-            </div>
+            <div class="ar text-3xl mb-1 font-bold" dir="rtl">${t.surface}</div>
+            <div class="text-xs mono" style="color:var(--text-soft)">token ${t.index} · pos ${t.pos || '—'}</div>
           </div>
-          <button onclick="closeModal()" class="btn-soft text-xs">close</button>
+          <button onclick="closeModal()" class="btn-soft">✕</button>
         </div>
-        <div class="grid grid-cols-3 gap-2 mb-4">
-          <div class="text-center card p-2.5" style="background:var(--bg)">
-            <div class="text-[10px] mb-1" style="color:var(--text-soft)">CASE</div>
+        <div class="grid grid-cols-3 gap-2.5 mb-4">
+          <div class="text-center card" style="background:var(--bg-soft); padding:0.85rem">
+            <div class="text-[10px] mb-1.5 uppercase tracking-wider" style="color:var(--text-soft)">case</div>
             <span class="pill ${caseClass(t.case)}">${t.case || '—'}</span>
-            <div class="text-[10px] mt-1 font-mono" style="color:var(--muted)">${pct(t.case_conf)}</div>
+            <div class="text-[10px] mt-1.5 mono" style="color:var(--muted)">${pct(t.case_conf)}</div>
           </div>
-          <div class="text-center card p-2.5" style="background:var(--bg)">
-            <div class="text-[10px] mb-1" style="color:var(--text-soft)">ROLE</div>
+          <div class="text-center card" style="background:var(--bg-soft); padding:0.85rem">
+            <div class="text-[10px] mb-1.5 uppercase tracking-wider" style="color:var(--text-soft)">role</div>
             <span class="pill pill-role">${t.role || '—'}</span>
-            <div class="text-[10px] mt-1 font-mono" style="color:var(--muted)">${pct(t.role_conf)}</div>
+            <div class="text-[10px] mt-1.5 mono" style="color:var(--muted)">${pct(t.role_conf)}</div>
           </div>
-          <div class="text-center card p-2.5" style="background:var(--bg)">
-            <div class="text-[10px] mb-1" style="color:var(--text-soft)">MARKER</div>
-            <div class="text-xs">${t.marker || '—'}</div>
-            <div class="text-[10px] mt-1 font-mono" style="color:var(--muted)">${pct(t.marker_conf)}</div>
+          <div class="text-center card" style="background:var(--bg-soft); padding:0.85rem">
+            <div class="text-[10px] mb-1.5 uppercase tracking-wider" style="color:var(--text-soft)">marker</div>
+            <div class="text-xs mt-0.5">${t.marker || '—'}</div>
+            <div class="text-[10px] mt-1.5 mono" style="color:var(--muted)">${pct(t.marker_conf)}</div>
           </div>
         </div>
         ${t.calibration_warning ? `
-        <div class="card p-3 mb-4 text-xs" style="background:var(--yellow-soft); color:var(--yellow); border-color:var(--yellow)">
-          <span class="icon-warn"></span>${t.calibration_warning}
+        <div class="card mb-4" style="background:var(--amber-soft); padding:0.9rem">
+          <div class="text-xs">⚠ ${t.calibration_warning}</div>
         </div>` : ''}
         ${alts ? `
         <div class="mb-4">
-          <div class="text-xs font-medium mb-1.5">Top role alternatives</div>
+          <div class="text-xs font-bold mb-2 uppercase tracking-wider" style="color:var(--text-soft)">Top role alternatives</div>
           ${alts}
         </div>` : ''}
-        <div class="space-y-2 text-sm">
+        <div class="space-y-2.5">
           ${reasoning?.why_role ? `
-          <div class="card p-3" style="background:var(--bg)">
-            <div class="text-[10px] font-semibold mb-1" style="color:var(--accent)">WHY THIS ROLE?</div>
-            <div>${reasoning.why_role}</div>
+          <div class="card" style="background:var(--bg-soft); padding:0.9rem">
+            <div class="text-[10px] font-bold mb-1.5 uppercase tracking-wider" style="color:var(--accent)">Why this role?</div>
+            <div class="text-sm">${reasoning.why_role}</div>
           </div>` : ''}
           ${reasoning?.why_case ? `
-          <div class="card p-3" style="background:var(--bg)">
-            <div class="text-[10px] font-semibold mb-1" style="color:var(--accent)">WHY THIS CASE?</div>
-            <div>${reasoning.why_case}</div>
+          <div class="card" style="background:var(--bg-soft); padding:0.9rem">
+            <div class="text-[10px] font-bold mb-1.5 uppercase tracking-wider" style="color:var(--accent)">Why this case?</div>
+            <div class="text-sm">${reasoning.why_case}</div>
           </div>` : ''}
           ${reasoning?.why_marker ? `
-          <div class="card p-3" style="background:var(--bg)">
-            <div class="text-[10px] font-semibold mb-1" style="color:var(--accent)">WHY THIS MARKER?</div>
-            <div>${reasoning.why_marker}</div>
+          <div class="card" style="background:var(--bg-soft); padding:0.9rem">
+            <div class="text-[10px] font-bold mb-1.5 uppercase tracking-wider" style="color:var(--accent)">Why this marker?</div>
+            <div class="text-sm">${reasoning.why_marker}</div>
           </div>` : ''}
         </div>
       </div>
     </div>`;
   document.body.insertAdjacentHTML("beforeend", html);
 };
-window.closeModal = () => {
-  const m = $("#modal"); if (m) m.remove();
-};
+window.closeModal = () => { const m = $("#modal"); if (m) m.remove(); };
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
 function renderReasoning(d) {
   if (!d.reasoning?.length) {
-    $("#reasoningOut").innerHTML = '<div class="text-sm" style="color:var(--text-soft)">No reasoning yet — analyze a sentence first.</div>';
+    $("#reasoningOut").innerHTML = '<div style="color:var(--text-soft)">Analyze a sentence to see the reasoning.</div>';
     return;
   }
-  $("#reasoningOut").innerHTML = d.reasoning.map(r => `
-    <div class="card p-4 fade-in" style="background:var(--bg)">
-      <div class="flex items-baseline gap-3 mb-2">
-        <div class="ar text-lg" dir="rtl">${r.surface}</div>
+  $("#reasoningOut").innerHTML = d.reasoning.map((r, i) => `
+    <div class="card slide-in" style="background:var(--bg-soft); animation-delay:${i*30}ms">
+      <div class="flex items-baseline gap-3 mb-3 flex-wrap">
+        <div class="ar text-2xl font-bold" dir="rtl">${r.surface}</div>
         <span class="pill pill-role">${r.role || '—'}</span>
         <span class="pill ${caseClass(r.case)}">${r.case || '—'}</span>
-        ${r.marker ? `<span class="text-xs" style="color:var(--text-soft)">marker: ${r.marker}</span>` : ''}
+        ${r.marker ? `<span class="text-xs mono" style="color:var(--text-soft)">marker: ${r.marker}</span>` : ''}
       </div>
-      <div class="space-y-1.5 text-sm">
-        ${r.why_role   ? `<div><b style="color:var(--accent)">role:</b> ${r.why_role}</div>` : ''}
-        ${r.why_case   ? `<div><b style="color:var(--accent)">case:</b> ${r.why_case}</div>` : ''}
-        ${r.why_marker ? `<div><b style="color:var(--accent)">marker:</b> ${r.why_marker}</div>` : ''}
+      <div class="space-y-2 text-sm">
+        ${r.why_role   ? `<div><b style="color:var(--accent)">Role:</b> ${r.why_role}</div>` : ''}
+        ${r.why_case   ? `<div><b style="color:var(--accent)">Case:</b> ${r.why_case}</div>` : ''}
+        ${r.why_marker ? `<div><b style="color:var(--accent)">Marker:</b> ${r.why_marker}</div>` : ''}
       </div>
     </div>`).join("");
 }
 
 function renderConstructions(d) {
   if (!d.constructions?.length) {
-    $("#constructionOut").innerHTML = '<div class="text-sm" style="color:var(--text-soft)">No constructions detected for this sentence.</div>';
+    $("#constructionOut").innerHTML = '<div style="color:var(--text-soft)">No constructions detected.</div>';
     return;
   }
   $("#constructionOut").innerHTML = d.constructions.map(c => {
     const memberSurf = c.members.map(i => d.tokens[i]?.surface || '?').join(' · ');
     return `
-      <div class="card p-4 fade-in" style="background:var(--bg)">
-        <div class="flex items-center justify-between mb-2">
-          <div class="font-semibold">${c.family}</div>
-          <span class="pill pill-construction">${c.id}</span>
+      <div class="card fade-in" style="background:var(--bg-soft)">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-bold text-lg">${c.family}</div>
+          <span class="pill pill-construction mono">${c.id}</span>
         </div>
-        <div class="ar text-lg mb-2" dir="rtl">${memberSurf}</div>
-        <div class="text-sm mb-2" style="color:var(--text-soft)">${c.explanation}</div>
-        <div class="text-xs flex gap-3" style="color:var(--muted)">
+        <div class="ar text-2xl mb-3 font-bold" dir="rtl">${memberSurf}</div>
+        <div class="text-sm mb-3" style="color:var(--text-soft)">${c.explanation}</div>
+        <div class="text-xs flex gap-3 mono" style="color:var(--muted)">
           <span>members: ${c.members.join(', ')}</span>
           ${c.governor != null ? `<span>governor: ${c.governor}</span>` : ''}
         </div>
@@ -627,7 +800,6 @@ function renderConstructions(d) {
   }).join("");
 }
 
-// ===== Graph SVG =====
 function renderGraph(d) {
   const svg = $("#graph");
   if (!svg) return;
@@ -636,30 +808,22 @@ function renderGraph(d) {
   const edges = d.graph.edges;
   if (!nodes.length) return;
   const W = svg.clientWidth || 800;
-  const H = 280;
+  const H = 320;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  const padding = 50;
+  const padding = 60;
   const xStep = (W - padding * 2) / Math.max(nodes.length - 1, 1);
-  // Position tokens RTL (so visual order matches Arabic reading)
-  nodes.forEach((n, i) => {
-    n._x = W - padding - i * xStep;
-    n._y = H / 2;
-  });
-
-  // Edges first (so nodes draw on top)
+  nodes.forEach((n, i) => { n._x = W - padding - i * xStep; n._y = H / 2; });
   edges.forEach(e => {
     const src = nodes.find(n => n.id === e.src);
     const dst = nodes.find(n => n.id === e.dst);
     if (!src || !dst) return;
     if (e.type === "construction") {
-      const dx = dst._x - src._x;
       const cx = (src._x + dst._x) / 2;
-      const cy = src._y - 50;
+      const cy = src._y - 60;
       const path = `M ${src._x} ${src._y} Q ${cx} ${cy} ${dst._x} ${dst._y}`;
       const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
       p.setAttribute("d", path);
       p.setAttribute("class", "graph-edge construction");
-      p.setAttribute("data-construction", e.construction_id || "");
       svg.appendChild(p);
     } else {
       const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -669,7 +833,6 @@ function renderGraph(d) {
       svg.appendChild(line);
     }
   });
-
   nodes.forEach(n => {
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.setAttribute("transform", `translate(${n._x},${n._y})`);
@@ -677,19 +840,20 @@ function renderGraph(d) {
     g.setAttribute("data-tindex", n.index);
     g.style.cursor = "pointer";
     const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    c.setAttribute("r", 24);
+    c.setAttribute("r", 28);
     g.appendChild(c);
     const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
     label.setAttribute("text-anchor", "middle");
     label.setAttribute("dy", "0.35em");
     label.setAttribute("font-family", "Amiri, serif");
-    label.setAttribute("font-size", "16");
+    label.setAttribute("font-size", "18");
+    label.setAttribute("font-weight", "700");
     label.textContent = n.label;
     g.appendChild(label);
     const role = document.createElementNS("http://www.w3.org/2000/svg", "text");
     role.setAttribute("text-anchor", "middle");
-    role.setAttribute("y", 42);
-    role.setAttribute("font-size", "10");
+    role.setAttribute("y", 50);
+    role.setAttribute("font-size", "11");
     role.setAttribute("fill", "var(--text-soft)");
     role.textContent = n.role || "—";
     g.appendChild(role);
@@ -703,122 +867,127 @@ function renderGraph(d) {
     });
     svg.appendChild(g);
   });
-
-  // Legend
   const consTypes = [...new Set(edges.filter(e => e.type === "construction").map(e => e.label))];
   $("#graphLegend").innerHTML = `
-    <span><span style="display:inline-block;width:24px;height:1.5px;background:var(--border);vertical-align:middle"></span> sequential</span>
-    ${consTypes.map(t => `<span><span style="display:inline-block;width:24px;border-top:2px dashed var(--purple);vertical-align:middle"></span> ${t}</span>`).join('')}
+    <span class="flex items-center gap-2"><span style="display:inline-block;width:24px;height:1.5px;background:var(--border)"></span> sequential</span>
+    ${consTypes.map(t => `<span class="flex items-center gap-2"><span style="display:inline-block;width:24px;border-top:2px dashed var(--rose)"></span> ${t}</span>`).join('')}
   `;
 }
 
-// ===== Compare =====
-$("#compareBtn").addEventListener("click", async () => {
+$("#compareBtn").addEventListener("click", () => runCompare(true));
+
+async function runCompare(force = false) {
   const text = $("#inputText").value.trim();
-  if (!text) { alert("Type a sentence first."); return; }
-  $("#compareOut").innerHTML = '<div class="flex items-center gap-3"><div class="spinner"></div><div>Running three checkpoints…</div></div>';
+  if (!text) {
+    $("#compareOut").innerHTML = EMPTY_HTML;
+    return;
+  }
+  $("#compareOut").innerHTML = '<div class="card flex items-center gap-3"><div class="spinner"></div><div class="font-medium">Running three checkpoints…</div></div>';
   const r = await fetch("/api/compare", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ text }),
   }).then(r => r.json());
-
   const renderRow = (d, name, banner, note) => {
-    if (!d || d.error) return `<div class="card p-3 text-sm" style="color:var(--red)">${name}: ${d?.error || 'unavailable'}</div>`;
-    return `<div class="card p-4">
-      <div class="flex items-center justify-between mb-2">
-        <div><b>${name}</b> <span class="text-xs" style="color:var(--text-soft)">${banner}</span></div>
+    if (!d || d.error) return `<div class="card" style="color:var(--red)">${name}: ${d?.error || 'unavailable'}</div>`;
+    return `<div class="card">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div><b class="text-lg">${name}</b> <span class="text-xs ml-1" style="color:var(--text-soft)">${banner}</span></div>
         ${note ? `<span class="pill pill-warning">${note}</span>` : ''}
       </div>
       <div class="flex flex-wrap gap-2" dir="rtl">
         ${d.tokens.map(t => `
-          <div class="token-card" style="min-width:80px;padding:.4rem">
-            <div class="ar text-base text-center">${t.surface}</div>
-            <div class="text-center mt-1"><span class="pill ${caseClass(t.case)} text-[9px]">${t.case || '—'}</span></div>
+          <div class="token" style="min-width:90px;padding:0.6rem">
+            <div class="ar text-lg text-center font-bold mb-1">${t.surface}</div>
+            <div class="text-center mb-1"><span class="pill ${caseClass(t.case)}" style="font-size:0.55rem">${t.case || '—'}</span></div>
             <div class="text-center text-[10px]" style="color:var(--text-soft)">${t.role || '—'}</div>
           </div>`).join("")}
       </div>
     </div>`;
   };
-
   let diffHtml = '';
   if (r.diff) {
     const changedTokens = r.diff.filter(t => t.n_changes > 0);
-    diffHtml = `<div class="card p-4">
-      <h3 class="font-semibold mb-2">Token-level diff: phase3a → recovery</h3>
+    diffHtml = `<div class="card">
+      <h3 class="font-bold text-lg mb-3">Token-level diff: phase3a → recovery</h3>
       ${changedTokens.length === 0
-        ? '<div class="text-sm" style="color:var(--green)">✓ No differences — both checkpoints agree on every token.</div>'
-        : `<div class="text-xs mb-2" style="color:var(--text-soft)">${changedTokens.length} of ${r.diff.length} tokens changed</div>
-           <table class="text-xs w-full">
-             <thead style="color:var(--text-soft)"><tr><th class="text-left py-1">tok</th><th class="text-left">word</th>
-               <th class="text-left">axis</th><th class="text-left">phase3a</th><th class="text-left">recovery</th></tr></thead>
+        ? '<div style="color:var(--green)">✓ No differences — both checkpoints agree on every token.</div>'
+        : `<div class="text-xs mb-3" style="color:var(--text-soft)">${changedTokens.length} of ${r.diff.length} tokens changed</div>
+           <table class="text-sm w-full">
+             <thead style="color:var(--text-soft)"><tr class="border-b" style="border-color:var(--border)">
+               <th class="text-left py-2 pr-3">tok</th><th class="text-left pr-3">word</th>
+               <th class="text-left pr-3">axis</th><th class="text-left pr-3">phase3a</th><th class="text-left">recovery</th></tr></thead>
              <tbody>
                ${changedTokens.flatMap(t => t.changes.map(ch => `
-                 <tr class="border-t" style="border-color:var(--border)">
-                   <td>${t.index}</td>
-                   <td class="ar" dir="rtl">${t.surface}</td>
-                   <td>${ch.axis}</td>
-                   <td><span class="pill pill-warning">${ch.phase3a || '—'}</span></td>
+                 <tr class="border-b" style="border-color:var(--border)">
+                   <td class="py-2 pr-3 mono">${t.index}</td>
+                   <td class="ar pr-3 text-lg" dir="rtl">${t.surface}</td>
+                   <td class="pr-3 text-xs uppercase" style="color:var(--text-soft)">${ch.axis}</td>
+                   <td class="pr-3"><span class="pill pill-warning">${ch.phase3a || '—'}</span></td>
                    <td><span class="pill pill-role">${ch.recovery || '—'}</span></td>
                  </tr>`)).join("")}
              </tbody>
            </table>`}
     </div>`;
   }
-
   $("#compareOut").innerHTML = [
     renderRow(r.recovery, "recovery", "production checkpoint", null),
     renderRow(r.phase3a,  "phase3a",  "warm-start baseline",   null),
     renderRow(r.stage7,   "stage7",   "leaked — case study",   "do not deploy"),
     diffHtml,
   ].join("");
-});
-
-// ===== Hard cases =====
-async function loadHard() {
-  const r = await fetch("/api/hard_cases").then(r => r.json());
-  $("#hardList").innerHTML = r.map(c => `
-    <div class="card card-hover p-4 cursor-pointer" onclick="document.querySelector('#inputText').value='${c.text.replace(/'/g, "\\'")}';document.querySelector('[data-tab=analyze]').click();analyze()">
-      <div class="flex items-center justify-between mb-2">
-        <span class="pill pill-construction">${c.tag}</span>
-        <span class="text-xs" style="color:var(--text-soft)">try →</span>
-      </div>
-      <div class="ar text-xl mb-2" dir="rtl">${c.text}</div>
-      <div class="text-xs" style="color:var(--text-soft)">${c.why}</div>
-    </div>`).join("");
 }
 
-// ===== Dashboard =====
+async function loadHard() {
+  const r = await fetch("/api/hard_cases").then(r => r.json());
+  $("#hardList").innerHTML = r.map((c, i) => `
+    <div class="card card-glow slide-in hard-card" style="animation-delay:${i*40}ms; cursor:pointer"
+         data-text="${c.text.replace(/"/g, '&quot;')}">
+      <div class="flex items-center justify-between mb-3">
+        <span class="pill pill-construction">${c.tag}</span>
+        <span class="text-xs font-semibold" style="color:var(--accent)">try this →</span>
+      </div>
+      <div class="ar text-2xl mb-3 font-bold" dir="rtl">${c.text}</div>
+      <div class="text-sm" style="color:var(--text-soft)">${c.why}</div>
+    </div>`).join("");
+  // Event delegation — robust to apostrophes / special chars in the text
+  $$("#hardList .hard-card").forEach(el => {
+    el.addEventListener("click", () => {
+      $("#inputText").value = el.dataset.text;
+      document.querySelector('[data-tab="analyze"]').click();
+      analyze();
+    });
+  });
+}
+
 async function loadDashboard() {
   const ev = await fetch("/api/eval_metrics").then(r => r.json()).catch(() => ({}));
   const fc = await fetch("/api/failure_summary").then(r => r.json()).catch(() => ({}));
   const pe = await fetch("/api/permissive_eval").then(r => r.json()).catch(() => ({}));
   const cb = await fetch("/api/calibration").then(r => r.json()).catch(() => ({}));
-
-  // Headline metrics
   const h = ev.summary?.headline;
   if (h) {
     const renderDS = (name, d) => {
       const metrics = ['case', 'role', 'marker', 'fully'];
-      return `<div class="card p-4" style="background:var(--bg)">
-        <h3 class="font-semibold mb-3">${name}</h3>
+      return `<div class="card" style="background:var(--bg-soft)">
+        <h3 class="font-bold text-lg mb-4">${name}</h3>
         ${metrics.map(m => {
           const ph = d.phase3a[m], rc = d.recovery[m];
           const delta = (rc - ph);
           const dColor = delta > 0.005 ? 'var(--green)' : (delta < -0.005 ? 'var(--red)' : 'var(--text-soft)');
-          return `<div class="mb-2">
-            <div class="flex justify-between text-xs mb-1">
+          return `<div class="mb-3">
+            <div class="flex justify-between text-sm mb-2">
               <span><b>${m}</b></span>
-              <span style="color:${dColor}" class="font-mono">Δ ${delta >= 0 ? '+' : ''}${delta.toFixed(3)}</span>
+              <span style="color:${dColor}" class="mono font-semibold">Δ ${delta >= 0 ? '+' : ''}${delta.toFixed(3)}</span>
+            </div>
+            <div class="flex gap-2 items-center mb-1">
+              <div class="text-[10px] mono" style="color:var(--text-soft); min-width:60px">phase3a</div>
+              <div class="conf-bar flex-1"><div class="conf-fill conf-medium" style="width:${ph * 100}%"></div></div>
+              <div class="text-[10px] mono" style="min-width:46px; text-align:right">${ph.toFixed(3)}</div>
             </div>
             <div class="flex gap-2 items-center">
-              <div class="text-[10px]" style="color:var(--text-soft);min-width:60px">phase3a</div>
-              <div class="conf-bar flex-1"><div class="conf-fill conf-medium" style="width:${ph * 100}%"></div></div>
-              <div class="text-[10px] font-mono" style="min-width:42px;text-align:right">${ph.toFixed(3)}</div>
-            </div>
-            <div class="flex gap-2 items-center mt-1">
-              <div class="text-[10px]" style="color:var(--text-soft);min-width:60px">recovery</div>
+              <div class="text-[10px] mono" style="color:var(--text-soft); min-width:60px">recovery</div>
               <div class="conf-bar flex-1"><div class="conf-fill conf-high" style="width:${rc * 100}%"></div></div>
-              <div class="text-[10px] font-mono" style="min-width:42px;text-align:right">${rc.toFixed(3)}</div>
+              <div class="text-[10px] mono" style="min-width:46px; text-align:right">${rc.toFixed(3)}</div>
             </div>
           </div>`;
         }).join("")}
@@ -827,133 +996,111 @@ async function loadDashboard() {
     $("#dashHeadline").innerHTML = renderDS("Gazelle (30 sentences)", h.gazelle)
                                   + renderDS("MASAQ (624 sentences)", h.masaq);
   }
-
-  // Calibration
-  const ece = ev.summary?.calibration_ece?.recovery;
-  if (ece && cb && !cb.status) {
-    const fits = cb.fits || {};
-    const rel  = cb.reliability || {};
+  if (cb && !cb.status) {
+    const fits = cb.fits || {}, rel = cb.reliability || {};
     $("#dashCalib").innerHTML = `
       <table class="text-sm w-full">
         <thead style="color:var(--text-soft)">
-          <tr><th class="text-left py-2">axis</th>
-              <th class="text-right">fitted T</th>
-              <th class="text-right">ECE before</th>
-              <th class="text-right">ECE after</th>
-              <th class="text-right">Δ</th></tr>
+          <tr class="border-b" style="border-color:var(--border)">
+            <th class="text-left py-2">axis</th>
+            <th class="text-right">T</th><th class="text-right">ECE before</th>
+            <th class="text-right">ECE after</th><th class="text-right">Δ</th></tr>
         </thead>
         <tbody>
           ${["case","role","marker"].map(a => {
             const r = rel[a] || {};
-            return `<tr class="border-t" style="border-color:var(--border)">
-              <td class="py-1.5">${a}</td>
-              <td class="text-right font-mono">${fits[a] ?? '—'}</td>
-              <td class="text-right font-mono">${r.ece_before ?? '—'}</td>
-              <td class="text-right font-mono">${r.ece_after ?? '—'}</td>
-              <td class="text-right font-mono" style="color:${(r.delta ?? 0) < 0 ? 'var(--green)' : 'var(--red)'}">${r.delta != null ? (r.delta >= 0 ? '+' : '') + r.delta : '—'}</td>
+            return `<tr class="border-b" style="border-color:var(--border)">
+              <td class="py-2 font-semibold">${a}</td>
+              <td class="text-right mono">${fits[a] ?? '—'}</td>
+              <td class="text-right mono">${r.ece_before ?? '—'}</td>
+              <td class="text-right mono">${r.ece_after ?? '—'}</td>
+              <td class="text-right mono" style="color:${(r.delta ?? 0) < 0 ? 'var(--green)' : 'var(--red)'}">${r.delta != null ? (r.delta >= 0 ? '+' : '') + r.delta : '—'}</td>
             </tr>`;
           }).join("")}
         </tbody>
       </table>`;
-  } else {
-    $("#dashCalib").innerHTML = '<div class="text-sm" style="color:var(--text-soft)">Calibration data not yet generated.</div>';
-  }
-
-  // Confusions
+  } else $("#dashCalib").innerHTML = '<div style="color:var(--text-soft)">Calibration data not yet generated.</div>';
   if (fc.confusions?.role?.length) {
-    const top = fc.confusions.role.slice(0, 12);
-    const max = top[0][2];
+    const top = fc.confusions.role.slice(0, 12), max = top[0][2];
     $("#dashConfusions").innerHTML = top.map(([g, p, n]) => `
-      <div class="flex items-center gap-3 mb-1.5 text-xs">
-        <div class="font-mono" style="min-width:130px">${g}</div>
+      <div class="flex items-center gap-3 mb-2">
+        <div class="mono text-sm" style="min-width:140px">${g}</div>
         <div style="color:var(--text-soft)">→</div>
-        <div class="font-mono" style="min-width:130px">${p}</div>
+        <div class="mono text-sm" style="min-width:140px">${p}</div>
         <div class="conf-bar flex-1"><div class="conf-fill conf-low" style="width:${n / max * 100}%"></div></div>
-        <div class="font-mono" style="min-width:24px;text-align:right">${n}</div>
+        <div class="mono font-semibold" style="min-width:30px; text-align:right">${n}</div>
       </div>`).join("");
   }
-
-  // Permissive
   if (pe && pe.permissive) {
     const p = pe.permissive;
     $("#dashPermissive").innerHTML = `
-      <div class="grid md:grid-cols-3 gap-3 text-sm">
-        <div class="card p-3" style="background:var(--bg)">
-          <div class="text-[10px]" style="color:var(--text-soft)">STRICT FULLY</div>
-          <div class="text-2xl font-bold">${p.strict_fully}</div>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div class="card" style="background:var(--bg-soft)">
+          <div class="text-[10px] uppercase tracking-wider" style="color:var(--text-soft)">Strict fully</div>
+          <div class="text-3xl font-bold mt-1">${p.strict_fully}</div>
         </div>
-        <div class="card p-3" style="background:var(--bg)">
-          <div class="text-[10px]" style="color:var(--text-soft)">PERMISSIVE FULLY</div>
-          <div class="text-2xl font-bold" style="color:var(--green)">${p.permissive_fully}</div>
+        <div class="card" style="background:var(--green-soft)">
+          <div class="text-[10px] uppercase tracking-wider" style="color:#065f46">Permissive fully</div>
+          <div class="text-3xl font-bold mt-1" style="color:#065f46">${p.permissive_fully}</div>
         </div>
-        <div class="card p-3" style="background:var(--bg)">
-          <div class="text-[10px]" style="color:var(--text-soft)">Δ (UPPER BOUND)</div>
-          <div class="text-2xl font-bold" style="color:var(--accent)">+${p.delta}</div>
+        <div class="card" style="background:var(--accent-soft)">
+          <div class="text-[10px] uppercase tracking-wider" style="color:var(--accent)">Δ upper bound</div>
+          <div class="text-3xl font-bold mt-1" style="color:var(--accent)">+${p.delta}</div>
         </div>
       </div>
-      <div class="text-xs mt-3 card p-3" style="background:var(--yellow-soft); color:var(--yellow); border-color:var(--yellow)">
-        <span class="icon-warn"></span>
-        Heuristic upper bound. A real grammarian would tighten this to +0.05 to +0.10.
+      <div class="card mt-3" style="background:var(--amber-soft); padding:0.85rem">
+        <div class="text-sm">⚠ Heuristic upper bound. A grammarian would tighten this to +0.05–0.10.</div>
       </div>`;
   }
 }
 
-// ===== Leakage tab =====
 async function loadLeakage() {
-  const lk = await fetch("/api/leakage_summary").then(r => r.json()).catch(() => ({}));
   $("#leakageOut").innerHTML = `
     <table class="text-sm w-full">
       <thead style="color:var(--text-soft)">
-        <tr><th class="text-left py-2">Metric</th>
-            <th class="text-right">Phase 3-A</th>
-            <th class="text-right">Recovery (clean)</th>
-            <th class="text-right">Leaked stage_7</th></tr>
+        <tr class="border-b" style="border-color:var(--border)">
+          <th class="text-left py-2">Metric</th><th class="text-right pr-3">Phase 3-A</th>
+          <th class="text-right pr-3">Recovery</th><th class="text-right">Leaked stage_7</th></tr>
       </thead>
       <tbody>
-        <tr class="border-t" style="border-color:var(--border)">
-          <td class="py-1.5">MASAQ fully</td>
-          <td class="text-right font-mono">0.675</td>
-          <td class="text-right font-mono" style="color:var(--green)">0.711</td>
-          <td class="text-right font-mono" style="color:var(--red)">0.999 ← memorisation</td>
+        <tr class="border-b" style="border-color:var(--border)">
+          <td class="py-2.5">MASAQ fully</td>
+          <td class="text-right pr-3 mono">0.675</td>
+          <td class="text-right pr-3 mono" style="color:var(--green)">0.711</td>
+          <td class="text-right mono" style="color:var(--red)">0.999 ← memorisation</td>
         </tr>
-        <tr class="border-t" style="border-color:var(--border)">
-          <td class="py-1.5">MASAQ calib_gap</td>
-          <td class="text-right font-mono">0.087</td>
-          <td class="text-right font-mono">0.124</td>
-          <td class="text-right font-mono" style="color:var(--red)">0.9998 ← memorisation</td>
+        <tr class="border-b" style="border-color:var(--border)">
+          <td class="py-2.5">MASAQ calib_gap</td>
+          <td class="text-right pr-3 mono">0.087</td>
+          <td class="text-right pr-3 mono">0.124</td>
+          <td class="text-right mono" style="color:var(--red)">0.9998 ← memorisation</td>
         </tr>
-        <tr class="border-t" style="border-color:var(--border)">
-          <td class="py-1.5">Gazelle fully</td>
-          <td class="text-right font-mono">0.459</td>
-          <td class="text-right font-mono">0.459</td>
-          <td class="text-right font-mono" style="color:var(--red)">0.377 ← regressed</td>
+        <tr class="border-b" style="border-color:var(--border)">
+          <td class="py-2.5">Gazelle fully</td>
+          <td class="text-right pr-3 mono">0.459</td>
+          <td class="text-right pr-3 mono">0.459</td>
+          <td class="text-right mono" style="color:var(--red)">0.377 ← regressed</td>
         </tr>
       </tbody>
     </table>`;
 }
 
-// ===== JSON tab =====
 function renderJson() {
-  $("#jsonOut").textContent = lastAnalysis
-    ? JSON.stringify(lastAnalysis, null, 2)
-    : "// analyze a sentence first";
+  $("#jsonOut").textContent = lastAnalysis ? JSON.stringify(lastAnalysis, null, 2) : "// analyze a sentence first";
 }
 $("#copyJson").addEventListener("click", () => {
   if (!lastAnalysis) return;
   navigator.clipboard.writeText(JSON.stringify(lastAnalysis, null, 2));
   $("#copyJson").textContent = "✓ copied";
-  setTimeout(() => $("#copyJson").textContent = "Copy", 1200);
+  setTimeout(() => $("#copyJson").textContent = "📋 Copy", 1200);
 });
 $("#downloadJson").addEventListener("click", () => {
   if (!lastAnalysis) return;
   const blob = new Blob([JSON.stringify(lastAnalysis, null, 2)], {type: "application/json"});
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "irab_analysis.json";
-  a.click();
+  a.href = URL.createObjectURL(blob); a.download = "irab_analysis.json"; a.click();
 });
 
-// Auto-analyze a sample on first load
 window.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     if (!$("#inputText").value) {
