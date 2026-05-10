@@ -1676,11 +1676,14 @@ further attempts would be churn.
 
 ## 20. Citation
 
+**Author:** Nour Jennane
+**Contributors:** Nour Jennane, Hatem Saadallah
+
 ```bibtex
 @article{iraab_recovery_2026,
   title  = {A Case Study in Honest Arabic Grammatical Reasoning:
             From Leakage Collapse to Structural Ambiguity Bottlenecks},
-  author = {Saadallah, Hatem and contributors},
+  author = {Jennane, Nour and Saadallah, Hatem},
   year   = {2026},
   url    = {https://github.com/Nourjennane/irab_project},
   note   = {Production checkpoint: validated\_nextgen\_recovery; two
