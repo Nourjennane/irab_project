@@ -1,0 +1,42 @@
+{
+  "auto_annotation": {
+    "total_mined": 4233,
+    "kept_as_both_valid": 4233,
+    "kept_pct": 100.0,
+    "n_unique_sentences": 486,
+    "heuristic": "surface_role_family",
+    "family": [
+      "badal",
+      "fail",
+      "ism_inna",
+      "ism_majrur",
+      "khabar",
+      "khabar_inna",
+      "khabar_kana",
+      "mafoul_bih",
+      "matuf",
+      "mubtada",
+      "mudaaf_ilayh",
+      "naat"
+    ]
+  },
+  "strict": {
+    "n_words": 1060,
+    "case_acc": 0.8368,
+    "role_acc": 0.7943,
+    "marker_em": 0.7613,
+    "fully": 0.6962,
+    "calib_gap": 0.1112
+  },
+  "permissive": {
+    "n_total": 1060,
+    "n_strict_correct": 738,
+    "n_permissive_correct": 900,
+    "n_ambiguous_tokens": 311,
+    "n_ambiguous_resolved": 162,
+    "strict_fully": 0.6962,
+    "permissive_fully": 0.8491,
+    "ambiguity_resolved_acc": 0.5209,
+    "delta": 0.1528
+  }
+}
